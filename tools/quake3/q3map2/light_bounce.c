@@ -414,14 +414,21 @@ static void RadSample( int lightmapNum, bspDrawSurface_t *ds, rawLightmap_t *lm,
 #define RADIOSITY_MIN               0.0001f
 #define RADIOSITY_CLIP_EPSILON      0.125f
 
+struct {
+	radWinding_t front;
+	radWinding_t back;
+} radWinding_pair;
+
 static void RadSubdivideDiffuseLight( int lightmapNum, bspDrawSurface_t *ds, rawLightmap_t *lm, shaderInfo_t *si,
-									  float scale, float subdivide, qboolean original, radWinding_t *rw, clipWork_t *cw ){
+									  float scale, float subdivide, qboolean original, radWinding_t *rw, clipWork_t *cw, int depth ){
 	int i, style = 0;
 	float dist, area, value;
 	vec3_t mins, maxs, normal, d1, d2, cross, color, gradient;
 	light_t         *light, *splash;
 	winding_t       *w;
-
+	
+	qboolean allow_subdivide = depth < 128;
+	
 
 	/* dummy check */
 	if ( rw == NULL || rw->numVerts < 3 ) {
@@ -432,13 +439,14 @@ static void RadSubdivideDiffuseLight( int lightmapNum, bspDrawSurface_t *ds, raw
 	ClearBounds( mins, maxs );
 	for ( i = 0; i < rw->numVerts; i++ )
 		AddPointToBounds( rw->verts[ i ].xyz, mins, maxs );
-
+	
 	/* subdivide if necessary */
 	for ( i = 0; i < 3; i++ )
 	{
-		if ( maxs[ i ] - mins[ i ] > subdivide ) {
-			radWinding_t front, back;
-
+		if ( maxs[ i ] - mins[ i ] > subdivide && allow_subdivide) {
+			radWinding_t * front, * back;
+			front = calloc(1, sizeof(radWinding_t));
+			back = calloc(1, sizeof(radWinding_t));
 
 			/* make axial plane */
 			VectorClear( normal );
@@ -446,11 +454,14 @@ static void RadSubdivideDiffuseLight( int lightmapNum, bspDrawSurface_t *ds, raw
 			dist = ( maxs[ i ] + mins[ i ] ) * 0.5f;
 
 			/* clip the winding */
-			RadClipWindingEpsilon( rw, normal, dist, RADIOSITY_CLIP_EPSILON, &front, &back, cw );
+			RadClipWindingEpsilon( rw, normal, dist, RADIOSITY_CLIP_EPSILON, front, back, cw );
 
 			/* recurse */
-			RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qfalse, &front, cw );
-			RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qfalse, &back, cw );
+			RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qfalse, front, cw, depth + 1 );
+			RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qfalse, back, cw, depth + 1 );
+			
+			free(front);
+			free(back);
 			return;
 		}
 	}
@@ -474,9 +485,9 @@ static void RadSubdivideDiffuseLight( int lightmapNum, bspDrawSurface_t *ds, raw
 		RadSample( lightmapNum, ds, lm, si, rw, color, gradient, &style );
 
 		/* if color gradient is too high, subdivide again */
-		if ( subdivide > minDiffuseSubdivide &&
+		if ( allow_subdivide && subdivide > minDiffuseSubdivide &&
 			 ( gradient[ 0 ] > RADIOSITY_MAX_GRADIENT || gradient[ 1 ] > RADIOSITY_MAX_GRADIENT || gradient[ 2 ] > RADIOSITY_MAX_GRADIENT ) ) {
-			RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, ( subdivide / 2.0f ), qfalse, rw, cw );
+			RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, ( subdivide / 2.0f ), qfalse, rw, cw, depth + 1 );
 			return;
 		}
 	}
@@ -664,7 +675,7 @@ void RadLightForTriangles( int num, int lightmapNum, rawLightmap_t *lm, shaderIn
 		}
 
 		/* subdivide into area lights */
-		RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qtrue, &rw, cw );
+		RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qtrue, &rw, cw, 0 );
 	}
 }
 
@@ -773,7 +784,7 @@ void RadLightForPatch( int num, int lightmapNum, rawLightmap_t *lm, shaderInfo_t
 				}
 
 				/* subdivide into area lights */
-				RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qtrue, &rw, cw );
+				RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qtrue, &rw, cw, 0 );
 			}
 
 			/* generate 2 tris */
@@ -802,7 +813,7 @@ void RadLightForPatch( int num, int lightmapNum, rawLightmap_t *lm, shaderInfo_t
 					}
 
 					/* subdivide into area lights */
-					RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qtrue, &rw, cw );
+					RadSubdivideDiffuseLight( lightmapNum, ds, lm, si, scale, subdivide, qtrue, &rw, cw, 0 );
 				}
 			}
 		}

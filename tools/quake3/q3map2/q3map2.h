@@ -327,7 +327,7 @@
 #define MAX_MAP_LEAFBRUSHES     0x40000
 #define MAX_MAP_PORTALS         0x20000
 #define MAX_MAP_LIGHTING        0x800000
-#define MAX_MAP_LIGHTGRID       0x100000    //%	0x800000 /* ydnar: set to points, not bytes */
+#define MAX_MAP_LIGHTGRID       0x1600000    //%	0x800000 /* ydnar: set to points, not bytes */
 
 // some recent QL maps have started hitting the limit (old value was 0x200000). QBall
 // below has been 'borrowed' from the netradiant fork
