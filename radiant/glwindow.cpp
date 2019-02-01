@@ -176,7 +176,12 @@ static gint scroll_event( GtkWidget *widget,
 						  GdkEventScroll *event,
 						  gpointer data ){
 	GLWindow *wnd = (GLWindow*)data;
-	wnd->OnMouseWheel( ( event->direction == GDK_SCROLL_UP ) ? true : false, (int)event->x, (int)event->y );
+	if (event->direction == GDK_SCROLL_UP)
+		wnd->OnMouseWheel( true, (int)event->x, (int)event->y );
+	else if (event->direction == GDK_SCROLL_DOWN)
+		wnd->OnMouseWheel( false, (int)event->x, (int)event->y );
+	else
+		return FALSE;
 	return TRUE;
 }
 
