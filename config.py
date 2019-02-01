@@ -253,6 +253,9 @@ class Config:
             env.Append( CFLAGS = [ '-g' ] )
             env.Append( CXXFLAGS = [ '-g' ] )
             env.Append( CPPDEFINES = [ '_DEBUG' ] )
+        elif ( config == 'native' ):
+			env.Append( CFLAGS = [ '-Ofast', '-march=native', '-mtune=native' ] )
+			env.Append( CXXFLAGS = [ '-Ofast', '-march=native', '-mtune=native' ] )
         else:
             env.Append( CFLAGS = [ '-O2', '-fno-strict-aliasing' ] )
             env.Append( CXXFLAGS = [ '-O2', '-fno-strict-aliasing' ] )
