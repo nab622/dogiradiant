@@ -19,41 +19,42 @@ Useful links
 Supported games
 ---------------
 
-GtkRadiant provides level editing support for [Quake](https://en.wikipedia.org/wiki/Quake_(video_game)), [Quake2](https://en.wikipedia.org/wiki/Quake_II), [Quake III Arena](https://ioquake3.org), [QuakeLive](https://www.quakelive.com), [Quetoo](http://quetoo.org), [Return to Castle Wolfenstein](https://en.wikipedia.org/wiki/Return_to_Castle_Wolfenstein), [Star Trek Voyager: Elite Force](https://en.wikipedia.org/wiki/Star_Trek:_Voyager_–_Elite_Force), [Star Wars Jedi Knight: Jedi Academy](https://en.wikipedia.org/wiki/Star_Wars_Jedi_Knight:_Jedi_Academy), [Unvanquished](https://www.unvanquished.net), [Urban Terror](http://urbanterror.info), [Wolfenstein: Enemy Territory](http://www.splashdamage.com/content/wolfenstein-enemy-territory-barracks).
+This fork of GtkRadiant only supports [Jedi Academy](https://en.wikipedia.org/wiki/Star_Wars_Jedi_Knight:_Jedi_Academy).
 
 How to build
 ------------
 
-You can find more complete instructions to build on Windows [there](https://icculus.org/gtkradiant/documentation/windows_compile_guide/) and to build on Mac OS [there](apple/README.md).
+Build is only supported on Linux
 
 ```sh
 # get the source
-git clone "https://github.com/TTimo/GtkRadiant.git"
+git clone "https://github.com/cagelight/GtkRadiant.git"
 
 # enter the source tree
 cd GtkRadiant
 
-# build everything
-scons
+# create build directory and enter it
+mkdir build && cd build
+
+# generate build files
+cmake -G Ninja ..
+
+# begin compilation
+ninja install
 ```
 
 You can build a specific part like this:
 
 ```sh
-# only build the GtkRadiant level editor
-scons target="radiant"
-
-# only build the q3map2 map compiler and the q3data tool
-scons target="q3map2,q3data"
+#TODO
 ```
 
 Level editor binary (`radiant`) and tools (like `q3map2`) will be found in `install/` directory. 
-The build process automatically fetches gamepacks.
 
 Getting in touch
 ----------------
 
-The [#radiant channel at QuakeNet](https://webchat.quakenet.org/?channels=radiant) is the official GtkRadiant IRC channel. Come and chat about level design, development or bugs, you're welcome. Bugs can be submitted on the [GitHub issue tracker](https://github.com/TTimo/GtkRadiant/issues).
+Bugs can be submitted on the [GitHub issue tracker](https://github.com/cagelight/GtkRadiant/issues).
 
 Legal
 -----
