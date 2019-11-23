@@ -54,13 +54,14 @@ void Syn_Printf( const char *text, ... ){
 	if ( !text ) {
 		return;
 	}
-
+	
+	/* FIXME -- disabled cause it was causing problems
 	if ( g_pPrintf ) {
 		va_start( args, text );
 		( *g_pPrintf )( text, args );
 		va_end( args );
 	}
-	else
+	else*/
 	{
 		va_start( args, text );
 		vsnprintf( buf, BUFFER_SIZE, text, args );
