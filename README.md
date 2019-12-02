@@ -11,10 +11,10 @@ Build is only supported on Linux
 
 ```sh
 # get the source
-git clone "https://github.com/cagelight/GtkRadiant.git"
+git clone "https://github.com/cagelight/dogiradiant.git"
 
 # enter the source tree
-cd GtkRadiant
+cd dogiradiant
 
 # create build directory and enter it
 mkdir build && cd build
