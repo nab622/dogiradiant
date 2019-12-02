@@ -486,6 +486,8 @@ void BuildShaderList(){
 			Sys_FPrintf( SYS_ERR, "Couldn't find '%s'\n", g_pGameDescription->mShaderlist.GetBuffer() );
 			return;
 		}
+		
+		l_shaderfiles = g_slist_append( l_shaderfiles, strdup("<default>") );
 
 		for ( i = 0; i < count; i++ )
 		{
