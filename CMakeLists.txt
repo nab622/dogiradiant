@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(JASDK)
+project(dogiradiant)
 
 set( CMAKE_CONFIGURATION_TYPES "Debug;Release;Native" )
 
@@ -10,12 +10,13 @@ pkg_check_modules(XML2 REQUIRED libxml-2.0)
 pkg_check_modules(GTKGL REQUIRED gtkglext-1.0)
 pkg_check_modules(ATK REQUIRED atk)
 pkg_check_modules(JPEG REQUIRED libjpeg)
+pkg_check_modules(MINIZ REQUIRED minizip)
 pkg_check_modules(PNG REQUIRED libpng)
 
 set( CMAKE_C_FLAGS   "-fPIC" )
 set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11" )
 
-set( CMAKE_C_FLAGS_DEBUG   "-Wall -Og -march=core2 -mtune=generic -ggdb3" )
+set( CMAKE_C_FLAGS_DEBUG   "-Wall -Og -march=core2 -mtune=native -ggdb3" )
 set( CMAKE_C_FLAGS_RELEASE "-w -O2 -march=core2 -mtune=generic" )
 set( CMAKE_C_FLAGS_NATIVE  "-w -Ofast -march=native -mtune=native" )
 
@@ -739,7 +740,6 @@ install( TARGETS textool LIBRARY DESTINATION modules )
 # ================================
 
 set( vfspk3Files
-	"plugins/vfspk3/unzip.cpp"
 	"plugins/vfspk3/vfs.cpp"
 	"plugins/vfspk3/vfspk3.cpp"
 )
@@ -750,6 +750,7 @@ set_property( TARGET vfspk3 PROPERTY PREFIX "" )
 target_include_directories( vfspk3 PUBLIC 
 	${GLIB2_INCLUDE_DIRS}
 	${XML2_INCLUDE_DIRS}
+	${MINIZ_INCLUDE_DIRS}
 	"include"
 	"libs"
 )
@@ -757,6 +758,7 @@ target_include_directories( vfspk3 PUBLIC
 target_link_libraries( vfspk3 PUBLIC 
 	${GLIB2_LIBRARIES}
 	${XML2_LIBRARIES}
+	${MINIZ_LIBRARIES}
 	synapse
 )
 
@@ -783,7 +785,6 @@ set( q3commonFiles
 	"tools/quake3/common/polylib.c"
 	"tools/quake3/common/scriplib.c"
 	"tools/quake3/common/threads.c"
-	"tools/quake3/common/unzip.c"
 	"tools/quake3/common/vfs.c"
 )
 
@@ -791,18 +792,20 @@ add_library( q3common STATIC ${q3commonFiles} )
 
 target_include_directories( q3common PUBLIC 
 	${GLIB2_INCLUDE_DIRS}
-	${GTK2_INCLUDE_DIRS}
 	${XML2_INCLUDE_DIRS}
 	${JPEG_INCLUDE_DIRS}
+	${Z_INCLUDE_DIRS}
+	${MINIZ_INCLUDE_DIRS}
 	"include"
 	"libs"
 )
 
 target_link_libraries( q3common
 	${GLIB2_LIBRARIES}
-	${GTK2_LIBRARIES}
 	${XML2_LIBRARIES}
 	${JPEG_LIBRARIES}
+	${Z_LIBRARIES}
+	${MINIZ_LIBRARIES}
 	"pthread"
 )
 
@@ -827,7 +830,6 @@ set( q3dataFiles
 	"tools/quake3/common/scriplib.c"
 	"tools/quake3/q3data/stripper.c"
 	"tools/quake3/common/trilib.c"
-	"tools/quake3/common/unzip.c"
 	"tools/quake3/common/vfs.c"
 	"tools/quake3/q3data/video.c"
 )
@@ -836,9 +838,9 @@ add_executable( q3data ${q3dataFiles} )
 
 target_include_directories( q3data PUBLIC
 	${GLIB2_INCLUDE_DIRS}
-	${GTK2_INCLUDE_DIRS}
 	${XML2_INCLUDE_DIRS}
 	${JPEG_INCLUDE_DIRS}
+	${MINIZ_INCLUDE_DIRS}
 	"tools/quake3/common"
 	"include"
 	"libs"
@@ -846,9 +848,9 @@ target_include_directories( q3data PUBLIC
 
 target_link_libraries( q3data
 	${GLIB2_LIBRARIES}
-	${GTK2_LIBRARIES}
 	${XML2_LIBRARIES}
 	${JPEG_LIBRARIES}
+	${MINIZ_LIBRARIES}
 	"pthread"
 	"m"
 	q3common
@@ -913,7 +915,6 @@ add_executable( q3map2 ${q3map2Files} )
 
 target_include_directories( q3map2 PUBLIC
 	${GLIB2_INCLUDE_DIRS}
-	${GTK2_INCLUDE_DIRS}
 	${XML2_INCLUDE_DIRS}
 	${JPEG_INCLUDE_DIRS}
 	${PNG_INCLUDE_DIRS}
@@ -924,7 +925,6 @@ target_include_directories( q3map2 PUBLIC
 
 target_link_libraries( q3map2
 	${GLIB2_LIBRARIES}
-	${GTK2_LIBRARIES}
 	${XML2_LIBRARIES}
 	${JPEG_LIBRARIES}
 	${PNG_LIBRARIES}

@@ -64,12 +64,12 @@
 
 #include "vfspk3.h"
 #include "vfs.h"
-#include "unzip-vfspk3.h"
+#include <minizip/unzip.h>
 
 typedef struct
 {
 	char*   name;
-	unz_s zipinfo;
+	unz_file_pos zipinfo;
 	unzFile zipfile;
 	guint32 size;
 } VFS_PAKFILE;
@@ -154,7 +154,7 @@ static void vfsInitPakFile( const char *filename ){
 		file->name = g_strdup( filename_inzip );
 		file->size = file_info.uncompressed_size;
 		file->zipfile = uf;
-		memcpy( &file->zipinfo, uf, sizeof( unz_s ) );
+		unzGetFilePos(file->zipfile, &file->zipinfo);
 
 		if ( ( i + 1 ) < gi.number_entry ) {
 			err = unzGoToNextFile( uf );
@@ -649,7 +649,7 @@ int vfsLoadFile( const char *filename, void **bufferptr, int index ){
 		}
 
 		if ( count == index ) {
-			memcpy( file->zipfile, &file->zipinfo, sizeof( unz_s ) );
+			unzGoToFilePos( file->zipfile, &file->zipinfo );
 
 			if ( unzOpenCurrentFile( file->zipfile ) != UNZ_OK ) {
 				return -1;

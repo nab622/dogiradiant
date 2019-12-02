@@ -119,7 +119,7 @@ void PNGReadData( png_struct *png, png_byte *buffer, png_size_t size ){
    loads a png file buffer into a valid rgba image
  */
 
-static void LoadPNGBuffer( byte *buffer, int size, byte **pixels, int *width, int *height ){
+static void LoadPNGBuffer( char const * name, byte *buffer, int size, byte **pixels, int *width, int *height ){
 	png_struct  *png;
 	png_info    *info, *end;
 	pngBuffer_t pb;
@@ -170,9 +170,12 @@ static void LoadPNGBuffer( byte *buffer, int size, byte **pixels, int *width, in
 	pb.offset = 0;
 	png_set_read_fn( png, (void*)&pb, PNGReadData );
 
+	char const * volatile stage;
+	#define png_call(fn) ( stage = #fn, fn )
+	
 	/* set error longjmp */
 	if ( setjmp( png_jmpbuf(png) ) ) {
-		Sys_FPrintf( SYS_WRN, "WARNING: An error occurred reading PNG image\n" );
+		Sys_FPrintf( SYS_WRN, "WARNING: An error occurred reading PNG image \"%s\" on call %s\n", name, stage );
 		png_destroy_read_struct( &png, &info, &end );
 		return;
 	}
@@ -180,32 +183,32 @@ static void LoadPNGBuffer( byte *buffer, int size, byte **pixels, int *width, in
 	/* fixme: add proper i/o stuff here */
 
 	/* read png info */
-	png_read_info( png, info );
+	png_call(png_read_info( png, info ));
 
 	/* read image header chunk */
-	png_get_IHDR( png, info,
-				  &w, &h, &bitDepth, &colorType, NULL, NULL, NULL );
+	png_call(png_get_IHDR( png, info,
+				  &w, &h, &bitDepth, &colorType, NULL, NULL, NULL ));
 
 	/* read number of channels */
-	channels = png_get_channels( png, info );
+	channels = png_call(png_get_channels( png, info ));
 
 	/* the following will probably bork on certain types of png images, but hey... */
 
 	/* force indexed/gray/trans chunk to rgb */
 	if ( ( colorType == PNG_COLOR_TYPE_PALETTE && bitDepth <= 8 ) ||
 		 ( colorType == PNG_COLOR_TYPE_GRAY && bitDepth <= 8 ) ||
-		 png_get_valid( png, info, PNG_INFO_tRNS ) ) {
-		png_set_expand( png );
+		 png_call(png_get_valid( png, info, PNG_INFO_tRNS ) )) {
+		png_call(png_set_expand( png ));
 	}
 
 	/* strip 16bpc -> 8bpc */
 	if ( bitDepth == 16 ) {
-		png_set_strip_16( png );
+		png_call(png_set_strip_16( png ));
 	}
 
 	/* pad rgb to rgba */
 	if ( bitDepth == 8 && colorType == PNG_COLOR_TYPE_RGB ) {
-		png_set_filler( png, 255, PNG_FILLER_AFTER );
+		png_call(png_set_filler( png, 255, PNG_FILLER_AFTER ));
 	}
 
 	/* create image pixel buffer */
@@ -219,11 +222,11 @@ static void LoadPNGBuffer( byte *buffer, int size, byte **pixels, int *width, in
 		rowPointers[ i ] = *pixels + ( i * w * 4 );
 
 	/* read the png */
-	png_read_image( png, rowPointers );
+	png_call(png_read_image( png, rowPointers ));
 
 	/* clean up */
 	free( rowPointers );
-	png_destroy_read_struct( &png, &info, &end );
+	png_call(png_destroy_read_struct( &png, &info, &end ));
 
 }
 
@@ -392,7 +395,7 @@ image_t *ImageLoad( const char *filename ){
 		strcat( name, ".png" );
 		size = vfsLoadFile( (const char*) name, (void**) &buffer, 0 );
 		if ( size > 0 ) {
-			LoadPNGBuffer( buffer, size, &image->pixels, &image->width, &image->height );
+			LoadPNGBuffer( name, buffer, size, &image->pixels, &image->width, &image->height );
 		}
 		else
 		{

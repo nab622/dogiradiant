@@ -252,12 +252,12 @@ void construct_shaders(){
 }
 
 inline IShader* shader_for_remap( const char* remap ){
-	remap_t *pRemap;
+	remap_t * pRemap = nullptr;
 	remaps_t::iterator i;
 	for ( i = m_remaps.begin(); i != m_remaps.end(); ++i )
 	{
 		pRemap = ( *i );
-		if ( stricmp( remap, pRemap->original ) == 0 ) {
+		if ( !remap || stricmp( remap, pRemap->original ) == 0 ) {
 			break;
 		}
 	}

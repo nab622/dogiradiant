@@ -630,7 +630,7 @@ static picoModel_t *_obj_load( PM_PARAMS_LOAD ){
 #endif
 		}
 		/* new group (for us this means a new surface) */
-		else if ( !_pico_stricmp( p->token,"g" ) ) {
+		else if ( !_pico_stricmp( p->token,"g" ) || !_pico_stricmp( p->token,"o" ) ) {
 			picoSurface_t *newSurface;
 			char *groupName;
 
