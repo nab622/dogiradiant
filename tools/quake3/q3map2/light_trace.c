@@ -56,7 +56,7 @@
 #define GROW_TRACE_NODES        16384       //%	16384
 #define GROW_NODE_ITEMS         16          //%	256
 
-#define MAX_TW_VERTS            12
+#define MAX_TW_VERTS            64
 
 #define TRACE_ON_EPSILON        0.1f
 
@@ -468,21 +468,21 @@ void ClipTraceWinding( traceWinding_t *tw, vec4_t plane, traceWinding_t *front, 
 			{
 			case SIDE_FRONT:
 				if ( front->numVerts >= MAX_TW_VERTS ) {
-					Error( "MAX_TW_VERTS (%d) exceeded", MAX_TW_VERTS );
+					Error( "MAX_TW_VERTS (%d) exceeded, on a plane at (%f, %f, %f)", MAX_TW_VERTS, plane[0], plane[1], plane[2] );
 				}
 				front->v[ front->numVerts++ ] = *a;
 				break;
 
 			case SIDE_BACK:
 				if ( back->numVerts >= MAX_TW_VERTS ) {
-					Error( "MAX_TW_VERTS (%d) exceeded", MAX_TW_VERTS );
+					Error( "MAX_TW_VERTS (%d) exceeded, on a plane at (%f, %f, %f)", MAX_TW_VERTS, plane[0], plane[1], plane[2] );
 				}
 				back->v[ back->numVerts++ ] = *a;
 				break;
 
 			case SIDE_ON:
 				if ( front->numVerts >= MAX_TW_VERTS || back->numVerts >= MAX_TW_VERTS ) {
-					Error( "MAX_TW_VERTS (%d) exceeded", MAX_TW_VERTS );
+					Error( "MAX_TW_VERTS (%d) exceeded, on a plane at (%f, %f, %f)", MAX_TW_VERTS, plane[0], plane[1], plane[2] );
 				}
 				front->v[ front->numVerts++ ] = *a;
 				back->v[ back->numVerts++ ] = *a;
@@ -496,7 +496,7 @@ void ClipTraceWinding( traceWinding_t *tw, vec4_t plane, traceWinding_t *front, 
 
 			/* check limit */
 			if ( front->numVerts >= MAX_TW_VERTS || back->numVerts >= MAX_TW_VERTS ) {
-				Error( "MAX_TW_VERTS (%d) exceeded", MAX_TW_VERTS );
+				Error( "MAX_TW_VERTS (%d) exceeded, on a plane at (%f, %f, %f)", MAX_TW_VERTS, plane[0], plane[1], plane[2] );
 			}
 
 			/* generate a split point */

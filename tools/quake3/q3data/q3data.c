@@ -38,7 +38,7 @@ qboolean g_skipmodel;           // set true when a cd is not g_only
 // bogus externs for some TA hacks (common/ using them against q3map)
 char *moddir = NULL;
 // some old defined that was in cmdlib lost during merge
-char writedir[1024];
+extern char writedir[1024];
 
 #if defined( __linux__ ) || defined( __FreeBSD__ ) || defined( __APPLE__ )
 #define strlwr strlower

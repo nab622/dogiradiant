@@ -58,7 +58,9 @@ UINT wm_BroadcastCommand = -1;
 socket_t *brdcst_socket;
 netmessage_t msg;
 
+#ifndef Q3COMMON
 qboolean verbose = qfalse;
+#endif
 
 // our main document
 // is streamed through the network to Radiant

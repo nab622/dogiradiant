@@ -13,8 +13,13 @@ pkg_check_modules(JPEG REQUIRED libjpeg)
 pkg_check_modules(MINIZ REQUIRED minizip)
 pkg_check_modules(PNG REQUIRED libpng)
 
+set( PLATFORM_LIBS "" )
+if( UNIX )
+	set( PLATFORM_LIBS "-lX11" )
+endif()
+
 set( CMAKE_C_FLAGS   "-fPIC" )
-set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11" )
+set( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -std=c99" )
 
 set( CMAKE_C_FLAGS_DEBUG   "-Wall -Og -march=core2 -mtune=native -ggdb3" )
 set( CMAKE_C_FLAGS_RELEASE "-w -O2 -march=core2 -mtune=generic" )
@@ -809,6 +814,10 @@ target_link_libraries( q3common
 	"pthread"
 )
 
+target_compile_definitions( q3common
+	PRIVATE Q3COMMON
+)
+
 # ================================
 # Q3DATA
 # ================================
@@ -1017,6 +1026,7 @@ target_link_libraries( radiant
 	${GTK2_LIBRARIES}
 	${XML2_LIBRARIES}
 	${GTKGL_LIBRARIES}
+	${PLATFORM_LIBS}
 	"dl"
 	cmdlib
 	lnet
