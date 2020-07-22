@@ -145,7 +145,7 @@ float SetShadeForPlane( plane_t *p ){
 			return f;
 		}
 
-	// between two axial planes
+    // between two axial planesb
 	for ( i = 0 ; i < 3 ; i++ )
 		if ( fabs( p->normal[i] ) < 0.1 ) {
 			f = ( lightaxis[( i + 1 ) % 3] + lightaxis[( i + 2 ) % 3] ) / 2;
@@ -1153,7 +1153,7 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 	//
 	VectorCopy( end, mid );
     //if the start and end are the same
-    if ( Point_Equal( start, end, MIN_GRID_PRECISION / 2 ) ) {
+    if ( Point_Equal( start, end, MIN_GRID_PRECISION / 3 ) ) {
 		return false;
 	}
 	//the end point may not be the same as another vertex
@@ -1165,7 +1165,7 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 		}
 		for ( i = 0; i < w->numpoints; i++ )
 		{
-            if ( Point_Equal( w->points[i], end, MIN_GRID_PRECISION / 2 ) ) {
+            if ( Point_Equal( w->points[i], end, MIN_GRID_PRECISION / 3 ) ) {
 				VectorCopy( vertex, end );
 				return false;
 			}
@@ -1186,7 +1186,7 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 			}
 			for ( i = 0; i < w->numpoints; i++ )
 			{
-                if ( Point_Equal( w->points[i], start, MIN_GRID_PRECISION / 2 ) ) {
+                if ( Point_Equal( w->points[i], start, MIN_GRID_PRECISION / 3 ) ) {
 					if ( face->face_winding->numpoints <= 3 ) {
 						movefacepoints[nummovefaces] = i;
 						movefaces[nummovefaces++] = face;
@@ -1432,7 +1432,7 @@ int Brush_InsertVertexBetween( brush_t *b, vec3_t p1, vec3_t p2 ){
 	vec3_t point;
 	int i, insert;
 
-    if ( Point_Equal( p1, p2, MIN_GRID_PRECISION / 2 ) ) {
+    if ( Point_Equal( p1, p2, MIN_GRID_PRECISION / 3 ) ) {
 		return false;
 	}
 	VectorAdd( p1, p2, point );
@@ -1448,14 +1448,14 @@ int Brush_InsertVertexBetween( brush_t *b, vec3_t p1, vec3_t p2 ){
 		neww = NULL;
 		for ( i = 0; i < w->numpoints; i++ )
 		{
-            if ( !Point_Equal( w->points[i], p1, MIN_GRID_PRECISION / 2 ) ) {
+            if ( !Point_Equal( w->points[i], p1, MIN_GRID_PRECISION / 3 ) ) {
 				continue;
 			}
-            if ( Point_Equal( w->points[( i + 1 ) % w->numpoints], p2, MIN_GRID_PRECISION / 2 ) ) {
+            if ( Point_Equal( w->points[( i + 1 ) % w->numpoints], p2, MIN_GRID_PRECISION / 3 ) ) {
 				neww = Winding_InsertPoint( w, point, ( i + 1 ) % w->numpoints );
 				break;
 			}
-            else if ( Point_Equal( w->points[( i - 1 + w->numpoints ) % w->numpoints], p2, MIN_GRID_PRECISION ) / 2 ) {
+            else if ( Point_Equal( w->points[( i - 1 + w->numpoints ) % w->numpoints], p2, MIN_GRID_PRECISION ) / 3 ) {
 				neww = Winding_InsertPoint( w, point, i );
 				break;
 			}

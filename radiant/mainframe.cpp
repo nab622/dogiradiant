@@ -3148,6 +3148,7 @@ void MainFrame::Create(){
 
 	if ( g_PrefsDlg.mWindowInfo.nState & GDK_WINDOW_STATE_MAXIMIZED ) {
 		gtk_window_maximize( GTK_WINDOW( window ) );
+        Sys_UpdateWindows( W_Z | W_XY | W_TEXTURE | W_CAMERA );
 	}
 
 	gtk_widget_show( window );

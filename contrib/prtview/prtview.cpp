@@ -75,7 +75,7 @@ void InitInstance(){
 	strcat( INIfn, ".ini" );
 #else // if defined( __linux__ ) || defined( __FreeBSD__ ) || defined( __APPLE__ )
 	strcpy( INIfn, g_get_home_dir() );
-	strcat( INIfn, "/.radiant/" );
+    strcat( INIfn, "/.dogiradiant/" );
 	strcat( INIfn, RADIANT_VERSION );
 	strcat( INIfn, "/prtview.ini" );
 #endif

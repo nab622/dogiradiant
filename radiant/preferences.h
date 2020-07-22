@@ -32,14 +32,16 @@
 
 #define MAX_TEXTURE_QUALITY 3
 
-//Cubic clipping distance is an integer between max & min
-//The multiplier is multiplied by this integer to determine the render distance
-#define CUBIC_CLIPPING_MAX 32
-#define CUBIC_CLIPPING_MIN 1
-#define CUBIC_CLIPPING_MULTIPLIER 2048
+#define MAX_RENDER_DISTANCE 65536
 
-//To keep cubic clipping relevant, the maximum render distance should always be larger
-#define MAX_RENDER_DISTANCE (CUBIC_CLIPPING_MULTIPLIER * (CUBIC_CLIPPING_MAX + 1))
+//This is the distance change each cubic clipping step will make
+#define CUBIC_CLIPPING_INCREMENT 1024
+
+//Cubic clipping distance is an integer between max & min
+//It is multiplied by CUBIC_CLIPPING_INCREMENT to determine the render distance
+//Since the render distance can vary, we need to determine dynamically how many increments we can have
+#define CUBIC_CLIPPING_MAX ( ( MAX_RENDER_DISTANCE / CUBIC_CLIPPING_INCREMENT ) - CUBIC_CLIPPING_INCREMENT )
+#define CUBIC_CLIPPING_MIN 1
 
 enum PrefTypes_t
 {

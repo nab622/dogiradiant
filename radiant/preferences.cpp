@@ -593,7 +593,7 @@ PrefsDlg::PrefsDlg (){
 	m_nAutoSave = 5;
 	m_bSaveBeep = TRUE;
 	m_bLoadLastMap = FALSE;
-    m_bTextureWindow = TRUE;    //This is the texture filtering feature, formerly called texture subsets. From now on, this is ON BY DEFAULT.
+    m_bTextureWindow = TRUE;    //NAB622: This is the texture filtering feature, formerly called texture subsets. From now on, this is ON BY DEFAULT.
     m_bSnapShots = FALSE;
 	m_fTinySize = 0.5;
 	m_bCleanTiny = FALSE;
@@ -613,13 +613,7 @@ PrefsDlg::PrefsDlg (){
 	m_bZVis = FALSE;
 	m_bSizePaint = FALSE;
 	m_bDLLEntities = FALSE;
-//#ifdef _WIN32
-	m_bDetachableMenus = FALSE; // Most win32 users will find detachable menus annoying
-/*
- *  #else
-    m_bDetachableMenus = TRUE;  // Linux/Apple users are used to them...
-    #endif
-*/
+    m_bDetachableMenus = FALSE; //NAB622: This is now disabled by default. Feature remains in-place
 	m_bPatchToolbar = TRUE;
 	m_bWideToolbar = TRUE;
 	m_bPluginToolbar = TRUE;
@@ -3803,7 +3797,7 @@ void CGameInstall::Run() {
 		fprintf( fg, "  prefix=\".ja\"\n" );
 		fprintf( fg, "  basegame=\"base\"\n" );
 		fprintf( fg, "  shaderpath=\"shaders\"\n" );
-		fprintf( fg, "  default_scale=\"0.25\"\n" );
+        fprintf( fg, "  default_scale=\"0.2\"\n" );
 		fprintf( fg, "  caulk_shader=\"textures/system/caulk\"\n" );
 		// Hardcoded fix for "missing" shaderlist in gamepack
 		Str dest = m_strEngine.GetBuffer();

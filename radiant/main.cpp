@@ -583,7 +583,7 @@ int mainRadiant( int argc, char* argv[] ) {
 	Str home;
 	home = g_get_home_dir();
 	AddSlash( home );
-	home += ".radiant/";
+    home += ".dogiradiant/";
 	Q_mkdir( home.GetBuffer(), 0775 );
 	home += RADIANT_VERSION;
 	Q_mkdir( home.GetBuffer(), 0775 );
