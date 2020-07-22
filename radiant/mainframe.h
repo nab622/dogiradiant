@@ -425,7 +425,7 @@ struct SKeyInfo
 
 #define ID_SELECT_FUNC_GROUP            40233
 
-// those must have their own ID chunk ID_GRID_003125 <= ID_GRID <= ID_GRID_512
+// those must have their own ID chunk ID_GRID_003125 <= ID_GRID <= ID_GRID_4096
 #define ID_GRID_003125                  40300
 #define ID_GRID_00625                   40301
 #define ID_GRID_0125                    40302
@@ -441,6 +441,9 @@ struct SKeyInfo
 #define ID_GRID_128                     40312
 #define ID_GRID_256                     40313
 #define ID_GRID_512                     40314
+#define ID_GRID_1024                    40315
+#define ID_GRID_2048                    40316
+#define ID_GRID_4096                    40317
 
 #define ID_FILE_CHECKUPDATE             40320
 

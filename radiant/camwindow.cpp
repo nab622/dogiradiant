@@ -146,7 +146,7 @@ void CamWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
 	if ( HasCapture() && Sys_AltDown() &&
 		 !( ( flags & MK_SHIFT ) || ( flags & MK_CONTROL ) ) ) {
 		if ( flags & MK_CONTROL ) {
-			Select_RotateTexture( pointy - m_ptLastCursorY );
+            Select_RotateTexture( pointy - m_ptLastCursorY );
 		}
 		else
 		if ( flags & MK_SHIFT ) {
@@ -166,13 +166,42 @@ void CamWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
 	update_xor_rectangle( m_XORRectangle );
 }
 
+int CamWnd::calculateSpeed() {
+/*
+    // NAB622: When a preference for camera movement speed being attached to the grid is added, this is where the check should go
+    // If movement speed is not attached to the grid, return this value
+
+    if(g_PrefsDlg.preferenceName) {
+        return g_PrefsDlg.m_nMoveSpeed;
+    }
+*/
+
+    // NAB622: Camera speed is now tied to grid size for easier movement
+    int min = 2;
+    int max = 2048;
+
+    float newSpeed = g_qeglobals.d_gridsize;
+    if( newSpeed < min ) {
+        // Too slow!
+        newSpeed = min;
+    } else if ( newSpeed > max ) {
+        // Too fast!
+        newSpeed = max;
+    }
+
+    //m_nMoveSpeed is an integer. Must round it up
+    return (int) ceil( newSpeed );
+}
+
 void CamWnd::OnMouseWheel( bool bUp, int pointx, int pointy ){
 	if ( bUp ) {
-		VectorMA( m_Camera.origin, g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
-	}
+        VectorMA( m_Camera.origin, calculateSpeed(), m_Camera.forward, m_Camera.origin );
+//        VectorMA( m_Camera.origin, g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
+    }
 	else{
-		VectorMA( m_Camera.origin, -g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
-	}
+        VectorMA( m_Camera.origin, -calculateSpeed(), m_Camera.forward, m_Camera.origin );
+//        VectorMA( m_Camera.origin, -g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
+    }
 
 	int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
 	Sys_UpdateWindows( nUpdate );
@@ -354,7 +383,7 @@ void CamWnd::Cam_MouseControl( float dtime ){
 			}
 		}
 		else {
-			VectorMA( m_Camera.origin, dy * (float) ( g_PrefsDlg.m_nMoveSpeed / 6.0f ), m_Camera.forward, m_Camera.origin );
+            VectorMA( m_Camera.origin, dy * calculateSpeed(), m_Camera.forward, m_Camera.origin );
 		}
 
 		m_Camera.angles[YAW] += dx * dtime * g_PrefsDlg.m_nAngleSpeed;
@@ -420,7 +449,7 @@ void CamWnd::Cam_MouseControl( float dtime ){
 			}
 		}
 
-		VectorMA( m_Camera.origin, yf * dtime * g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
+        VectorMA( m_Camera.origin, yf * dtime * calculateSpeed(), m_Camera.forward, m_Camera.origin );
 		m_Camera.angles[YAW] += xf * -dtime * g_PrefsDlg.m_nAngleSpeed;
 
 		int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
@@ -441,16 +470,16 @@ void CamWnd::Cam_KeyControl( float dtime ) {
 
 	// Update position
 	if ( m_Camera.movementflags & MOVE_FORWARD ) {
-		VectorMA( m_Camera.origin, dtime * g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
+        VectorMA( m_Camera.origin, dtime * calculateSpeed(), m_Camera.forward, m_Camera.origin );
 	}
 	if ( m_Camera.movementflags & MOVE_BACK ) {
-		VectorMA( m_Camera.origin, -dtime * g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
+        VectorMA( m_Camera.origin, -dtime * calculateSpeed(), m_Camera.forward, m_Camera.origin );
 	}
 	if ( m_Camera.movementflags & MOVE_STRAFELEFT ) {
-		VectorMA( m_Camera.origin, -dtime * g_PrefsDlg.m_nMoveSpeed, m_Camera.right, m_Camera.origin );
+        VectorMA( m_Camera.origin, -dtime * calculateSpeed(), m_Camera.right, m_Camera.origin );
 	}
 	if ( m_Camera.movementflags & MOVE_STRAFERIGHT ) {
-		VectorMA( m_Camera.origin, dtime * g_PrefsDlg.m_nMoveSpeed, m_Camera.right, m_Camera.origin );
+        VectorMA( m_Camera.origin, dtime * calculateSpeed(), m_Camera.right, m_Camera.origin );
 	}
 
 	// Save a screen update (when m_bFreeMove is enabled, mousecontrol does the update)

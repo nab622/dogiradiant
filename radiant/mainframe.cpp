@@ -415,7 +415,7 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 			g_pParentWnd->OnViewNearest( id );
 		}
 	}
-    else if ( id >= ID_GRID_003125 && id <= ID_GRID_512 ) {
+    else if ( id >= ID_GRID_003125 && id <= ID_GRID_4096 ) {
 		g_pParentWnd->OnGrid( id );
 	}
 	else if ( id >= ID_PLUGIN_START && id <= ID_PLUGIN_END ) {
@@ -1361,6 +1361,15 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
     item = create_radio_menu_item_with_mnemonic( menu, item, _( "512 Units" ),
                                                  G_CALLBACK( HandleCommand ), ID_GRID_512, FALSE );
     g_object_set_data( G_OBJECT( window ), "menu_grid_512", item );
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "1024 Units" ),
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_1024, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_grid_1024", item );
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "2048 Units" ),
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_2048, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_grid_2048", item );
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "4096 Units" ),
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_4096, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_grid_4096", item );
     menu_separator( menu );
 	item = create_check_menu_item_with_mnemonic( menu, _( "Snap to grid" ),
 												 G_CALLBACK( HandleCommand ), ID_SNAPTOGRID, TRUE );
@@ -5938,6 +5947,9 @@ void MainFrame::OnGrid( unsigned int nID ){
         case ID_GRID_128: g_qeglobals.d_gridsize = 128.0; break;
         case ID_GRID_256: g_qeglobals.d_gridsize = 256.0; break;
         case ID_GRID_512: g_qeglobals.d_gridsize = 512.0; break;
+        case ID_GRID_1024: g_qeglobals.d_gridsize = 1024.0; break;
+        case ID_GRID_2048: g_qeglobals.d_gridsize = 2048.0; break;
+        case ID_GRID_4096: g_qeglobals.d_gridsize = 4096.0; break;
         default:
             g_qeglobals.d_gridsize = 8.0;
     }
@@ -7535,8 +7547,8 @@ void MainFrame::applyGridSize( float newSize ) {
     if ( newSize < MIN_GRID_PRECISION ) {
         newSize = MIN_GRID_PRECISION;
     }
-    else if ( newSize > 512.0 ) {
-        newSize = 512.0;
+    else if ( newSize > 4096.0 ) {
+        newSize = 4096.0;
     }
 
     g_qeglobals.d_gridsize = newSize;
@@ -7577,6 +7589,12 @@ void MainFrame::applyGridSize( float newSize ) {
         item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_256" ) );
     } else if ( g_qeglobals.d_gridsize == 512.0 ) {
         item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_512" ) );
+    } else if ( g_qeglobals.d_gridsize == 1024.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_1024" ) );
+    } else if ( g_qeglobals.d_gridsize == 2048.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_2048" ) );
+    } else if ( g_qeglobals.d_gridsize == 4096.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_4096" ) );
     }
 
     SetGridStatus();

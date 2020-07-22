@@ -1816,7 +1816,10 @@ void PrefsDlg::BuildDialog(){
 	gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
 	gtk_widget_show( vbox );
 
-	// Directional velocity (Movement Velocity)
+/*
+    // NAB622: This has is no longer an option, as the camera speed has been attached to the grid size
+
+    // Directional velocity (Movement Velocity)
 	// label container
 	hbox2 = gtk_hbox_new( FALSE, 0 );
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox2, FALSE, FALSE, 0 );
@@ -1828,11 +1831,11 @@ void PrefsDlg::BuildDialog(){
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
 
-	// adjustment
+    // adjustment
 	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 100, 1, 300, 1, 10, 10 ) );
 	AddDialogData( G_OBJECT( adj ), &m_nMoveSpeed, DLG_ADJ_INT );
 
-	// scale
+    // scale
 	scale = gtk_hscale_new( GTK_ADJUSTMENT( adj ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), scale, FALSE, TRUE, 2 );
 	gtk_widget_show( scale );
@@ -1879,7 +1882,9 @@ void PrefsDlg::BuildDialog(){
 	gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
 	gtk_widget_show( label );
 
-	// Allow drag to select multiple faces/brushes
+*/
+
+    // Allow drag to select multiple faces/brushes
 	// container
 	table = gtk_table_new( 2, 1, FALSE );
 	gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
@@ -2993,7 +2998,7 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( AUTOSAVETIME_KEY,       &m_nAutoSave,           5 );
 	mLocalPrefs.GetPref( SAVEBEEP_KEY,           &m_bSaveBeep,           TRUE );
 	mLocalPrefs.GetPref( SNAPSHOT_KEY,           &m_bSnapShots,          FALSE );
-	mLocalPrefs.GetPref( MOVESPEED_KEY,          &m_nMoveSpeed,          100 );
+    mLocalPrefs.GetPref( MOVESPEED_KEY,          &m_nMoveSpeed,          100 );
 	mLocalPrefs.GetPref( ANGLESPEED_KEY,         &m_nAngleSpeed,         3 );
 	mLocalPrefs.GetPref( SETGAME_KEY,            &m_bSetGame,            FALSE );
 	mLocalPrefs.GetPref( CAMXYUPDATE_KEY,        &m_bCamXYUpdate,        TRUE );

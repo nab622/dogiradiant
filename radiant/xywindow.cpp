@@ -2234,15 +2234,19 @@ void XYWnd::XY_DrawGrid(){
     step = currentGridSize = g_qeglobals.d_gridsize * majorSkipMultiples;
     stepx = stepy = g_qeglobals.d_gridsize;
 
-
-    while ( ( step * m_fScale ) < minSize ) {
-        // If the grid lines are too close together, refactor and resize
-        step *= refactorAmt;
-        majorSkipMultiples *= refactorAmt;
-        minorStep *= refactorAmt;
-        stepx *= refactorAmt;
-        stepy *= refactorAmt;
+    // NAB622: Grid lines are now forcefully attached to the grid size setting.
+    // If adding a preference to detach them, this is where to add the check
+    if( 0 ) {
+        while ( ( step * m_fScale ) < minSize ) {
+            // If the grid lines are too close together, refactor and resize
+            step *= refactorAmt;
+            majorSkipMultiples *= refactorAmt;
+            minorStep *= refactorAmt;
+            stepx *= refactorAmt;
+            stepy *= refactorAmt;
+        }
     }
+
 	//Sys_Printf("step after: %i\n", step);
     while ( ( stepx * m_fScale ) < labelSpacing ) {
         // text step must be spaced apart
