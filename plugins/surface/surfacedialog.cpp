@@ -104,7 +104,7 @@ bool g_bListenUpdate = true;
 
 extern void *g_pMainWidget;
 
-GtkWidget* create_SurfaceInspector( void );
+GtkWidget *create_SurfaceInspector( void );
 GtkWidget *SurfaceInspector = NULL;
 
 GtkWidget *m_pWidget;
@@ -152,6 +152,7 @@ GtkAdjustment *fit_height_spinbutton_adj;
 GtkWidget *fit_height_spinbutton;
 GtkWidget *fit_button;
 GtkWidget *axial_button;
+GtkWidget *reset_button;
 
 // Callbacks
 gboolean on_texture_combo_entry_key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer user_data );
@@ -175,6 +176,7 @@ static void on_fit_width_spinbutton_value_changed( GtkSpinButton *spinbutton, gp
 static void on_fit_height_spinbutton_value_changed( GtkSpinButton *spinbutton, gpointer user_data );
 static void on_fit_button_clicked( GtkButton *button, gpointer user_data );
 static void on_axial_button_clicked( GtkButton *button, gpointer user_data );
+static void on_reset_button_clicked( GtkButton *button, gpointer user_data );
 
 /*
    ===================================================
@@ -468,7 +470,7 @@ void ToggleSurface() {
   if ( !g_surfwin ) {
     DoSurface();
   } else {
-    CancelDlg();
+    HideDlg();
   }
 }
 
@@ -499,18 +501,24 @@ void HideDlg() {
 }
 
 void CancelDlg() {
+  //NAB622: There is no cancel button on the surface inspector any more.
+  //If you want to enable this again, remove the next line and un-comment the goodies below
+  Sys_Printf( "WARNING: Cancel function called on surface inspector. Closing...\n" );
+
+/*
   texturewin = Texturewin();
   texturewin->texdef = g_old_texdef;
   // cancel the last do if we own it
   if ( ( m_nUndoId == Undo_GetUndoId() ) && ( m_nUndoId != 0 ) ) {
-#ifdef DBG_SI
-    Sys_Printf( "CancelDlg calling Undo_Undo\n" );
-#endif
+    #ifdef DBG_SI
+      Sys_Printf( "CancelDlg calling Undo_Undo\n" );
+    #endif
     g_bListenUpdate = false;
     Undo_Undo( TRUE );
     g_bListenUpdate = true;
     m_nUndoId = 0;
   }
+*/
   HideDlg();
 }
 
@@ -520,8 +528,8 @@ void InitDefaultIncrement( texdef_t *tex ){
 	tex->SetName( "foo" );
 	tex->shift[0] = 8;
 	tex->shift[1] = 8;
-	tex->scale[0] = 0.25;
-	tex->scale[1] = 0.25;
+    tex->scale[0] = 0.25;
+    tex->scale[1] = 0.25;
 	tex->rotate = 10;
 }
 
@@ -1155,7 +1163,7 @@ GtkWidget* create_SurfaceInspector( void ){
 	gtk_viewport_set_shadow_type( GTK_VIEWPORT( viewport6 ), GTK_SHADOW_NONE );
 	gtk_widget_show( viewport6 );
 
-	table7 = gtk_table_new( 2, 1, FALSE );
+    table7 = gtk_table_new( 2, 1, FALSE );
 	gtk_container_add( GTK_CONTAINER( viewport6 ), table7 );
 	gtk_widget_show( table7 );
 
@@ -1165,16 +1173,23 @@ GtkWidget* create_SurfaceInspector( void ){
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
 	gtk_widget_show( eventbox );
 
-	axial_button = gtk_button_new_with_mnemonic( _( "Axial" ) );
-	gtk_container_add( GTK_CONTAINER( eventbox ), axial_button );
-	gtk_widget_set_size_request( axial_button, 56, 29 );
-	gtk_container_set_border_width( GTK_CONTAINER( axial_button ), 4 );
-	gtk_widget_show( axial_button );
+    axial_button = gtk_button_new_with_mnemonic( _( "Axial" ) );
+    gtk_container_add( GTK_CONTAINER( eventbox ), axial_button );
+    gtk_widget_set_size_request( axial_button, 56, 29 );
+    gtk_container_set_border_width( GTK_CONTAINER( axial_button ), 4 );
+    gtk_widget_show( axial_button );
 
-	size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
-	gtk_size_group_add_widget( size_group, axial_button );
-	gtk_size_group_add_widget( size_group, fit_button );
-	g_object_unref( size_group );
+    reset_button = gtk_button_new_with_mnemonic( _( "Reset" ) );
+    gtk_container_add( GTK_CONTAINER( eventbox ), reset_button );
+    gtk_widget_set_size_request( reset_button, 56, 29 );
+    gtk_container_set_border_width( GTK_CONTAINER( reset_button ), 4 );
+    gtk_widget_show( reset_button );
+
+    size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
+    gtk_size_group_add_widget( size_group, axial_button );
+    gtk_size_group_add_widget( size_group, reset_button );
+    gtk_size_group_add_widget( size_group, fit_button );
+    g_object_unref( size_group );
 
 	hbuttonbox1 = gtk_hbox_new( FALSE, 5 );
 	gtk_box_pack_start( GTK_BOX( vbox7 ), hbuttonbox1, TRUE, FALSE, 0 );
@@ -1248,20 +1263,24 @@ GtkWidget* create_SurfaceInspector( void ){
 					  G_CALLBACK( on_fit_button_clicked ),
 					  NULL );
 
-	g_signal_connect( (gpointer) axial_button, "clicked",
-					  G_CALLBACK( on_axial_button_clicked ),
-					  NULL );
+    g_signal_connect( (gpointer) axial_button, "clicked",
+                      G_CALLBACK( on_axial_button_clicked ),
+                      NULL );
 
-	return SurfaceInspector;
+    g_signal_connect( (gpointer) reset_button, "clicked",
+                      G_CALLBACK( on_reset_button_clicked ),
+                      NULL );
+
+    return SurfaceInspector;
 }
 
 
 // Texture Combo
 gboolean on_texture_combo_entry_key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer user_data ){
 	// Have Tab activate selection as well as Return
-	if ( event->keyval == GDK_KEY_Tab ) {
+    if ( event->keyval == GDK_KEY_Tab ) {
 		g_signal_emit_by_name( texture_combo_entry, "activate" );
-	}
+    }
 
 	return FALSE;
 }
@@ -1523,7 +1542,7 @@ static void on_fit_height_spinbutton_value_changed( GtkSpinButton *spinbutton, g
 
 static void on_fit_button_clicked( GtkButton *button, gpointer user_data ){
 	FaceList_FitTexture( get_texdef_face_list(), m_nHeight, m_nWidth );
-	Sys_UpdateWindows( W_ALL );
+    Sys_UpdateWindows( W_ALL );
 }
 
 
@@ -1547,5 +1566,30 @@ static void on_axial_button_clicked( GtkButton *button, gpointer user_data ){
 	if ( !texdef_face_list_empty() ) {
 		SetTexdef_FaceList( get_texdef_face_list(), FALSE, TRUE );
 	}
-	Sys_UpdateWindows( W_ALL );
+    Sys_UpdateWindows( W_ALL );
+}
+
+// Reset Button
+static void on_reset_button_clicked( GtkButton *button, gpointer user_data ){
+    texdef_t* tmp_texdef;
+    texdef_to_face_t* temp_texdef_face_list;
+
+    if ( !texdef_face_list_empty() && g_bListenChanged ) {
+        for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
+        {
+            tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
+            tmp_texdef->shift[0] = 0.0;
+            tmp_texdef->shift[1] = 0.0;
+            tmp_texdef->scale[0] = 0.1;
+            tmp_texdef->scale[1] = 0.1;
+            //tmp_texdef->scale[0] = g_PrefsDlg.m_fDefTextureScale;
+            //tmp_texdef->scale[1] = g_PrefsDlg.m_fDefTextureScale;
+            tmp_texdef->rotate = 0.0;
+        }
+    }
+
+    if ( !texdef_face_list_empty() ) {
+        SetTexdef_FaceList( get_texdef_face_list(), FALSE, TRUE );
+    }
+    Sys_UpdateWindows( W_ALL );
 }

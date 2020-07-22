@@ -25,8 +25,18 @@
 // Leonardo Zide (leo@lokigames.com)
 //
 
-// FIXME: this code is mostly dead, or unused. the surface inspector logic is now in a plugin, either for idtech2 or idtech3
-// would be a good idea to try and remove this file entirely from the compile and see what happens
+
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// This code is mostly dead, or unused. the surface inspector logic is now in a plugin, either for idtech2 or idtech3
+// Do not remove this file, as several things from it are still referenced elsewhere in the code
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
 
 #include <gdk/gdkkeysyms.h>
 #include "stdafx.h"
@@ -209,7 +219,7 @@ static void OnTest( GtkWidget *widget, gpointer data ){
 #endif
 
 static void OnDone( GtkWidget *widget, gpointer data ){
-	g_dlgSurface.GetTexMods();
+    g_dlgSurface.GetTexMods();
 	g_dlgSurface.HideDlg();
 	Sys_UpdateWindows( W_ALL );
 }
@@ -218,7 +228,7 @@ static void OnDone( GtkWidget *widget, gpointer data ){
 // and must be reflected in the views. But it's not a change
 // so important, so the system will try to undo our last do before applying the new changes
 static void OnUpdate( GtkWidget *widget, gpointer data ){
-	if ( !g_bListenChanged ) {
+    if ( !g_bListenChanged ) {
 		return;
 	}
 
@@ -245,7 +255,7 @@ static void OnApply( GtkWidget *widget, gpointer data ){
 	}
 
 	g_dlgSurface.GetTexMods();
-	g_dlgSurface.m_nUndoId = 0; // that way we are sure we won't call undo
+    g_dlgSurface.m_nUndoId = 0; // that way we are sure we won't call undo
 	Sys_UpdateWindows( W_CAMERA );
 }
 
@@ -262,7 +272,7 @@ static gint OnTextureKey( GtkWidget* widget, GdkEventKey* event, gpointer data )
 }
 
 static void OnCancel( GtkWidget *widget, gpointer data ){
-	g_qeglobals.d_texturewin.texdef = g_old_texdef;
+    g_qeglobals.d_texturewin.texdef = g_old_texdef;
 	// cancel the last do if we own it
 	if ( g_dlgSurface.m_nUndoId == Undo_GetUndoId() ) {
 #ifdef DBG_SI
@@ -273,14 +283,14 @@ static void OnCancel( GtkWidget *widget, gpointer data ){
 		g_bListenUpdate = true;
 		g_dlgSurface.m_nUndoId = 0;
 	}
-	g_dlgSurface.HideDlg();
+    g_dlgSurface.HideDlg();
 }
 
 static gint OnDialogKey( GtkWidget* widget, GdkEventKey* event, gpointer data ) {
   if ( g_surfwin ) {
     if ( event->keyval == GDK_KEY_Return ) {
       if ( g_dlgSurface.m_bEditingTextureWidget ) {
-        OnApply( NULL, NULL );
+        OnApply( widget, data );
         g_dlgSurface.m_bEditingTextureWidget = false;
       } else {
         OnDone( NULL, NULL );

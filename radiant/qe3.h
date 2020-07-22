@@ -197,7 +197,7 @@ typedef struct
 
 } QEGlobals_GUI_t;
 
-// usefull portability stuff
+// useful portability stuff
 //++timo move them somewhere
 bool DoesFileExist( const char* pBuff, long& lSize );
 
@@ -694,6 +694,9 @@ extern qboolean g_bShowAllShaders;
 extern CPtrArray g_lstSkinCache;
 qtexture_t *QERApp_LoadTextureRGBA( unsigned char* pPixels, int nWidth, int nHeight );
 
+// This needs to be visible globally so the texture window can be correctly redrawn
+void checkTextureWindowBoundaries();
+
 //
 // IScripLib interface
 // GetToken, UnGetToken, etc.
@@ -883,6 +886,9 @@ int GetUniqueTargetId( int iHint );
 
 // xywindow.cpp
 void CreateEntityFromName( const char* name, const vec3_t origin );
+int getDecimalPrecision( float input );
+
+
 
 // eclass.cpp
 /*!

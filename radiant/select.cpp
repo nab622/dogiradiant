@@ -1473,7 +1473,9 @@ void Select_MergeEntity(){
    ====================
  */
 void Select_Seperate( void ) {
-	Select_GroupEntity( world_entity );
+    Undo_Start( "Entity ungroup into worldspawn" );
+    Select_GroupEntity( world_entity );
+    Undo_End();
 }
 
 /*
@@ -1607,7 +1609,7 @@ void Select_ShiftTexture( int x, int y ){
 		}
 	}
 
-	Sys_UpdateWindows( W_CAMERA );
+    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
 }
 
 //  setting float as input
@@ -1681,7 +1683,7 @@ void Select_ScaleTexture( float x, float y ){
 		}
 	}
 
-	Sys_UpdateWindows( W_CAMERA );
+    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
 }
 
 void Select_RotateTexture( int amt ){
@@ -1753,7 +1755,7 @@ void Select_RotateTexture( int amt ){
 		}
 	}
 
-	Sys_UpdateWindows( W_CAMERA );
+    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
 }
 
 // TTimo modified to handle shader architecture:
@@ -1817,7 +1819,7 @@ void FindReplaceTextures( const char* pFind, const char* pReplace, bool bSelecte
 		}
 	}
 
-	Sys_UpdateWindows( W_CAMERA );
+    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
 }
 
 void Select_AllOfType(){
@@ -1944,7 +1946,7 @@ void Select_FitTexture( int nHeight, int nWidth ){
 		}
 	}
 
-	Sys_UpdateWindows( W_CAMERA );
+    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
 }
 
 void Select_Hide(){

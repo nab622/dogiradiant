@@ -1020,15 +1020,26 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 	m_ptDownX = 0;
 	m_ptDownY = 0;
 
-	if ( g_PrefsDlg.m_bChaseMouse == TRUE &&
-		 ( pointx < 0 || pointy < 0 || pointx > m_nWidth || pointy > m_nHeight ) &&
-		 HasCapture() ) {
-		float fAdjustment = ( g_qeglobals.d_gridsize / 8 * 64 ) / m_fScale;
-		//m_ptDrag = point;
-		m_ptDragAdjX = 0;
-		m_ptDragAdjY = 0;
+    //NAB622: These two values keep grid movements from crawling at lower grid sizes, or shooting off too fast at larger grid sizes
+    float minMovement = 8;
+    float maxMovement = 64;
 
-		if ( pointx < 0 ) {
+    if ( g_PrefsDlg.m_bChaseMouse == TRUE &&
+         ( pointx < 0 || pointy < 0 || pointx > m_nWidth || pointy > m_nHeight ) &&
+         HasCapture() ) {
+        float fAdjustment = ( g_qeglobals.d_gridsize );
+        if ( fAdjustment < minMovement) {
+            fAdjustment = minMovement;
+        }
+        else if ( fAdjustment > maxMovement) {
+            fAdjustment = maxMovement;
+        }
+//        float fAdjustment = ( g_qeglobals.d_gridsize / 8 * 64 ) / m_fScale;
+        //m_ptDrag = point;
+        m_ptDragAdjX = 0;
+        m_ptDragAdjY = 0;
+
+        if ( pointx < 0 ) {
 			m_ptDragAdjX = (int)( -fAdjustment );
 		}
 		else if ( pointx > m_nWidth ) {
@@ -1042,7 +1053,7 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 			m_ptDragAdjY = (int)( fAdjustment );
 		}
 
-		if ( !HasTimer() ) {
+        if ( !HasTimer() ) {
 			SetTimer( 50 );
 			m_ptDragX = pointx;
 			m_ptDragY = pointy;
@@ -1188,15 +1199,15 @@ void XYWnd::OnMouseWheel( bool bUp, int pointx, int pointy ) {
 	if ( bUp ) {
 		if ( g_PrefsDlg.m_bMousewheelZoom == TRUE ) {
 			// improved zoom-in
-			// frame coverges to part of window where the cursor currently resides
+            // frame converges to part of window where the cursor currently resides
 			float old_scale = m_fScale;
 			g_pParentWnd->OnViewZoomin();
 			float scale_diff = 1.0 / old_scale - 1.0 / m_fScale;
 			int nDim1 = ( m_nViewType == YZ ) ? 1 : 0;
 			int nDim2 = ( m_nViewType == XY ) ? 1 : 2;
-			m_vOrigin[nDim1] += scale_diff * (pointx - 0.5 * m_nWidth);
-			m_vOrigin[nDim2] -= scale_diff * (pointy - 0.5 * m_nHeight);
-		}
+            m_vOrigin[nDim1] += scale_diff * (pointx - 0.5 * m_nWidth);
+            m_vOrigin[nDim2] -= scale_diff * (pointy - 0.5 * m_nHeight);
+        }
 		else {
 				g_pParentWnd->OnViewZoomin();
 		}
@@ -1450,8 +1461,8 @@ qboolean XYWnd::DragDelta( int x, int y, vec3_t move ){
 	for ( i = 0 ; i < 3 ; i++ )
 	{
 		delta[i] = xvec[i] * ( x - m_nPressx ) + yvec[i] * ( y - m_nPressy );
-		if ( g_PrefsDlg.m_bSnap ) {
-			delta[i] = floor( delta[i] / g_qeglobals.d_gridsize + 0.5 ) * g_qeglobals.d_gridsize;
+        if ( g_PrefsDlg.m_bSnap ) {
+            delta[i] = floor( delta[i] / g_qeglobals.d_gridsize + 0.5 ) * g_qeglobals.d_gridsize;
 		}
 	}
 	VectorSubtract( delta, m_vPressdelta, move );
@@ -2124,7 +2135,7 @@ void XYWnd::XY_Init(){
 }
 
 void XYWnd::SnapToPoint( int x, int y, vec3_t point ){
-	if ( g_PrefsDlg.m_bSnap ) {
+    if ( g_PrefsDlg.m_bSnap ) {
 		XY_ToGridPoint( x, y, point );
 	}
 	else
@@ -2189,33 +2200,56 @@ void XYWnd::XY_ToGridPoint( int x, int y, vec3_t point ){
    XY_DrawGrid
    ==============
  */
+
+int getDecimalPrecision( float input ) {
+    //Figure out how many decimal places are in the input number
+    int test = (int)input;
+    int i = 0;
+    int maxPrecision = 6;
+
+    while ( test != input && i <= maxPrecision ) {
+        i++;
+        input *= 10;
+        test = (int) input;
+    }
+
+    return i;
+}
+
 void XYWnd::XY_DrawGrid(){
 	float x, y, xb, xe, yb, ye;
 	float w, h;
-	char text[32];
-	int step, stepx, stepy, colour;
-	step = stepx = stepy = MAX( 64, (int)g_qeglobals.d_gridsize );
+    char text[32];
+    int color1, color2;
+    float step, stepx, stepy, currentGridSize;
 
-/*
-	int stepSize = (int)(8 / m_fScale);
-	if (stepSize > step)
-	{
-		int i;
-		for (i = 1; i < stepSize; i <<= 1);
-		step = i;
-	}
-*/
+    int skipBlocks = 2;             //NAB622: Set a multiple - every so many blocks gets the primary color. The others all get the alternate color
+    int majorSkipMultiples = 4;     //NAB622: 'Major' grid lines are considered this multiple of the normal grid lines
+    float minSize = 32;             //NAB622: This is the minimum number of pixels allowed between grid lines before we rescale to a larger size
+    int refactorAmt = 2;            //NAB622: This is how much we refactor the steps when minSize is hit
+    float labelSpacing = 64;        //NAB622: This is the minimum number of pixels between the numeric labels on the grid
 
-	//Sys_Printf("scale: %f\n", m_fScale);
-	//Sys_Printf("step before: %i\n", step);
-	//Sys_Printf("scaled step: %f\n", step * m_fScale);
-	while ( ( step * m_fScale ) < 4.0f ) // make sure major grid spacing is at least 4 pixels on the screen
-		step *= 8;
+    float minorStep = g_qeglobals.d_gridsize;
+
+    step = currentGridSize = g_qeglobals.d_gridsize * majorSkipMultiples;
+    stepx = stepy = g_qeglobals.d_gridsize;
+
+
+    while ( ( step * m_fScale ) < minSize ) {
+        // If the grid lines are too close together, refactor and resize
+        step *= refactorAmt;
+        majorSkipMultiples *= refactorAmt;
+        minorStep *= refactorAmt;
+        stepx *= refactorAmt;
+        stepy *= refactorAmt;
+    }
 	//Sys_Printf("step after: %i\n", step);
-	while ( ( stepx * m_fScale ) < 40.0f ) // text step x must be at least 40 pixels
-		stepx *= 2;
-	while ( ( stepy * m_fScale ) < 40.0f ) // text step y must be at least 40 pixels
-		stepy *= 2;
+    while ( ( stepx * m_fScale ) < labelSpacing ) {
+        // text step must be spaced apart
+        stepx *= 2;
+        stepy *= 2;
+    }
+
 
 	qglDisable( GL_TEXTURE_2D );
 	qglDisable( GL_TEXTURE_1D );
@@ -2257,68 +2291,79 @@ void XYWnd::XY_DrawGrid(){
 	  g_qeglobals.d_savedinfo.colors[a][1] != g_qeglobals.d_savedinfo.colors[b][1] || \
 	  g_qeglobals.d_savedinfo.colors[a][2] != g_qeglobals.d_savedinfo.colors[b][2] )
 
-	// djbob
-	// draw minor blocks
-	if ( m_fScale > .1 && g_qeglobals.d_showgrid && g_qeglobals.d_gridsize * m_fScale >= 4 ) {
-		if ( g_qeglobals.d_gridsize < 1 ) {
-			colour = COLOR_GRIDMINOR_ALT;
-		}
-		else{
-			colour = COLOR_GRIDMINOR;
-		}
+    // draw minor blocks
+    if ( g_qeglobals.d_showgrid ) {
+        color1 = COLOR_GRIDMINOR;
+        color2 = COLOR_GRIDMINOR_ALT;
+        qglBegin( GL_LINES );
+        for ( x = xb ; x < xe ; x += minorStep )
+        {
+            if ( !( (int)x & ( (int)step - 1 ) ) && !( (int)x - x ) ) {
+                continue;
+            }
 
-		if ( COLORS_DIFFER( colour, COLOR_GRIDBACK ) ) {
-			qglColor3fv( g_qeglobals.d_savedinfo.colors[colour] );
+            //Color every skipBlocks numbered row differently
+            if ( fmod( x, minorStep * skipBlocks) == 0) {
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[color1] );
+            } else {
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[color2] );
+            }
 
-			qglBegin( GL_LINES );
-			for ( x = xb ; x < xe ; x += g_qeglobals.d_gridsize )
-			{
-				if ( !( (int)x & ( step - 1 ) ) && !( (int)x - x ) ) {
-					continue;
-				}
-				qglVertex2f( x, yb );
-				qglVertex2f( x, ye );
-			}
-			for ( y = yb ; y < ye ; y += g_qeglobals.d_gridsize )
-			{
-				if ( !( (int)y & ( step - 1 ) )  && !( (int)y - y ) ) {
-					continue;
-				}
-				qglVertex2f( xb, y );
-				qglVertex2f( xe, y );
-			}
-			qglEnd();
-		}
-	}
+            qglVertex2f( x, yb );
+            qglVertex2f( x, ye );
+        }
+        for ( y = yb ; y < ye ; y += minorStep )
+        {
+            if ( !( (int)y & ( (int)step - 1 ) )  && !( (int)y - y ) ) {
+                continue;
+            }
 
-	if ( g_qeglobals.d_gridsize < 1 ) {
-		colour = COLOR_GRIDMAJOR_ALT;
-	}
-	else{
-		colour = COLOR_GRIDMAJOR;
-	}
+            //Color every skipBlocks numbered row differently
+            if ( fmod( y, minorStep * skipBlocks) == 0) {
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[color1] );
+            } else {
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[color2] );
+            }
+            qglVertex2f( xb, y );
+            qglVertex2f( xe, y );
+        }
+        qglEnd();
+    }
 
-	// draw major blocks
-	if ( COLORS_DIFFER( colour, COLOR_GRIDBACK ) ) {
-		qglColor3fv( g_qeglobals.d_savedinfo.colors[colour] );
-	}
 
-	if ( g_qeglobals.d_showgrid ) {
-		qglBegin( GL_LINES );
-		for ( x = xb ; x <= xe ; x += step )
-		{
-			qglVertex2f( x, yb );
-			qglVertex2f( x, ye );
-		}
-		for ( y = yb ; y <= ye ; y += step )
-		{
-			qglVertex2f( xb, y );
-			qglVertex2f( xe, y );
-		}
-		qglEnd();
-	}
+    // draw major blocks
+    if ( g_qeglobals.d_showgrid ) {
+        color1 = COLOR_GRIDMAJOR;
+        color2 = COLOR_GRIDMAJOR_ALT;
+        qglBegin( GL_LINES );
+        for ( x = xb ; x <= xe ; x += step )
+        {
+            //Color every skipBlocks numbered row differently
+            if ( fmod( x, g_qeglobals.d_gridsize * majorSkipMultiples * skipBlocks) == 0) {
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[color1] );
+            } else {
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[color2] );
+            }
 
-	// draw coordinate text if needed
+            qglVertex2f( x, yb );
+            qglVertex2f( x, ye );
+        }
+        for ( y = yb ; y <= ye ; y += step )
+        {
+            //Color every skipBlocks numbered row differently
+            if ( fmod( y, g_qeglobals.d_gridsize * majorSkipMultiples * skipBlocks) == 0) {
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[color1] );
+            } else {
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[color2] );
+            }
+
+            qglVertex2f( xb, y );
+            qglVertex2f( xe, y );
+        }
+        qglEnd();
+    }
+
+    // draw coordinate text if needed
 	if ( g_qeglobals.d_savedinfo.show_coordinates ) {
 		qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_GRIDTEXT] );
 
@@ -2344,18 +2389,57 @@ void XYWnd::XY_DrawGrid(){
 		float leftCushion = pixelsLeftCushion / m_fScale;
 		float bottomOffset = ( pixelsButtomCushion - gtk_glwidget_font_descent() ) / m_fScale;
 
+
 		// This renders the numbers along varying X on top of the grid view (labels vertical grid lines).
-		for ( x = xb - ( (int) xb ) % stepx; x <= xe; x += stepx ) {
-			qglRasterPos2f( x + leftCushion, yPosLabelsTop );
-			sprintf( text, "%i", (int) x );
-			gtk_glwidget_print_string( text );
-		}
+        for ( x = xb - fmod( xb, stepx ); x <= xe; x += stepx ) {
+            //Check to see if we have decimals
+            switch( getDecimalPrecision( x ) ) {
+                case 0:
+                    sprintf( text, "%i", (int) x );
+                    break;
+                case 1:
+                    sprintf( text, "%.1f", (float) x );
+                    break;
+                case 2:
+                    sprintf( text, "%.2f", (float) x );
+                    break;
+                case 3:
+                    sprintf( text, "%.3f", (float) x );
+                    break;
+                case 4:
+                    sprintf( text, "%.4f", (float) x );
+                    break;
+                default:
+                    sprintf( text, "%.5f", (float) x );
+            }
+            qglRasterPos2f( x + leftCushion, yPosLabelsTop );
+            gtk_glwidget_print_string( text );
+        }
 
 		// This renders the numbers along varying Y on the left of the grid view (labels horizontal grid lines).
-		for ( y = yb - ( (int) yb ) % stepy; y <= ye; y += stepy ) {
-			qglRasterPos2f( xPosLabelsLeft, y + bottomOffset );
-			sprintf( text, "%i", (int) y );
-			gtk_glwidget_print_string( text );
+        for ( y = yb - fmod( yb, stepy ); y <= ye; y += stepy ) {
+            //Check to see if we have decimals
+            switch( getDecimalPrecision( y ) ) {
+                case 0:
+                    sprintf( text, "%i", (int) y );
+                    break;
+                case 1:
+                    sprintf( text, "%.1f", (float) y );
+                    break;
+                case 2:
+                    sprintf( text, "%.2f", (float) y );
+                    break;
+                case 3:
+                    sprintf( text, "%.3f", (float) y );
+                    break;
+                case 4:
+                    sprintf( text, "%.4f", (float) y );
+                    break;
+                default:
+                    sprintf( text, "%.5f", (float) y );
+            }
+            qglRasterPos2f( xPosLabelsLeft, y + bottomOffset );
+            gtk_glwidget_print_string( text );
 		}
 
 		if ( Active() ) {
@@ -2602,7 +2686,7 @@ void XYWnd::DrawCameraIcon(){
 		a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
 	}
 
-	qglColor3f( 0.0, 0.0, 1.0 );
+    qglColor3f( gridCameraSymbolColor[0], gridCameraSymbolColor[1], gridCameraSymbolColor[2] );
 	qglBegin( GL_LINE_STRIP );
 	qglVertex3f( x - box,y,0 );
 	qglVertex3f( x,y + ( box / 2 ),0 );
@@ -2621,7 +2705,11 @@ void XYWnd::DrawCameraIcon(){
 }
 
 void XYWnd::DrawZIcon( void ){
-	if ( m_nViewType == XY ) {
+    if ( drawZSymbolOnGrid == false ) {
+        return;     //NAB622: I don't see the point of drawing a Z icon on the grid, all it does is get in the way...
+    }
+
+    if ( m_nViewType == XY ) {
 		float x = z.origin[0];
 		float y = z.origin[1];
 		float zdim = 8 / m_fScale;
@@ -2630,16 +2718,16 @@ void XYWnd::DrawZIcon( void ){
 		qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 		qglDisable( GL_CULL_FACE );
 		qglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		qglColor4f( 0.0, 0.0, 1.0, 0.25 );
+
+        qglColor4f( gridZSymbolBackgroundColor[0], gridZSymbolBackgroundColor[1], gridZSymbolBackgroundColor[2], gridZSymbolBackgroundColor[3] );
 		qglBegin( GL_QUADS );
 		qglVertex3f( x - zdim,y - zdim,0 );
 		qglVertex3f( x + zdim,y - zdim,0 );
 		qglVertex3f( x + zdim,y + zdim,0 );
 		qglVertex3f( x - zdim,y + zdim,0 );
 		qglEnd();
-		qglDisable( GL_BLEND );
 
-		qglColor4f( 0.0, 0.0, 1.0, 1 );
+        qglColor4f( gridZSymbolBorderColor[0], gridZSymbolBorderColor[1], gridZSymbolBorderColor[2], gridZSymbolBorderColor[3] );
 
 		qglBegin( GL_LINE_LOOP );
 		qglVertex3f( x - zdim,y - zdim,0 );
@@ -2648,13 +2736,17 @@ void XYWnd::DrawZIcon( void ){
 		qglVertex3f( x - zdim,y + zdim,0 );
 		qglEnd();
 
-		qglBegin( GL_LINE_STRIP );
+        qglColor4f( gridZSymbolColor[0], gridZSymbolColor[1], gridZSymbolColor[2], gridZSymbolColor[3] );
+
+        qglBegin( GL_LINE_STRIP );
 		qglVertex3f( x - ( zdim / 2 ),y + ( zdim / 2 ),0 );
 		qglVertex3f( x + ( zdim / 2 ),y + ( zdim / 2 ),0 );
 		qglVertex3f( x - ( zdim / 2 ),y - ( zdim / 2 ),0 );
 		qglVertex3f( x + ( zdim / 2 ),y - ( zdim / 2 ),0 );
 		qglEnd();
-	}
+
+        qglDisable( GL_BLEND );
+    }
 }
 
 // can be greatly simplified but per usual i am in a hurry
@@ -2896,7 +2988,7 @@ void XYWnd::XY_Draw(){
 	qglDisable( GL_BLEND );
 	qglDisable( GL_CULL_FACE );
 	qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-	qglColor3f( 0, 0, 0 );
+    qglColor3f( 0, 0, 0 );
 	qglEnableClientState( GL_VERTEX_ARRAY );
 
 	// Fishman - Add antialiazed points and lines support. 09/15/00
@@ -2933,7 +3025,7 @@ void XYWnd::XY_Draw(){
 
 		if ( brush->owner != e && brush->owner ) {
 			qglColor3fv( brush->owner->eclass->color );
-		}
+        }
 		else if ( brush->brush_faces->texdef.contents & CONTENTS_DETAIL )
 		{
 			qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_DETAIL] );

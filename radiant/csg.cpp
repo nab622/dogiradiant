@@ -464,7 +464,7 @@ brush_t *Brush_MergeList( brush_t *brushlist, int onlyshape ){
    Brush_Subtract
 
    Returns a list of brushes that remain after B is subtracted from A.
-   May by empty if A is contained inside B.
+   May be empty if A is contained inside B.
    The originals are undisturbed.
    =============
  */

@@ -95,9 +95,16 @@ extern int g_argc;
 extern char** g_argv;
 extern PatchDialog g_PatchDialog;
 
+extern GtkWidget *SurfaceInspector;
+extern GtkWidget *PatchInspector;
+
 GtkAccelGroup* global_accel;
 
 void Select_Ungroup();
+
+// NAB622: This value is essentially the maximum zoom-in distance on the grid. The numeric value specified here corresponds
+// to the number of pixels the grid can render per block before it stops zooming in, at the smallest precision available
+#define MAX_GRID_ZOOM_BLOCKSIZE (90 / MIN_GRID_PRECISION)
 
 // command mapping stuff
 //
@@ -112,6 +119,7 @@ void Select_Ungroup();
 //
 #define SPEED_MOVE  32
 #define SPEED_TURN  22.5
+
 
 // NOTE: the menu item field is REQUIRED, Gtk uses it to bind the keyboard shortcut
 // - if you add a command here and you don't want a menu item, use the "hidden" menu
@@ -174,9 +182,9 @@ SCommandInfo g_Commands[] =
 	{"SetGrid64", GDK_KEY_7, 0, ID_GRID_64, "menu_grid_64"},
 	{"SetGrid128", '8', 0, ID_GRID_128, "menu_grid_128"},
 	{"SetGrid128", GDK_KEY_8, 0, ID_GRID_128, "menu_grid_128"},
-	{"SetGrid256", '9', 0, ID_GRID_256, "menu_grid_256"},
-	{"SetGrid256", GDK_KEY_9, 0, ID_GRID_256, "menu_grid_256"},
-	{"DragEdges", GDK_KEY_E, 0, ID_SELECTION_DRAGEDGES, "menu_selection_dragedges"},
+    {"SetGrid256", '9', 0, ID_GRID_256, "menu_grid_256"},
+    {"SetGrid256", GDK_KEY_9, 0, ID_GRID_256, "menu_grid_256"},
+    {"DragEdges", GDK_KEY_E, 0, ID_SELECTION_DRAGEDGES, "menu_selection_dragedges"},
 	{"DragVertices", GDK_KEY_V, 0, ID_SELECTION_DRAGVERTECIES, "menu_selection_dragvertecies"},
 	{"ViewEntityInfo", GDK_KEY_N, 0, ID_VIEW_ENTITY, "menu_view_entity"},
 	//  {"ViewConsole", 'O', 0, ID_VIEW_CONSOLE, "menu_0,"},
@@ -407,7 +415,7 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 			g_pParentWnd->OnViewNearest( id );
 		}
 	}
-	else if ( id >= ID_GRID_025 && id <= ID_GRID_256 ) {
+    else if ( id >= ID_GRID_003125 && id <= ID_GRID_512 ) {
 		g_pParentWnd->OnGrid( id );
 	}
 	else if ( id >= ID_PLUGIN_START && id <= ID_PLUGIN_END ) {
@@ -560,6 +568,24 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 		  case ID_TEXTURES_TEXTUREWINDOWSCALE_10:
 			  g_pParentWnd->SetTextureScale( id );
 			  break;
+          case ID_TEXTURES_TEXTUREWINDOWSCALE_512:
+              g_pParentWnd->SetTextureSize( 512 );
+              break;
+          case ID_TEXTURES_TEXTUREWINDOWSCALE_384:
+              g_pParentWnd->SetTextureSize( 384 );
+              break;
+          case ID_TEXTURES_TEXTUREWINDOWSCALE_256:
+              g_pParentWnd->SetTextureSize( 256 );
+              break;
+          case ID_TEXTURES_TEXTUREWINDOWSCALE_192:
+              g_pParentWnd->SetTextureSize( 192 );
+              break;
+          case ID_TEXTURES_TEXTUREWINDOWSCALE_128:
+              g_pParentWnd->SetTextureSize( 128 );
+              break;
+          case ID_TEXTURES_TEXTUREWINDOWSCALE_64:
+              g_pParentWnd->SetTextureSize( 64 );
+              break;
 		  case ID_TEXTURES_LOADLIST: g_pParentWnd->OnTexturesLoadlist(); break;
 		  case ID_TEXTURES_SHADERLISTONLY: g_pParentWnd->OnTexturesShaderlistonly(); break;
 		  case ID_TEXTUREWINDOW_SCALEUP: g_pParentWnd->OnTexturewindowScaleup(); break;
@@ -1126,7 +1152,7 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 	create_check_menu_item_with_mnemonic( menu_in_menu, _( "Liquids" ), G_CALLBACK( HandleCommand ), ID_FILTER_LIQUIDS, FALSE );
 	create_check_menu_item_with_mnemonic( menu_in_menu, _( "Caulk" ), G_CALLBACK( HandleCommand ), ID_FILTER_CAULK, FALSE );
 	create_check_menu_item_with_mnemonic( menu_in_menu, _( "Clips" ), G_CALLBACK( HandleCommand ), ID_FILTER_CLIPS, FALSE );
-	create_check_menu_item_with_mnemonic( menu_in_menu, _( "Paths" ), G_CALLBACK( HandleCommand ), ID_FILTER_PATHS, FALSE );
+    create_check_menu_item_with_mnemonic( menu_in_menu, _( "Entity Links" ), G_CALLBACK( HandleCommand ), ID_FILTER_PATHS, FALSE );
 	create_check_menu_item_with_mnemonic( menu_in_menu, _( "Clusterportals" ), G_CALLBACK( HandleCommand ), ID_FILTER_CLUSTERPORTALS, FALSE );
 	create_check_menu_item_with_mnemonic( menu_in_menu, _( "Lights" ), G_CALLBACK( HandleCommand ), ID_FILTER_LIGHTS, FALSE );
 	create_check_menu_item_with_mnemonic( menu_in_menu, _( "Structural" ), G_CALLBACK( HandleCommand ), ID_FILTER_STRUCTURAL, FALSE );
@@ -1280,40 +1306,62 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 		menu_tearoff( menu );
 	}
 
-	item = create_radio_menu_item_with_mnemonic( menu, NULL, _( "Grid0.25" ),
-												 G_CALLBACK( HandleCommand ), ID_GRID_025, FALSE );
-	g_object_set_data( G_OBJECT( window ), "menu_grid_025", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid0.5" ),
-												 G_CALLBACK( HandleCommand ), ID_GRID_05, FALSE );
-	g_object_set_data( G_OBJECT( window ), "menu_grid_05", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid1" ),
+        if( MIN_GRID_PRECISION <= 0.03125 ) {
+            item = create_radio_menu_item_with_mnemonic( menu, item, _( "0.03125 Units" ),
+                                                     G_CALLBACK( HandleCommand ), ID_GRID_003125, FALSE );
+            g_object_set_data( G_OBJECT( window ), "menu_grid_003125", item );
+        }
+        if( MIN_GRID_PRECISION <= 0.0625 ) {
+            item = create_radio_menu_item_with_mnemonic( menu, item, _( "0.0625 Units" ),
+                                                     G_CALLBACK( HandleCommand ), ID_GRID_00625, FALSE );
+            g_object_set_data( G_OBJECT( window ), "menu_grid_00625", item );
+        }
+        if( MIN_GRID_PRECISION <= 0.125 ) {
+            item = create_radio_menu_item_with_mnemonic( menu, item, _( "0.125 Units" ),
+                                                     G_CALLBACK( HandleCommand ), ID_GRID_0125, FALSE );
+            g_object_set_data( G_OBJECT( window ), "menu_grid_0125", item );
+        }
+        if( MIN_GRID_PRECISION <= 0.25 ) {
+            item = create_radio_menu_item_with_mnemonic( menu, item, _( "0.25 Units" ),
+                                                     G_CALLBACK( HandleCommand ), ID_GRID_025, FALSE );
+            g_object_set_data( G_OBJECT( window ), "menu_grid_025", item );
+        }
+        if( MIN_GRID_PRECISION <= 0.5 ) {
+            item = create_radio_menu_item_with_mnemonic( menu, item, _( "0.5 Units" ),
+                                                     G_CALLBACK( HandleCommand ), ID_GRID_05, FALSE );
+            g_object_set_data( G_OBJECT( window ), "menu_grid_05", item );
+        }
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "1 Unit" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_1, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_1", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid2" ),
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "2 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_2, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_2", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid4" ),
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "4 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_4, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_4", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid8" ),
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "8 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_8, TRUE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_8", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid16" ),
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "16 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_16, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_16", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid32" ),
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "32 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_32, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_32", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid64" ),
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "64 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_64, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_64", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid128" ),
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "128 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_128, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_128", item );
-	item = create_radio_menu_item_with_mnemonic( menu, item, _( "Grid256" ),
-												 G_CALLBACK( HandleCommand ), ID_GRID_256, FALSE );
-	g_object_set_data( G_OBJECT( window ), "menu_grid_256", item );
-	menu_separator( menu );
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "256 Units" ),
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_256, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_grid_256", item );
+    item = create_radio_menu_item_with_mnemonic( menu, item, _( "512 Units" ),
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_512, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_grid_512", item );
+    menu_separator( menu );
 	item = create_check_menu_item_with_mnemonic( menu, _( "Snap to grid" ),
 												 G_CALLBACK( HandleCommand ), ID_SNAPTOGRID, TRUE );
 	g_object_set_data( G_OBJECT( window ), "menu_snaptogrid", item );
@@ -1384,22 +1432,40 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 												 G_CALLBACK( HandleCommand ), ID_TOGGLE_ROTATELOCK, TRUE );
 	g_object_set_data( G_OBJECT( window ), "menu_toggle_rotatelock", item );
 	menu_in_menu = create_menu_in_menu_with_mnemonic( menu, _( "Texture Window Scale" ) );
-	item = create_radio_menu_item_with_mnemonic( menu_in_menu, NULL, _( "200%" ),
-												 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_200, FALSE );
-	g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_200", item );
-	item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "100%" ),
-												 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_100, FALSE );
-	g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_100", item );
-	item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "50%" ),
-												 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_50, FALSE );
-	g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_50", item );
-	item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "25%" ),
-												 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_25, FALSE );
-	g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_25", item );
-	item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "10%" ),
-												 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_10, FALSE );
-	g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_10", item );
-	item = menu_separator( menu );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, NULL, _( "200%" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_200, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_200", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "100%" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_100, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_100", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "50%" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_50, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_50", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "25%" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_25, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_25", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "10%" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_10, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_10", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "512 pixels" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_512, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_512", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "384 pixels" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_384, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_384", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "256 pixels" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_256, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_256", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "192 pixels" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_192, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_192", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "128 pixels" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_128, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_128", item );
+    item = create_radio_menu_item_with_mnemonic( menu_in_menu, item, _( "64 pixels" ),
+                                                 G_CALLBACK( HandleCommand ), ID_TEXTURES_TEXTUREWINDOWSCALE_64, FALSE );
+    g_object_set_data( G_OBJECT( window ), "menu_textures_texturewindowscale_64", item );
+    item = menu_separator( menu );
 	item = create_check_menu_item_with_mnemonic( menu, _( "shaderlist.txt only" ),
 												 G_CALLBACK( HandleCommand ), ID_TEXTURES_SHADERLISTONLY, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_textures_shaderlistonly", item );
@@ -2441,6 +2507,7 @@ GtkWidget* create_texdirlist_widget()
 		GtkListStore* store = gtk_list_store_new( 1, G_TYPE_STRING );
 
 		view = gtk_tree_view_new_with_model( GTK_TREE_MODEL( store ) );
+        gtk_widget_modify_font(view, pango_font_description_from_string("Sans 7.5"));
 		gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( view ), FALSE );
 
 		{
@@ -4036,11 +4103,17 @@ void MainFrame::SetButtonMenuStates(){
 	int id, n = g_PrefsDlg.m_nTextureScale;
 	switch ( n )
 	{
-	case 10: id = ID_TEXTURES_TEXTUREWINDOWSCALE_10; break;
-	case 25: id = ID_TEXTURES_TEXTUREWINDOWSCALE_25; break;
-	case 50: id = ID_TEXTURES_TEXTUREWINDOWSCALE_50; break;
-	case 200: id = ID_TEXTURES_TEXTUREWINDOWSCALE_200; break;
-	default: id = ID_TEXTURES_TEXTUREWINDOWSCALE_100; break;
+        case 10: id = ID_TEXTURES_TEXTUREWINDOWSCALE_10; break;
+        case 25: id = ID_TEXTURES_TEXTUREWINDOWSCALE_25; break;
+        case 50: id = ID_TEXTURES_TEXTUREWINDOWSCALE_50; break;
+        case 200: id = ID_TEXTURES_TEXTUREWINDOWSCALE_200; break;
+        case 64: id = ID_TEXTURES_TEXTUREWINDOWSCALE_64; break;
+        case 128: id = ID_TEXTURES_TEXTUREWINDOWSCALE_128; break;
+        case 192: id = ID_TEXTURES_TEXTUREWINDOWSCALE_192; break;
+        case 256: id = ID_TEXTURES_TEXTUREWINDOWSCALE_256; break;
+        case 384: id = ID_TEXTURES_TEXTUREWINDOWSCALE_384; break;
+        case 512: id = ID_TEXTURES_TEXTUREWINDOWSCALE_512; break;
+        default: id = ID_TEXTURES_TEXTUREWINDOWSCALE_50; break;
 	}
 	SetTextureScale( id );
 
@@ -4055,6 +4128,8 @@ void MainFrame::SetButtonMenuStates(){
 	g_bIgnoreCommands--;
 }
 
+int renderCount = 0;
+
 void MainFrame::UpdateWindows( int nBits ){
 	if ( !g_bScreenUpdates ) {
 		return;
@@ -4067,7 +4142,7 @@ void MainFrame::UpdateWindows( int nBits ){
 	bean_count++;
 #endif
 
-	if ( nBits & ( W_XY | W_XY_OVERLAY ) ) {
+    if ( nBits & ( W_XY | W_XY_OVERLAY ) ) {
 		if ( m_pXYWnd ) {
 			m_pXYWnd->RedrawWindow();
 		}
@@ -4080,7 +4155,7 @@ void MainFrame::UpdateWindows( int nBits ){
 	}
 
 	if ( nBits & W_CAMERA || ( ( nBits & W_CAMERA_IFON ) && m_bCamPreview ) ) {
-		if ( m_pCamWnd ) {
+        if ( m_pCamWnd ) {
 			m_pCamWnd->RedrawWindow();
 		}
 	}
@@ -4091,11 +4166,30 @@ void MainFrame::UpdateWindows( int nBits ){
 		}
 	}
 
-	if ( nBits & W_TEXTURE ) {
-		if ( m_pTexWnd ) {
-			m_pTexWnd->RedrawWindow();
-		}
-	}
+    if ( nBits & W_TEXTURE ) {
+        if ( m_pTexWnd ) {
+            checkTextureWindowBoundaries();
+            m_pTexWnd->RedrawWindow();
+        }
+    }
+
+    if ( nBits & W_SURFACE ) {
+        UpdateSurfaceDialog();
+    }
+
+    if ( nBits & W_PATCH ) {
+        UpdatePatchInspector();
+    }
+
+/*
+    //NAB622 FIXME: The entity window needs updated too, but I'm not yet sure what all needs imported for that
+    if ( nBits & W_ENTITY ) {
+        if ( g_pGroupDlg->m_pWidget ) {
+            UpdateEntitySel( brush->owner->eclass );
+        }
+    }
+*/
+
 #ifdef DBG_WINDOWPOS
 	sprintf( bean_buf,"%d (end UpdateWidows)",bean_count );
 	CheckWatchit( bean_buf );
@@ -5085,22 +5179,22 @@ void MainFrame::OnView100(){
 void MainFrame::OnViewZoomin(){
 	if ( m_pXYWnd && m_pXYWnd->Active() ) {
 		m_pXYWnd->SetScale( m_pXYWnd->Scale() * 5.0 / 4 );
-		if ( m_pXYWnd->Scale() > 30 ) {
-			m_pXYWnd->SetScale( 30 );
+        if ( m_pXYWnd->Scale() > MAX_GRID_ZOOM_BLOCKSIZE ) {
+            m_pXYWnd->SetScale( MAX_GRID_ZOOM_BLOCKSIZE );
 		}
 	}
 
 	if ( m_pXZWnd && m_pXZWnd->Active() ) {
 		m_pXZWnd->SetScale( m_pXZWnd->Scale() * 5.0 / 4 );
-		if ( m_pXZWnd->Scale() > 30 ) {
-			m_pXZWnd->SetScale( 30 );
+        if ( m_pXZWnd->Scale() > MAX_GRID_ZOOM_BLOCKSIZE ) {
+            m_pXZWnd->SetScale( MAX_GRID_ZOOM_BLOCKSIZE );
 		}
 	}
 
 	if ( m_pYZWnd && m_pYZWnd->Active() ) {
 		m_pYZWnd->SetScale( m_pYZWnd->Scale() * 5.0 / 4 );
-		if ( m_pYZWnd->Scale() > 30 ) {
-			m_pYZWnd->SetScale( 30 );
+        if ( m_pYZWnd->Scale() > MAX_GRID_ZOOM_BLOCKSIZE ) {
+            m_pYZWnd->SetScale( MAX_GRID_ZOOM_BLOCKSIZE );
 		}
 	}
 
@@ -5114,7 +5208,7 @@ void MainFrame::OnViewZoomout(){
 	float min_scale;
 	if ( m_pXYWnd && m_pXYWnd->Active() ) {
 		m_pXYWnd->SetScale( m_pXYWnd->Scale() * 4.0 / 5 );
-		min_scale = MIN( m_pXYWnd->Width(),m_pXYWnd->Height() ) / ( 1.1 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+        min_scale = MIN( m_pXYWnd->Width(),m_pXYWnd->Height() ) / ( 1.375 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
 		if ( m_pXYWnd->Scale() < min_scale ) {
 			m_pXYWnd->SetScale( min_scale );
 		}
@@ -5122,7 +5216,7 @@ void MainFrame::OnViewZoomout(){
 
 	if ( m_pXZWnd && m_pXZWnd->Active() ) {
 		m_pXZWnd->SetScale( m_pXZWnd->Scale() * 4.0 / 5 );
-		min_scale = MIN( m_pXZWnd->Width(),m_pXZWnd->Height() ) / ( 1.1 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+        min_scale = MIN( m_pXZWnd->Width(),m_pXZWnd->Height() ) / ( 1.375 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
 		if ( m_pXZWnd->Scale() < min_scale ) {
 			m_pXZWnd->SetScale( min_scale );
 		}
@@ -5130,7 +5224,7 @@ void MainFrame::OnViewZoomout(){
 
 	if ( m_pYZWnd && m_pYZWnd->Active() ) {
 		m_pYZWnd->SetScale( m_pYZWnd->Scale() * 4.0 / 5 );
-		min_scale = MIN( m_pYZWnd->Width(),m_pYZWnd->Height() ) / ( 1.1 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+        min_scale = MIN( m_pYZWnd->Width(),m_pYZWnd->Height() ) / ( 1.375 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
 		if ( m_pYZWnd->Scale() < min_scale ) {
 			m_pYZWnd->SetScale( min_scale );
 		}
@@ -5153,30 +5247,50 @@ void MainFrame::OnViewZzoomin(){
 
 void MainFrame::OnViewZzoomout(){
 	z.scale *= 4.0f / 5;
-	if ( z.scale < 0.125 ) {
-		z.scale = 0.125;
+    if ( z.scale < 0.125 ) {
+        z.scale = 0.125;
 	}
 	Sys_UpdateWindows( W_Z | W_Z_OVERLAY );
 }
 
 void MainFrame::OnViewCubein(){
-	g_PrefsDlg.m_nCubicScale--;
-	if ( g_PrefsDlg.m_nCubicScale < 1 ) {
-		g_PrefsDlg.m_nCubicScale = 1;
-	}
-	g_PrefsDlg.SavePrefs();
-	Sys_UpdateWindows( W_CAMERA );
-	SetGridStatus();
+    if (g_PrefsDlg.m_nCubicScale < CUBIC_CLIPPING_MIN ) {
+        Sys_Printf( "WARNING: Below minimum clipping distance, correcting\n");
+        g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MIN;
+        g_PrefsDlg.SavePrefs();
+        return;
+    }
+    g_PrefsDlg.m_nCubicScale--;
+    if ( g_PrefsDlg.m_nCubicScale < CUBIC_CLIPPING_MIN ) {
+        g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MIN;
+        Sys_Printf( "Already at minimum clipping distance\n");
+        return;
+    }
+    else {
+        g_PrefsDlg.SavePrefs();
+    }
+    Sys_UpdateWindows( W_CAMERA );
+    SetGridStatus();
 }
 
 void MainFrame::OnViewCubeout(){
-	g_PrefsDlg.m_nCubicScale++;
-	if ( g_PrefsDlg.m_nCubicScale > 22 ) {
-		g_PrefsDlg.m_nCubicScale = 22;
-	}
-	g_PrefsDlg.SavePrefs();
-	Sys_UpdateWindows( W_CAMERA );
-	SetGridStatus();
+    if (g_PrefsDlg.m_nCubicScale > CUBIC_CLIPPING_MAX ) {
+        Sys_Printf( "WARNING: Above maximum clipping distance, correcting\n");
+        g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MAX;
+        g_PrefsDlg.SavePrefs();
+        return;
+    }
+    g_PrefsDlg.m_nCubicScale++;
+    if ( g_PrefsDlg.m_nCubicScale > CUBIC_CLIPPING_MAX ) {
+        g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MAX;
+        Sys_Printf( "Already at maximum clipping distance\n");
+        return;
+    }
+    else {
+        g_PrefsDlg.SavePrefs();
+    }
+    Sys_UpdateWindows( W_CAMERA );
+    SetGridStatus();
 }
 
 void MainFrame::OnViewShownames(){
@@ -5806,41 +5920,29 @@ void MainFrame::OnBspCommand( unsigned int nID ){
 }
 
 void MainFrame::OnGrid( unsigned int nID ){
-	if ( nID == ID_GRID_025 ) {
-		g_qeglobals.d_gridsize = 0.25f;
-		g_qeglobals.d_bSmallGrid = true;
-	}
-	else if ( nID == ID_GRID_05 ) {
-		g_qeglobals.d_gridsize = 0.5f;
-		g_qeglobals.d_bSmallGrid = true;
-	}
-	else
-	{
-		switch ( nID )
-		{
-		case ID_GRID_1: g_qeglobals.d_gridsize = 0; break;
-		case ID_GRID_2: g_qeglobals.d_gridsize = 1; break;
-		case ID_GRID_4: g_qeglobals.d_gridsize = 2; break;
-		case ID_GRID_8: g_qeglobals.d_gridsize = 3; break;
-		case ID_GRID_16: g_qeglobals.d_gridsize = 4; break;
-		case ID_GRID_32: g_qeglobals.d_gridsize = 5; break;
-		case ID_GRID_64: g_qeglobals.d_gridsize = 6; break;
-		case ID_GRID_128: g_qeglobals.d_gridsize = 7; break;
-		case ID_GRID_256: g_qeglobals.d_gridsize = 8; break;
-		}
-		g_qeglobals.d_gridsize = 1 << (int)g_qeglobals.d_gridsize;
-		g_qeglobals.d_bSmallGrid = false;
-	}
+    switch ( nID )
+    {
+        case ID_GRID_003125: g_qeglobals.d_gridsize = 0.03125f; break;
+        case ID_GRID_00625: g_qeglobals.d_gridsize = 0.0625f; break;
+        case ID_GRID_0125: g_qeglobals.d_gridsize = 0.125f; break;
+        case ID_GRID_025: g_qeglobals.d_gridsize = 0.25f; break;
+        case ID_GRID_05: g_qeglobals.d_gridsize = 0.5f; break;
+        case ID_GRID_1: g_qeglobals.d_gridsize = 1.0; break;
+        case ID_GRID_2: g_qeglobals.d_gridsize = 2.0; break;
+        case ID_GRID_4: g_qeglobals.d_gridsize = 4.0; break;
+        case ID_GRID_8: g_qeglobals.d_gridsize = 8.0; break;
+        case ID_GRID_16: g_qeglobals.d_gridsize = 16.0; break;
+        case ID_GRID_32: g_qeglobals.d_gridsize = 32.0; break;
+        case ID_GRID_64: g_qeglobals.d_gridsize = 64.0; break;
+        case ID_GRID_128: g_qeglobals.d_gridsize = 128.0; break;
+        case ID_GRID_256: g_qeglobals.d_gridsize = 256.0; break;
+        case ID_GRID_512: g_qeglobals.d_gridsize = 512.0; break;
+        default:
+            g_qeglobals.d_gridsize = 8.0;
+    }
 
-	SetGridStatus();
-
-	// SnapTToGrid option: need to check everywhere the grid size is changed
-	// this is a bit clumsy, have to do in OnGrid OnGridPrev and OnGridNext
-	if ( g_PrefsDlg.m_bSnapTToGrid ) {
-		DoSnapTToGrid();
-	}
-
-	Sys_UpdateWindows( W_XY | W_Z );
+    // NAB622: g_qeglobals.d_bSmallGrid and Sys_UpdateWindows are handled in the following function, no need for it here
+    applyGridSize( (float) g_qeglobals.d_gridsize );
 }
 
 void MainFrame::OnSnaptogrid(){
@@ -5982,6 +6084,7 @@ void MainFrame::OnTexturesShadersShow(){
 
 void MainFrame::SetTextureScale( int id ){
 	GtkWidget *item;
+        g_PrefsDlg.m_bFixedTextureSize = false;
 
 	switch ( id )
 	{
@@ -5993,21 +6096,21 @@ void MainFrame::SetTextureScale( int id ){
 		g_PrefsDlg.m_nTextureScale = 25;
 		item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_25" ) );
 		break;
-	case ID_TEXTURES_TEXTUREWINDOWSCALE_50:
-		g_PrefsDlg.m_nTextureScale = 50;
-		item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_50" ) );
-		break;
+    case ID_TEXTURES_TEXTUREWINDOWSCALE_100:
+        g_PrefsDlg.m_nTextureScale = 100;
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_100" ) );
+        break;
 	case ID_TEXTURES_TEXTUREWINDOWSCALE_200:
 		g_PrefsDlg.m_nTextureScale = 200;
 		item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_200" ) );
 		break;
-	default:
-		g_PrefsDlg.m_nTextureScale = 100;
-		item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_100" ) );
-		break;
+    case ID_TEXTURES_TEXTUREWINDOWSCALE_50:
+    default:
+        g_PrefsDlg.m_nTextureScale = 50;
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_50" ) );
 	}
 
-	g_bIgnoreCommands++;
+    g_bIgnoreCommands++;
 	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( item ), TRUE );
 	g_bIgnoreCommands--;
 
@@ -6048,6 +6151,44 @@ void MainFrame::OnTexturewindowScaledown(){
 		break;
 		// 10, all the way out, don't do anything
 	}
+}
+
+void MainFrame::SetTextureSize( int newSize ) {
+    GtkWidget *item;
+
+    g_PrefsDlg.m_bFixedTextureSize = true;
+
+    switch ( newSize ) {
+    case 512:
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_512" ) );
+        break;
+    case 384:
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_384" ) );
+        break;
+    case 256:
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_256" ) );
+        break;
+    case 192:
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_192" ) );
+        break;
+    case 64:
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_64" ) );
+        break;
+    case 128:
+    default:
+        newSize = 128;
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_textures_texturewindowscale_128" ) );
+    }
+
+    g_PrefsDlg.m_nTextureScale = newSize;
+    g_PrefsDlg.m_nFixedTextureSizeWidth = newSize;
+    g_PrefsDlg.m_nFixedTextureSizeHeight = newSize;
+
+    g_bIgnoreCommands++;
+    gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( item ), TRUE );
+    g_bIgnoreCommands--;
+
+    Texture_ResetPosition();
 }
 
 void MainFrame::OnTexturesLoadlist(){
@@ -7327,141 +7468,143 @@ void MainFrame::OnViewCrosshair(){
 }
 
 void MainFrame::OnSelectionTextureRotateclock(){
-	Select_RotateTexture( abs( g_PrefsDlg.m_nRotation ) );
+    Undo_Start( "rotate clockwise" );
+    Select_RotateTexture( abs( g_PrefsDlg.m_nRotation ) );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureRotatecounter(){
-	Select_RotateTexture( -abs( g_PrefsDlg.m_nRotation ) );
+    Undo_Start( "rotate counterclockwise" );
+    Select_RotateTexture( -abs( g_PrefsDlg.m_nRotation ) );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureScaleup(){
-	Select_ScaleTexture( 0, g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] );
+    Undo_Start( "scale up" );
+    Select_ScaleTexture( 0, g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureScaledown(){
-	Select_ScaleTexture( 0, -g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] );
+    Undo_Start( "scale down" );
+    Select_ScaleTexture( 0, -g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureScaleLeft(){
-	Select_ScaleTexture( -g_qeglobals.d_savedinfo.m_SIIncrement.scale[0],0 );
+    Undo_Start( "scale left" );
+    Select_ScaleTexture( -g_qeglobals.d_savedinfo.m_SIIncrement.scale[0],0 );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureScaleRight(){
+    Undo_Start( "scale right" );
 	Select_ScaleTexture( g_qeglobals.d_savedinfo.m_SIIncrement.scale[0],0 );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureShiftleft(){
-	Select_ShiftTexture( (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[0], 0 );
+    Undo_Start( "shift left" );
+    Select_ShiftTexture( (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[0], 0 );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureShiftright(){
-	Select_ShiftTexture( (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[0], 0 );
+    Undo_Start( "shift right" );
+    Select_ShiftTexture( (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[0], 0 );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureShiftup(){
-	Select_ShiftTexture( 0, (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] );
+    Undo_Start( "shift up" );
+    Select_ShiftTexture( 0, (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] );
+    Undo_End();
 }
 
 void MainFrame::OnSelectionTextureShiftdown(){
-	Select_ShiftTexture( 0, (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] );
+    Undo_Start( "shift down" );
+    Select_ShiftTexture( 0, (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] );
+    Undo_End();
+}
+
+void MainFrame::applyGridSize( float newSize ) {
+    //NAB622: Made this into a function, is cleaner
+    GtkWidget *item;
+
+    if ( newSize < MIN_GRID_PRECISION ) {
+        newSize = MIN_GRID_PRECISION;
+    }
+    else if ( newSize > 512.0 ) {
+        newSize = 512.0;
+    }
+
+    g_qeglobals.d_gridsize = newSize;
+
+    if( g_qeglobals.d_gridsize < 1.0 ) {
+        g_qeglobals.d_bSmallGrid = true;
+    } else {
+        g_qeglobals.d_bSmallGrid = false;
+    }
+
+    if ( g_qeglobals.d_gridsize == 0.03125 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_003125" ) );
+    } else if ( g_qeglobals.d_gridsize == 0.0625 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_00625" ) );
+    } else if ( g_qeglobals.d_gridsize == 0.125 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_0125" ) );
+    } else if ( g_qeglobals.d_gridsize == 0.25 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_025" ) );
+    } else if ( g_qeglobals.d_gridsize == 0.5 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_05" ) );
+    } else if ( g_qeglobals.d_gridsize == 1.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_1" ) );
+    } else if ( g_qeglobals.d_gridsize == 2.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_2" ) );
+    } else if ( g_qeglobals.d_gridsize == 4.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_4" ) );
+    } else if ( g_qeglobals.d_gridsize == 8.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_8" ) );
+    } else if ( g_qeglobals.d_gridsize == 16.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_16" ) );
+    } else if ( g_qeglobals.d_gridsize == 32.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_32" ) );
+    } else if ( g_qeglobals.d_gridsize == 64.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_64" ) );
+    } else if ( g_qeglobals.d_gridsize == 128.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_128" ) );
+    } else if ( g_qeglobals.d_gridsize == 256.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_256" ) );
+    } else if ( g_qeglobals.d_gridsize == 512.0 ) {
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_512" ) );
+    }
+
+    SetGridStatus();
+
+    g_bIgnoreCommands++;
+    gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( item ), TRUE );
+    g_bIgnoreCommands--;
+
+    // SnapTToGrid option: need to check everywhere the grid size is changed
+    // this is a bit clumsy, have to do in OnGrid OnGridPrev and OnGridNext
+    if ( g_PrefsDlg.m_bSnapTToGrid ) {
+        DoSnapTToGrid();
+    }
+
+    Sys_UpdateWindows( W_XY | W_Z );
 }
 
 void MainFrame::OnGridPrev(){
-	GtkWidget *item;
-	if ( g_qeglobals.d_gridsize == 1 ) {
-		g_qeglobals.d_gridsize = 0.5;
-		g_qeglobals.d_bSmallGrid = true;
-		item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_05" ) );
-	}
-	else if ( g_qeglobals.d_gridsize == 0.5 ) {
-		g_qeglobals.d_gridsize = 0.25;
-		g_qeglobals.d_bSmallGrid = true;
-		item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_025" ) );
-	}
-	else if ( g_qeglobals.d_gridsize > 1 ) {
-		g_qeglobals.d_gridsize = (int)g_qeglobals.d_gridsize >> 1;
-		g_qeglobals.d_bSmallGrid = false;
+    GtkWidget *item;
 
-		switch ( (int)g_qeglobals.d_gridsize )
-		{
-		case  1: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_1" ) ); break;
-		case  2: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_2" ) ); break;
-		case  4: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_4" ) ); break;
-		case  8: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_8" ) ); break;
-		case  16: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_16" ) ); break;
-		case  32: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_32" ) ); break;
-		case  64: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_64" ) ); break;
-		case 128: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_128" ) ); break;
-		case 256: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_256" ) ); break;
-		default: return;
-		}
-
-	}
-	else{
-		return;
-	}
-
-	// SnapTToGrid option: need to check everywhere the grid size is changed
-	// this is a bit clumsy, have to do in OnGrid OnGridPrev and OnGridNext
-	if ( g_PrefsDlg.m_bSnapTToGrid ) {
-		DoSnapTToGrid();
-	}
-
-	SetGridStatus();
-	g_bIgnoreCommands++;
-	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( item ), TRUE );
-	g_bIgnoreCommands--;
-
-	Sys_UpdateWindows( W_XY | W_Z );
+    //NAB622: Made this into a function, is cleaner
+    applyGridSize( g_qeglobals.d_gridsize / 2.0 );
 }
 
 void MainFrame::OnGridNext(){
 	GtkWidget *item;
-	if ( g_qeglobals.d_gridsize == 0.25 ) {
-		g_qeglobals.d_gridsize = 0.5;
-		g_qeglobals.d_bSmallGrid = true;
-		item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_05" ) );
-	}
-	else if ( g_qeglobals.d_gridsize == 0.5 ) {
-		g_qeglobals.d_gridsize = 1;
-		g_qeglobals.d_bSmallGrid = false;
-		item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_1" ) );
-	}
-	else if ( g_qeglobals.d_gridsize < 256 ) {
-		g_qeglobals.d_gridsize = (int)g_qeglobals.d_gridsize << 1;
-		g_qeglobals.d_bSmallGrid = false;
 
-		switch ( (int)g_qeglobals.d_gridsize )
-		{
-		case  1: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_1" ) ); break;
-		case  2: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_2" ) ); break;
-		case  4: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_4" ) ); break;
-		case  8: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_8" ) ); break;
-		case  16: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_16" ) ); break;
-		case  32: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_32" ) ); break;
-		case  64: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_64" ) ); break;
-		case 128: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_128" ) ); break;
-		case 256: item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_256" ) ); break;
-		default:  item = NULL;
-		}
-
-	}
-	else{
-		return;
-	}
-
-	// SnapTToGrid option: need to check everywhere the grid size is changed
-	// this is a bit clumsy, have to do in OnGrid OnGridPrev and OnGridNext
-	if ( g_PrefsDlg.m_bSnapTToGrid ) {
-		DoSnapTToGrid();
-	}
-
-	SetGridStatus();
-	g_bIgnoreCommands++;
-	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( item ), TRUE );
-	g_bIgnoreCommands--;
-
-	Sys_UpdateWindows( W_XY | W_Z );
+    //NAB622: Made this into a function, is cleaner
+    applyGridSize( g_qeglobals.d_gridsize * 2.0 );
 }
 
 void MainFrame::OnSelectionMovedown(){

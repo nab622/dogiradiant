@@ -57,6 +57,13 @@ struct SKeyInfo
 	unsigned int m_nVKKey;
 };
 
+// NAB622: Grid precisions down to 0.03125 have been added and they work - however, they're too precise to guarantee accuracy in a compiled map.
+// This define will limit the minimum grid setting. Changing this define prevents smaller numbers from appearing in the menu, and will not
+// allow the user to switch to a lower setting than that with the keyboard.
+// Valid values here are 1, 0.5, 0.25, 0.125, 0.0625 and 0.03125. Anything else will have no effect or cause bugs.
+// Do not change this setting lightly, as Radiant now uses it as an epsilon when calculating vertex locations to fix a "Snap to grid" bug!
+#define MIN_GRID_PRECISION 0.125
+
 #define ID_FILE_NEW 0xE100
 #define ID_FILE_OPEN 0xE101
 #define ID_FILE_SAVE 0xE103
@@ -207,6 +214,12 @@ struct SKeyInfo
 #define ID_VIEW_ENTITIESAS_SKINNEDANDBOXED 32989
 #define ID_SHOW_ENTITIES                32990
 #define ID_VIEW_ENTITIESAS_WIREFRAME    32991
+#define ID_TEXTURES_TEXTUREWINDOWSCALE_512 32992
+#define ID_TEXTURES_TEXTUREWINDOWSCALE_384 32993
+#define ID_TEXTURES_TEXTUREWINDOWSCALE_256 32994
+#define ID_TEXTURES_TEXTUREWINDOWSCALE_192 32995
+#define ID_TEXTURES_TEXTUREWINDOWSCALE_128 32996
+#define ID_TEXTURES_TEXTUREWINDOWSCALE_64 32997
 #define ID_VIEW_OPENGLLIGHTING          32998
 #define ID_EDIT_SAVEPREFAB              33001
 #define ID_CURVE_MOREENDCAPSBEVELS_SQUAREENDCAP 33002
@@ -412,18 +425,22 @@ struct SKeyInfo
 
 #define ID_SELECT_FUNC_GROUP            40233
 
-// those must have their own ID chunk ID_GRID_025 <= ID_GRID <= ID_GRID_256
-#define ID_GRID_025                     40300
-#define ID_GRID_05                      40301
-#define ID_GRID_1                       40302
-#define ID_GRID_2                       40303
-#define ID_GRID_4                       40304
-#define ID_GRID_8                       40305
-#define ID_GRID_16                      40306
-#define ID_GRID_32                      40307
-#define ID_GRID_64                      40308
-#define ID_GRID_128                     40309
-#define ID_GRID_256                     40310
+// those must have their own ID chunk ID_GRID_003125 <= ID_GRID <= ID_GRID_512
+#define ID_GRID_003125                  40300
+#define ID_GRID_00625                   40301
+#define ID_GRID_0125                    40302
+#define ID_GRID_025                     40303
+#define ID_GRID_05                      40304
+#define ID_GRID_1                       40305
+#define ID_GRID_2                       40306
+#define ID_GRID_4                       40307
+#define ID_GRID_8                       40308
+#define ID_GRID_16                      40309
+#define ID_GRID_32                      40310
+#define ID_GRID_64                      40311
+#define ID_GRID_128                     40312
+#define ID_GRID_256                     40313
+#define ID_GRID_512                     40314
 
 #define ID_FILE_CHECKUPDATE             40320
 
@@ -764,6 +781,7 @@ void OnSelectionTextureShiftdown();
 void OnSelectionTextureShiftleft();
 void OnSelectionTextureShiftright();
 void OnSelectionTextureShiftup();
+void applyGridSize( float newSize );
 void OnGridNext();
 void OnGridPrev();
 void OnSelectionTextureScaleLeft();
@@ -880,6 +898,7 @@ void OnGrid( unsigned int nID );
 void OnPlugIn( unsigned int nID, const char *str );
 void OnFaceFit();
 void SetTextureScale( int id );
+void SetTextureSize( int id );
 void OnDontselectmodel();
 void OnTexturesShaderlistonly();
 void OnSleep();

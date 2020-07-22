@@ -438,7 +438,7 @@ void Drag_Begin( int x, int y, int buttons,
 			}
 		}
 		else{
-			Sys_Printf( "Didn't hit a btrush\n" );
+            Sys_Printf( "Didn't hit a brush\n" );
 		}
 		return;
 	}
@@ -459,7 +459,7 @@ void Drag_Begin( int x, int y, int buttons,
 			}
 		}
 		else{
-			Sys_Printf( "Didn't hit a btrush\n" );
+            Sys_Printf( "Didn't hit a brush\n" );
 		}
 		return;
 	}
@@ -651,7 +651,7 @@ void MoveSelection( vec3_t move ){
                             int brush_count = 0;
                             for ( int i = 0; i < g_qeglobals.d_num_move_points; i++ ) {
     			      for ( b = selected_brushes.next; b != &selected_brushes; b = b->next ) {
-				success &= Brush_MoveVertex( b, g_qeglobals.d_move_points[i], move, ends[i], true );
+                success &= Brush_MoveVertex( b, g_qeglobals.d_move_points[i], move, ends[i], true );
                                 if ( !success ) {
                                   Sys_Printf( "Brush_MoveVertex brush %d vertex %d failed\n", brush_count, i );
                                   return;
@@ -706,7 +706,7 @@ void MoveSelection( vec3_t move ){
 			}
 		}
 		// if any of the brushes were crushed out of existance
-		// calcel the entire move
+        // cancel the entire move
 		if ( b != &selected_brushes ) {
 			Sys_Printf( "Brush dragged backwards, move canceled\n" );
 			for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ )
@@ -787,9 +787,9 @@ void Drag_MouseMoved( int x, int y, int buttons ){
 		for ( i = 0 ; i < 3 ; i++ )
 		{
 			move[i] = drag_xvec[i] * ( x - pressx ) + drag_yvec[i] * ( y - pressy );
-			if ( g_PrefsDlg.m_bSnap ) {
-				move[i] = floor( move[i] / g_qeglobals.d_gridsize + 0.5 ) * g_qeglobals.d_gridsize;
-			}
+            if ( g_PrefsDlg.m_bSnap ) {
+                move[i] = floor( move[i] / g_qeglobals.d_gridsize + 0.5 ) * g_qeglobals.d_gridsize;
+            }
 		}
 	}
 

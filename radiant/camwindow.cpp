@@ -723,7 +723,7 @@ void CamWnd::Cam_MouseMoved( int x, int y, int buttons ){
 }
 
 void CamWnd::InitCull(){
-	int i;
+    int i;
 
 	VectorSubtract( m_Camera.vpn, m_Camera.vright, m_vCull1 );
 	VectorAdd( m_Camera.vpn, m_Camera.vright, m_vCull2 );
@@ -751,7 +751,7 @@ qboolean CamWnd::CullBrush( brush_t *b ){
 	float d;
 
 	if ( g_PrefsDlg.m_bCubicClipping ) {
-		float fLevel = g_PrefsDlg.m_nCubicScale * 64;
+        float fLevel = g_PrefsDlg.m_nCubicScale * CUBIC_CLIPPING_MULTIPLIER;
 
 		point[0] = m_Camera.origin[0] - fLevel;
 		point[1] = m_Camera.origin[1] - fLevel;
@@ -1298,7 +1298,7 @@ void CamWnd::Cam_Draw(){
 	qglClearColor( g_qeglobals.d_savedinfo.colors[COLOR_CAMERABACK][0],
 				   g_qeglobals.d_savedinfo.colors[COLOR_CAMERABACK][1],
 				   g_qeglobals.d_savedinfo.colors[COLOR_CAMERABACK][2], 0 );
-	qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	//
 	// set up viewpoint
@@ -1310,7 +1310,7 @@ void CamWnd::Cam_Draw(){
 
 	screenaspect = (float)m_Camera.width / m_Camera.height;
 	yfov = 2 * atan( (float)m_Camera.height / m_Camera.width ) * 180 / Q_PI;
-	qgluPerspective( yfov,  screenaspect,  8,  32768 );
+    qgluPerspective( yfov,  screenaspect,  8,  MAX_RENDER_DISTANCE );
 
 	// we're too lazy to calc projection matrix ourselves!!!
 	qglGetFloatv( GL_PROJECTION_MATRIX, &m_Camera.projection[0][0] );

@@ -26,6 +26,17 @@
 #include "camwindow.h"
 #include "glwindow.h"
 
+
+// NAB622: Defining these at the top so they're easier to find
+const float gridCameraSymbolColor[3] = { 0.25, 0.8, 1.0 };
+
+// The fourth value on these colors is the alpha
+const bool drawZSymbolOnGrid = false;     //NAB622: Disabled this because I think it's pointless
+const float gridZSymbolColor[4] = { 1.0, 0.3, 0.3, 0.75 };
+const float gridZSymbolBackgroundColor[4] = { 0.1, 0.5, 1.0, 0.25 };
+const float gridZSymbolBorderColor[4] = { 0.1, 1.0, 0.5, 0.45 };
+
+
 const int SCALE_X = 0x01;
 const int SCALE_Y = 0x02;
 const int SCALE_Z = 0x04;

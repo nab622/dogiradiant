@@ -561,7 +561,9 @@ extern eclass_t    *eclass;
 #define W_YZ          0x0400  //--|
 #define W_GROUP       0x0800
 #define W_MEDIA       0x1000
-#define W_ALL           0xFFFFFFFF
+#define W_SURFACE     0x2000
+#define W_PATCH       0x4000
+#define W_ALL         0xFFFFFFFF
 
 // used in some Drawing routines
 enum VIEWTYPE {YZ, XZ, XY};

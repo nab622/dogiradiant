@@ -23,6 +23,11 @@
 //#include "qe3.h"
 #include "winding.h"
 
+// This is the tolerance for error when clicking on a vertex. Larger numbers mean easier clicking.
+// NAB622: It can be increased a bit now that the grid zooms in much farther.
+#define SELECT_EPSILON 12
+
+
 int FindPoint( vec3_t point ){
 	int i, j;
 
@@ -182,8 +187,6 @@ void SelectVertex( int p1 ){
 	}
 }
 
-#define SELECT_EPSILON 8
-
 void SelectVertexByRay( vec3_t org, vec3_t dir ){
 	int i, besti;
 	float d, bestd = VEC_MAX;
@@ -196,7 +199,7 @@ void SelectVertexByRay( vec3_t org, vec3_t dir ){
 	if ( ( fabs( org[0] ) == g_MaxWorldCoord || fabs( org[1] ) == g_MaxWorldCoord || fabs( org[2] ) == g_MaxWorldCoord )
 		 && ( fabs( dir[0] ) == 1.0f || fabs( dir[1] ) == 1.0f || fabs( dir[2] ) == 1.0f ) ) { // very unlikely unless 2d view
 		divergence = 0;
-		epsilon = SELECT_EPSILON /  g_pParentWnd->GetXYWnd()->Scale(); // compensate for zoom level
+        epsilon = SELECT_EPSILON /  g_pParentWnd->GetXYWnd()->Scale(); // compensate for zoom level
 	}
 	else
 	{

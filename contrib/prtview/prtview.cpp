@@ -106,11 +106,11 @@ void InitInstance(){
 	portals.clip = INIGetInt( CLIP, FALSE ) ? true : false;
 	portals.clip_range = (float)INIGetInt( CLIP_RANGE, 16 );
 
-	if ( portals.clip_range < 1 ) {
-		portals.clip_range = 1;
+    if ( portals.clip_range < 1 ) {
+        portals.clip_range = 1;
 	}
-	else if ( portals.clip_range > 128 ) {
-		portals.clip_range = 128;
+    else if ( portals.clip_range > 128 ) {
+        portals.clip_range = 128;
 	}
 
 	if ( portals.zbuffer < 0 ) {
@@ -156,7 +156,7 @@ void SaveConfig(){
 	INISetInt( AA_3D, portals.aa_3d, "Draw lines in 3D window anti-aliased" );
 	INISetInt( TRANS_3D, (int)portals.trans_3d, "Transparency in 3d view (0 = solid, 100 = invisible)" );
 	INISetInt( CLIP, portals.clip, "Cubic clipper active for portal viewer" );
-	INISetInt( CLIP_RANGE, (int)portals.clip_range, "Portal viewer cubic clip distance (in units of 64)" );
+    INISetInt( CLIP_RANGE, (int)portals.clip_range, "Portal viewer cubic clip distance (in units of 64)" );
 }
 
 // Radiant function table

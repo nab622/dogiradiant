@@ -95,7 +95,7 @@
 #define DETACHABLEMENUS_KEY     "DetachableMenus"
 #define PATCHTOOLBAR_KEY        "PatchToolBar"
 #define WIDETOOLBAR_KEY         "WideToolBar"
-#define PLUGINTOOLBAR_KEY "PluginToolBar"
+#define PLUGINTOOLBAR_KEY       "PluginToolBar"
 #define NOCLAMP_KEY             "NoClamp"
 #define SNAP_KEY                "Snap"
 #define PREFAB_KEY              "PrefabPath"
@@ -115,10 +115,10 @@
 #define NORMALIZECOLORS_KEY     "NormalizeColors"
 #define SHADERS_KEY             "UseShaders"
 #define SWITCHCLIP_KEY          "SwitchClipKey"
-#define SELWHOLEENTS_KEY            "SelectWholeEntitiesKey"
-#define TEXTURESUBSET_KEY         "UseTextureSubsetLoading"
+#define SELWHOLEENTS_KEY        "SelectWholeEntitiesKey"
+#define TEXTURESUBSET_KEY       "UseTextureSubsetLoading"
 #define TEXTUREQUALITY_KEY      "TextureQuality"
-#define SHOWSHADERS_KEY           "ShowShaders"
+#define SHOWSHADERS_KEY         "ShowShaders"
 #define HIDEEMPTYDIRS_KEY       "HideEmptyDirs"
 #define SHADERTEST_KEY          "ShaderTest"
 #define GLLIGHTING_KEY          "UseGLLighting"
@@ -155,9 +155,9 @@
 #define CUSTOMSHADEREDITOR_KEY        "UseCustomShaderEditor"
 #define CUSTOMSHADEREDITORCOMMAND_KEY "CustomShaderEditorCommand"
 #define TEXTURECOMPRESSIONFORMAT_KEY "TextureCompressionFormat"
-#define LIGHTRADIUS_KEY "LightRadiuses"
-#define Q3MAP2TEX_KEY "Q3Map2Tex"
-#define X64Q3MAP2_KEY "x64Q3Map2"
+#define LIGHTRADIUS_KEY         "LightRadiuses"
+#define Q3MAP2TEX_KEY           "Q3Map2Tex"
+#define X64Q3MAP2_KEY           "x64Q3Map2"
 
 #ifdef ATIHACK_812
 #define ATIHACK_KEY "ATIHack"
@@ -593,8 +593,8 @@ PrefsDlg::PrefsDlg (){
 	m_nAutoSave = 5;
 	m_bSaveBeep = TRUE;
 	m_bLoadLastMap = FALSE;
-	m_bTextureWindow = FALSE;
-	m_bSnapShots = FALSE;
+    m_bTextureWindow = TRUE;    //This is the texture filtering feature, formerly called texture subsets. From now on, this is ON BY DEFAULT.
+    m_bSnapShots = FALSE;
 	m_fTinySize = 0.5;
 	m_bCleanTiny = FALSE;
 	m_bCamXYUpdate = TRUE;
@@ -613,11 +613,13 @@ PrefsDlg::PrefsDlg (){
 	m_bZVis = FALSE;
 	m_bSizePaint = FALSE;
 	m_bDLLEntities = FALSE;
-#ifdef _WIN32
+//#ifdef _WIN32
 	m_bDetachableMenus = FALSE; // Most win32 users will find detachable menus annoying
-#else
-	m_bDetachableMenus = TRUE;  // Linux/Apple users are used to them...
-#endif
+/*
+ *  #else
+    m_bDetachableMenus = TRUE;  // Linux/Apple users are used to them...
+    #endif
+*/
 	m_bPatchToolbar = TRUE;
 	m_bWideToolbar = TRUE;
 	m_bPluginToolbar = TRUE;
@@ -638,8 +640,8 @@ PrefsDlg::PrefsDlg (){
 	m_bSelectModels = TRUE;
 	m_nEntityShowState = ENTITY_SKINNED_BOXED;
 	m_bFixedTextureSize = TRUE;
-	m_nFixedTextureSizeWidth = 64;
-	m_nFixedTextureSizeHeight = 64;
+    m_nFixedTextureSizeWidth = 128;
+    m_nFixedTextureSizeHeight = 128;
 	m_nTextureScale = 2;
 	m_bSwitchClip = FALSE;
 	m_bSelectWholeEntities = TRUE;
@@ -648,7 +650,7 @@ PrefsDlg::PrefsDlg (){
 	m_bHideEmptyDirs = FALSE;
 	m_bGLLighting = FALSE;
 	m_nShader = 0;
-	m_nUndoLevels = 30;
+    m_nUndoLevels = 512;
 	m_bTexturesShaderlistOnly = FALSE;
 	// paths to ini files
 	m_rc_path = NULL;
@@ -893,7 +895,7 @@ CGameDescription::CGameDescription( xmlDocPtr pDoc, const Str &GameFile ){
                 default_scale = NULL;
 	}
 	else{
-		mTextureDefaultScale = 0.5f;
+        mTextureDefaultScale = 0.2f;
 	}
 	xmlChar* eclass_singleload = xmlGetProp( pNode, (const xmlChar*)"eclass_singleload" );
 	if ( eclass_singleload ) {
@@ -1992,8 +1994,8 @@ void PrefsDlg::BuildDialog(){
 	gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
 	gtk_widget_show( label );
 
-	// texture subsets
-	check = gtk_check_button_new_with_label( _( "Texture subsets" ) );
+    // texture filtering
+    check = gtk_check_button_new_with_label( _( "Texture filtering" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
 	gtk_widget_show( check );
 	AddDialogData( check, &m_bTextureWindow, DLG_CHECK_BOOL );
@@ -2100,7 +2102,10 @@ void PrefsDlg::BuildDialog(){
 	}
 	g_list_free( combo_list );
 
-	check = gtk_check_button_new_with_label( _( "Use Fixed Texture Size" ) );
+    //Use fixed texture size
+    //NAB622: Moving this to the textures menu for easier access. Old code left in place here, just in case
+/*
+    check = gtk_check_button_new_with_label( _( "Use Fixed Texture Size" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
 	gtk_widget_show( check );
 	AddDialogData( check, &m_bFixedTextureSize, DLG_CHECK_BOOL );
@@ -2136,8 +2141,8 @@ void PrefsDlg::BuildDialog(){
 	gtk_box_pack_start( GTK_BOX( hbox2 ), spin, FALSE, FALSE, 0 );
 	gtk_widget_show( spin );
 	AddDialogData( spin, &m_nFixedTextureSizeHeight, DLG_SPIN_INT );
-
-	size_group = gtk_size_group_new( GTK_SIZE_GROUP_HORIZONTAL );
+*/
+    size_group = gtk_size_group_new( GTK_SIZE_GROUP_HORIZONTAL );
 	gtk_size_group_add_widget( size_group, ftw_label );
 	gtk_size_group_add_widget( size_group, fth_label );
 	g_object_unref( size_group );
@@ -2146,7 +2151,8 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( check );
 	AddDialogData( check, &m_bShowTexDirList, DLG_CHECK_BOOL );
 
-	// Add the page to the notebook
+
+    // Add the page to the notebook
 	page_index = gtk_notebook_append_page( GTK_NOTEBOOK( notebook ), pageframe, preflabel );
 	assert( page_index == PTAB_TEXTURE );
 
@@ -2327,7 +2333,7 @@ void PrefsDlg::BuildDialog(){
 	AddDialogData( check, &m_bALTEdge, DLG_CHECK_BOOL );
 
         // Imroved mouse wheel zoom in
-	check = gtk_check_button_new_with_label( _( "Improved mousewheel zoom-in" ) );
+    check = gtk_check_button_new_with_label( _( "Grid zooms toward mouse pointer location" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
 	gtk_widget_show( check );
 	AddDialogData( check, &m_bMousewheelZoom, DLG_CHECK_BOOL );
@@ -2339,7 +2345,7 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( hbox2 );
 
 	// label
-	label = gtk_label_new( _( "Wheel Mouse inc:" ) );
+    label = gtk_label_new( _( "Wheel Mouse increment:" ) );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), label, FALSE, FALSE, 0 );
 	gtk_widget_show( label );
@@ -2443,7 +2449,7 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( label );
 
 	// spinner (allows undo levels to be set to zero)
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 0, 64, 1, 10, 0 ) ), 1, 0 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 0, 512, 1, 10, 0 ) ), 1, 0 );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 1, 2,
@@ -3003,7 +3009,7 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( CAMDISCRETE_KEY,        &m_bCamDiscrete,        TRUE );
 	mLocalPrefs.GetPref( LIGHTDRAW_KEY,          &m_bNewLightDraw,       TRUE );
 	mLocalPrefs.GetPref( CUBICCLIP_KEY,          &m_bCubicClipping,      FALSE );
-	mLocalPrefs.GetPref( CUBICSCALE_KEY,         &m_nCubicScale,         13 );
+    mLocalPrefs.GetPref( CUBICSCALE_KEY,         &m_nCubicScale,         32 );
 	mLocalPrefs.GetPref( ALTEDGE_KEY,            &m_bALTEdge,            FALSE );
 	mLocalPrefs.GetPref( FACECOLORS_KEY,         &m_bFaceColors,         FALSE );
 	mLocalPrefs.GetPref( XZVIS_KEY,              &m_bXZVis,              FALSE );
@@ -3039,17 +3045,17 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( TEXTUREQUALITY_KEY,     &m_nLatchedTextureQuality,             3 );
 	m_nTextureQuality = m_nLatchedTextureQuality;
 
-	mLocalPrefs.GetPref( LOADSHADERS_KEY,        &m_nLatchedShader,                     0 );
+    mLocalPrefs.GetPref( LOADSHADERS_KEY,        &m_nLatchedShader,                     1 );
 	m_nShader = m_nLatchedShader;
 
 
 	mLocalPrefs.GetPref( FIXEDTEXSIZE_KEY,       &m_bFixedTextureSize,          FALSE );
-	mLocalPrefs.GetPref( FIXEDTEXSIZEWIDTH_KEY,  &m_nFixedTextureSizeWidth,     64 );
-	mLocalPrefs.GetPref( FIXEDTEXSIZEHEIGHT_KEY, &m_nFixedTextureSizeHeight,    64 );
+    mLocalPrefs.GetPref( FIXEDTEXSIZEWIDTH_KEY,  &m_nFixedTextureSizeWidth,     128 );
+    mLocalPrefs.GetPref( FIXEDTEXSIZEHEIGHT_KEY, &m_nFixedTextureSizeHeight,    128 );
 
 	mLocalPrefs.GetPref( SHOWTEXDIRLIST_KEY,     &m_bShowTexDirList,             TRUE );
 
-	mLocalPrefs.GetPref( NOCLAMP_KEY,            &m_bNoClamp,                    FALSE );
+    mLocalPrefs.GetPref( NOCLAMP_KEY,            &m_bNoClamp,                    TRUE );
 	mLocalPrefs.GetPref( SNAP_KEY,               &m_bSnap,                       TRUE );
 	mLocalPrefs.GetPref( USERINI_KEY,            &m_strUserPath,                 "" );
 	mLocalPrefs.GetPref( ROTATION_KEY,           &m_nRotation,                   45 );
@@ -3060,20 +3066,33 @@ void PrefsDlg::LoadPrefs(){
 	// this will probably need to be 75 or 100 for Q1.
 	mLocalPrefs.GetPref( TEXTURESCALE_KEY,       &m_nTextureScale,               50 );
 
+    // If we're using the new pixel width settings, we need to make sure fixed texture size is turned on
+    switch ( m_nTextureScale ) {
+        case 64:
+        case 128:
+        case 192:
+        case 256:
+        case 384:
+        case 512:
+            m_bFixedTextureSize = true;
+            Sys_Printf( "FIXED TEXTURE SIZE DETECTED\n" );
+            break;
+        default:
+            break;
+    }
+
 	if ( ( g_pGameDescription->mGameFile == "hl.game" ) ) {
 		// No BSP monitoring in the default compiler tools for Half-life (yet)
 		mLocalPrefs.GetPref( WATCHBSP_KEY,           &m_bWatchBSP,                   FALSE );
-
-		// Texture subset on by default (HL specific really, because of halflife.wad's size)
-		mLocalPrefs.GetPref( TEXTURE_KEY,            &m_bTextureWindow,              TRUE );
 	} else {
 		mLocalPrefs.GetPref( WATCHBSP_KEY,           &m_bWatchBSP,                   TRUE );
-		mLocalPrefs.GetPref( TEXTURE_KEY,            &m_bTextureWindow,              FALSE );
 	}
 
+    // Texture filtering on by default, ALWAYS.
+    mLocalPrefs.GetPref( TEXTURE_KEY,            &m_bTextureWindow,              TRUE );
 
-	mLocalPrefs.GetPref( TEXTURESCROLLBAR_KEY,   &m_bTextureScrollbar,           TRUE );
-	mLocalPrefs.GetPref( DISPLAYLISTS_KEY,       &m_bDisplayLists,               TRUE );
+    mLocalPrefs.GetPref( TEXTURESCROLLBAR_KEY,   &m_bTextureScrollbar,           TRUE );
+    mLocalPrefs.GetPref( DISPLAYLISTS_KEY,       &m_bDisplayLists,               TRUE );
 	mLocalPrefs.GetPref( ANTIALIASEDLINES_KEY,   &m_bAntialiasedPointsAndLines,  FALSE );
 	mLocalPrefs.GetPref( SWITCHCLIP_KEY,         &m_bSwitchClip,                 TRUE );
 	mLocalPrefs.GetPref( SELWHOLEENTS_KEY,       &m_bSelectWholeEntities,        TRUE );
@@ -3081,7 +3100,7 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( HIDEEMPTYDIRS_KEY,      &m_bHideEmptyDirs,              FALSE );
 	mLocalPrefs.GetPref( GLLIGHTING_KEY,         &m_bGLLighting,                 FALSE );
 	mLocalPrefs.GetPref( NOSTIPPLE_KEY,          &m_bNoStipple,                  FALSE );
-	mLocalPrefs.GetPref( UNDOLEVELS_KEY,         &m_nUndoLevels,                 30 );
+    mLocalPrefs.GetPref( UNDOLEVELS_KEY,         &m_nUndoLevels,                 512 );
 	mLocalPrefs.GetPref( VERTEXMODE_KEY,         &m_bVertexSplit,                TRUE );
 	mLocalPrefs.GetPref( RUNQ2_KEY,              &m_bRunQuake,                   RUNQ2_DEF );
 	mLocalPrefs.GetPref( LEAKSTOP_KEY,           &m_bLeakStop,                   TRUE );
@@ -3090,11 +3109,11 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( SELECTMODELS_KEY,       &m_bSelectModels,               TRUE );
 	mLocalPrefs.GetPref( SHADERLISTONLY_KEY,     &m_bTexturesShaderlistOnly,     FALSE );
 	mLocalPrefs.GetPref( DEFAULTTEXURESCALE_KEY, &m_fDefTextureScale,            g_pGameDescription->mTextureDefaultScale );
-	mLocalPrefs.GetPref( CAULKNEWBRUSHES_KEY, &m_bCaulkNewBrushes,               TRUE );
+    mLocalPrefs.GetPref( CAULKNEWBRUSHES_KEY,    &m_bCaulkNewBrushes,            TRUE );
 	mLocalPrefs.GetPref( SUBDIVISIONS_KEY,       &m_nSubdivisions,               SUBDIVISIONS_DEF );
 	mLocalPrefs.GetPref( CLIPCAULK_KEY,          &m_bClipCaulk,                  FALSE );
 	mLocalPrefs.GetPref( HOLLOWCAULK_KEY,        &m_bMakeHollowCaulk,            TRUE );
-	mLocalPrefs.GetPref( SNAPTTOGRID_KEY,        &m_bSnapTToGrid,                FALSE );
+    mLocalPrefs.GetPref( SNAPTTOGRID_KEY,        &m_bSnapTToGrid,                TRUE );
 	mLocalPrefs.GetPref( TARGETFIX_KEY,          &m_bDoTargetFix,                TRUE );
 	mLocalPrefs.GetPref( WHEELINC_KEY,           &m_nWheelInc,                   64 );
 	mLocalPrefs.GetPref( PATCHBBOXSEL_KEY,       &m_bPatchBBoxSelect,            FALSE );
@@ -3173,9 +3192,9 @@ void PrefsDlg::LoadPrefs(){
 
 
 	vec3_t vDefaultAxisColours[3] = {
-		{0.f, 0.5f, 0.f},
-		{0.f, 0.f, 1.f},
-		{1.f, 0.f, 0.f},
+        {0.3f,  1.0f,   0.3f},
+        {0.3f,  0.3f,   1.0f},
+        {1.0f,  0.3f,   0.3f},
 	};
 
 	for ( i = 0; i < 3; i++ ) {
@@ -3185,7 +3204,25 @@ void PrefsDlg::LoadPrefs(){
 	}
 
 	vec3_t vDefaultColours[COLOR_LAST] = {
-		{0.25f, 0.25f,  0.25f},
+        {0.25f, 0.25f,  0.25f},
+        {0.2f,  0.2f,   0.2f},
+        {0.3f,  0.3f,   0.3f},
+        {0.35f, 0.45f,  0.475f},
+        {0.25f, 0.25f,  0.25f},
+        {0.7f,  0.7f,   1.0f},
+        {0.0f,  0.0f,   1.0f},
+        {1.0f,  1.0f,   1.0f},
+        {0.7f,  0.7f,   0.7f},
+        {1.0f,  0.2f,   0.1f},
+        {0.2f,  0.2f,   1.0f},
+        {0.5f,  0.0f,   0.75f},
+        {1.0f,  0.2f,   0.1f},
+        {0.24f, 0.24f,  0.24f},
+        {0.4f,  0.4f,   0.4f},
+        {0.6f,  0.6f,   0.6f}
+/*
+    //NAB622: Original values for this list, just in case I got the wrong ones!
+        {0.25f, 0.25f,  0.25f},
 		{1.f,   1.f,    1.f},
 		{0.75f, 0.75f,  0.75f},
 		{0.5f,  0.5f,   0.5f},
@@ -3200,9 +3237,11 @@ void PrefsDlg::LoadPrefs(){
 		{1.0f,  0.f,    0.f},
 		{0.f,   0.f,    0.f},
 		{0.f,   0.f,    0.f},
-	};
+*/
+    };
 
-	for ( i = 0; i < COLOR_LAST; i++ ) {
+
+    for ( i = 0; i < COLOR_LAST; i++ ) {
 		char buf[64];
 		sprintf( buf, "%s%d", SI_COLORS_KEY, i );
 		mLocalPrefs.GetPref( buf,   g_qeglobals.d_savedinfo.colors[i], vDefaultColours[i] );

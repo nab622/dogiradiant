@@ -886,7 +886,7 @@ void Brush_Build( brush_t *b, bool bSnap, bool bMarkMap, bool bConvert, bool bFi
 	/*
 	** build the windings and generate the bounding box
 	*/
-	Brush_BuildWindings( b, bSnap );
+    Brush_BuildWindings( b, bSnap );
 
 	if ( b->owner->model.pRender ) {
 		const aabb_t *aabb = b->owner->model.pRender->GetAABB();
@@ -1146,14 +1146,14 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 	VectorCopy( vertex, start );
 	VectorAdd( vertex, delta, end );
 	//snap or not?
-	if ( bSnap ) {
+    if ( bSnap ) {
 		for ( i = 0; i < 3; i++ )
-			end[i] = floor( end[i] / g_qeglobals.d_gridsize + 0.1 ) * g_qeglobals.d_gridsize;
+            end[i] = floor( end[i] / g_qeglobals.d_gridsize + 0.5 ) * g_qeglobals.d_gridsize;
 	}
 	//
 	VectorCopy( end, mid );
-	//if the start and end are the same
-	if ( Point_Equal( start, end, 0.3f ) ) {
+    //if the start and end are the same
+    if ( Point_Equal( start, end, MIN_GRID_PRECISION / 2 ) ) {
 		return false;
 	}
 	//the end point may not be the same as another vertex
@@ -1165,7 +1165,7 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 		}
 		for ( i = 0; i < w->numpoints; i++ )
 		{
-			if ( Point_Equal( w->points[i], end, 0.3f ) ) {
+            if ( Point_Equal( w->points[i], end, MIN_GRID_PRECISION / 2 ) ) {
 				VectorCopy( vertex, end );
 				return false;
 			}
@@ -1186,7 +1186,7 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 			}
 			for ( i = 0; i < w->numpoints; i++ )
 			{
-				if ( Point_Equal( w->points[i], start, 0.2f ) ) {
+                if ( Point_Equal( w->points[i], start, MIN_GRID_PRECISION / 2 ) ) {
 					if ( face->face_winding->numpoints <= 3 ) {
 						movefacepoints[nummovefaces] = i;
 						movefaces[nummovefaces++] = face;
@@ -1432,7 +1432,7 @@ int Brush_InsertVertexBetween( brush_t *b, vec3_t p1, vec3_t p2 ){
 	vec3_t point;
 	int i, insert;
 
-	if ( Point_Equal( p1, p2, 0.4f ) ) {
+    if ( Point_Equal( p1, p2, MIN_GRID_PRECISION / 2 ) ) {
 		return false;
 	}
 	VectorAdd( p1, p2, point );
@@ -1448,14 +1448,14 @@ int Brush_InsertVertexBetween( brush_t *b, vec3_t p1, vec3_t p2 ){
 		neww = NULL;
 		for ( i = 0; i < w->numpoints; i++ )
 		{
-			if ( !Point_Equal( w->points[i], p1, 0.1f ) ) {
+            if ( !Point_Equal( w->points[i], p1, MIN_GRID_PRECISION / 2 ) ) {
 				continue;
 			}
-			if ( Point_Equal( w->points[( i + 1 ) % w->numpoints], p2, 0.1f ) ) {
+            if ( Point_Equal( w->points[( i + 1 ) % w->numpoints], p2, MIN_GRID_PRECISION / 2 ) ) {
 				neww = Winding_InsertPoint( w, point, ( i + 1 ) % w->numpoints );
 				break;
 			}
-			else if ( Point_Equal( w->points[( i - 1 + w->numpoints ) % w->numpoints], p2, 0.3f ) ) {
+            else if ( Point_Equal( w->points[( i - 1 + w->numpoints ) % w->numpoints], p2, MIN_GRID_PRECISION ) / 2 ) {
 				neww = Winding_InsertPoint( w, point, i );
 				break;
 			}
@@ -1765,18 +1765,13 @@ void Brush_MakeSided( int sides ){
 	float width;
 	float sv, cv;
 
-	if ( sides < 3 ) {
-		Sys_Status( "Bad sides number", 0 );
-		return;
-	}
-
-	if ( sides >= MAX_POINTS_ON_WINDING - 4 ) {
-		Sys_Printf( "too many sides.\n" );
+    if ( sides < 3 || sides > MAX_POINTS_ON_WINDING - 5 ) {
+        Sys_FPrintf( SYS_STD, "Create arbitrary sided brush: Bad number of sides, must be between 3 and %i\n", MAX_POINTS_ON_WINDING - 5 );
 		return;
 	}
 
 	if ( !QE_SingleBrush() ) {
-		Sys_Status( "Must have a single brush selected", 0 );
+        Sys_FPrintf( SYS_STD, "Create arbitrary sided brush: Must have only one brush selected!\n" );
 		return;
 	}
 
@@ -3442,12 +3437,12 @@ void Brush_MakeSidedCone( int sides ){
 	float sv, cv;
 
 	if ( sides < 3 || sides > 32 ) {
-		Sys_Status( "Bad sides number", 0 );
+        Sys_FPrintf( SYS_STD, "Create arbitrary sided cone: Bad number of sides, must be between 3 and 32!\n" );
 		return;
 	}
 
 	if ( !QE_SingleBrush() ) {
-		Sys_Status( "Must have a single brush selected", 0 );
+        Sys_FPrintf( SYS_STD, "Create arbitrary sided cone: Must have only one brush selected!\n" );
 		return;
 	}
 
@@ -3531,13 +3526,13 @@ void Brush_MakeSidedSphere( int sides ){
 	face_t  *f;
 	vec3_t mid;
 
-	if ( sides < 4 || sides > 32 ) {
-		Sys_Status( "Bad sides number", 0 );
+    if ( sides < 4 || sides > 26 ) {
+        Sys_FPrintf( SYS_STD, "Create arbitrary sided sphere: Bad number of sides, must be between 4 and 26!\n" );
 		return;
 	}
 
 	if ( !QE_SingleBrush() ) {
-		Sys_Status( "Must have a single brush selected", 0 );
+        Sys_FPrintf( SYS_STD, "Create arbitrary sided sphere: Must have only one brush selected!\n" );
 		return;
 	}
 

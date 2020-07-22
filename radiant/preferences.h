@@ -32,6 +32,15 @@
 
 #define MAX_TEXTURE_QUALITY 3
 
+//Cubic clipping distance is an integer between max & min
+//The multiplier is multiplied by this integer to determine the render distance
+#define CUBIC_CLIPPING_MAX 56
+#define CUBIC_CLIPPING_MIN 1
+#define CUBIC_CLIPPING_MULTIPLIER 2048
+
+//To keep cubic clipping relevant, the maximum render distance should always be larger
+#define MAX_RENDER_DISTANCE (CUBIC_CLIPPING_MULTIPLIER * (CUBIC_CLIPPING_MAX + 1))
+
 enum PrefTypes_t
 {
 	PREF_STR,
@@ -179,7 +188,7 @@ Str mMultiplayerEngine;   ///< engine name
 Str mUserPathPrefix;   ///< prefix for ~/.q3a ~/.wolf init on *nix, or \My Document\My Games\ on Windows
 Str mShaderPath;   ///< the path in which to look for shaders
 Str mShaderlist;   ///< shaderlist file
-float mTextureDefaultScale;   ///< default scale (0.5 in q3, 1.0 in q1/q2, 0.25 in JK2 ..)
+float mTextureDefaultScale;   ///< default scale (0.5 in q3, 1.0 in q1/q2, 0.25 in JK2 .. If no value is given, 0.2 is the default)
 bool mEClassSingleLoad;   ///< only load a single eclass definition file
 bool mNoPatch;   ///< this game doesn't support patch technology
 Str mCaulkShader;   ///< the shader to use for caulking

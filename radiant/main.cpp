@@ -83,8 +83,7 @@ int CALLBACK WinMain(
 
 static GtkWidget *splash_screen;
 
-// called based on a timer, or in particular cases when we don't want to 
-// keep it around
+// called based on a timer, or in particular cases when we don't want to keep it around
 gint try_destroy_splash( gpointer data ){
 	if ( splash_screen ) {
 		gtk_widget_destroy( splash_screen );

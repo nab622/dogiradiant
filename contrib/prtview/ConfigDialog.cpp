@@ -125,7 +125,7 @@ static void Set3DTransText( GtkWidget* label ){
 static void SetClipText( GtkWidget* label ){
 	char s[40];
 
-	sprintf( s, "Cubic clip range = %d", (int)portals.clip_range * 64 );
+    sprintf( s, "Cubic clip range = %d", (int)portals.clip_range * 64 );
 
 	gtk_label_set_text( GTK_LABEL( label ), s );
 }

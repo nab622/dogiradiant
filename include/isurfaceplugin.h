@@ -56,13 +56,13 @@ virtual void DecRef() = 0;
 // Nurail: For SI module
 class texdef_to_face_t
 {
-public:
-texdef_to_face_t* next;
-brush_t *brush;     // Brush faces belong to (for Undo)
-face_t *face;       // Face of Texdef
-texdef_t texdef;    // Working texdef
-texdef_t orig_texdef;    // Original, for baselining changes
-brushprimit_texdef_t orig_bp_texdef;   // Original, for undo
+    public:
+    texdef_to_face_t* next;
+    brush_t *brush;     // Brush faces belong to (for Undo)
+    face_t *face;       // Face of Texdef
+    texdef_t texdef;    // Working texdef
+    texdef_t orig_texdef;    // Original, for baselining changes
+    brushprimit_texdef_t orig_bp_texdef;   // Original, for undo
 };
 
 

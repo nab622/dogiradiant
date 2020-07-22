@@ -267,8 +267,8 @@ void ZDrawCameraIcon( void ){
 	x = 0;
 	y = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
 
-	qglColor3f( 0.0, 0.0, 1.0 );
-	qglBegin( GL_LINE_STRIP );
+    qglColor3f( gridCameraSymbolColor[0], gridCameraSymbolColor[1], gridCameraSymbolColor[2] );
+    qglBegin( GL_LINE_STRIP );
 	qglVertex3f( x - xCam,y,0 );
 	qglVertex3f( x,y + gizmo,0 );
 	qglVertex3f( x + xCam,y,0 );

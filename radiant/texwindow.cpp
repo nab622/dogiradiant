@@ -46,7 +46,8 @@
 
 #define TYP_MIPTEX  68
 
-#define FONT_HEIGHT 10
+//This is not the height of the font, but rather, the number of pixels of space above each texture to make room for the text
+#define FONT_HEIGHT 27
 
 int texture_mode = GL_LINEAR_MIPMAP_LINEAR;
 
@@ -1002,12 +1003,13 @@ void Texture_GetSize( qtexture_t *tex, int & nWidth, int & nHeight ){
 // scroll origin so the current texture is completely on screen
 // if current texture is not displayed, nothing is changed
 void Texture_ResetPosition(){
-	qtexture_t  *q;
+    qtexture_t  *q;
 	int x,y;
 
 	//this shouldn't ever happen, we startup with notex
 	if ( !g_qeglobals.d_texturewin.texdef.GetName()[0] ) {
-		return;
+        g_qeglobals.d_texturewin.originy = 0;
+        return;
 	}
 
 	// otherwise position with current texture shown
@@ -1038,7 +1040,7 @@ void Texture_ResetPosition(){
 			// if the bottom of our selected texture will fit with origin 0, use that
 			// to prevent scrolling uglyness (stuff scrolled off screen when
 			// everything would fit)
-			if ( -( y - nHeight - 2 * FONT_HEIGHT ) <  g_qeglobals.d_texturewin.height ) {
+            if ( -( y - nHeight - 2 * FONT_HEIGHT ) <  g_qeglobals.d_texturewin.height ) {
 				g_qeglobals.d_texturewin.originy = 0;
 				break;
 			}
@@ -1049,7 +1051,7 @@ void Texture_ResetPosition(){
 			}
 
 			// if current is off the bottom, put it on the bottom
-			if ( y - nHeight - 2 * FONT_HEIGHT < g_qeglobals.d_texturewin.originy - g_qeglobals.d_texturewin.height ) {
+            if ( y - nHeight - 2 * FONT_HEIGHT < g_qeglobals.d_texturewin.originy - g_qeglobals.d_texturewin.height ) {
 				g_qeglobals.d_texturewin.originy = y - nHeight - 2 * FONT_HEIGHT + g_qeglobals.d_texturewin.height;
 				break;
 			}
@@ -1549,36 +1551,54 @@ void Texture_MouseDown( int x, int y, int buttons ){
 
 /*
    ==============
+   checkTextureWindowBoundaries
+   ==============
+ */
+
+void checkTextureWindowBoundaries() {
+    //NAB622: The texture window can scroll infinitely off the bottom without this check
+    if( abs( g_qeglobals.d_texturewin.originy ) > g_qeglobals.d_texturewin.m_nTotalHeight - g_qeglobals.d_texturewin.height ) {
+        g_qeglobals.d_texturewin.originy = ( g_qeglobals.d_texturewin.m_nTotalHeight - g_qeglobals.d_texturewin.height) * -1;
+    }
+
+    //Make sure that by doing this, we don't accidentally scroll off the top too
+    if ( g_qeglobals.d_texturewin.originy > 0 ) {
+        g_qeglobals.d_texturewin.originy = 0;
+    }
+}
+
+/*
+   ==============
    Texture_MouseMoved
    ==============
  */
 
 void Texture_MouseMoved( int x, int y, int buttons ){
-	int scale = 1;
-
-	if ( buttons & MK_SHIFT ) {
-		scale = 4;
-	}
-
-	// rbutton = drag texture origin
+    // rbutton = drag texture origin
 	if ( buttons & MK_RBUTTON ) {
-		Sys_GetCursorPos( &x, &y );
+        int scale = 1;
+
+        if ( buttons & MK_SHIFT ) {
+            scale = 6;
+        }
+
+        Sys_GetCursorPos( &x, &y );
 		if ( y != textures_cursory ) {
 			g_qeglobals.d_texturewin.originy += ( y - textures_cursory ) * scale;
-			if ( g_qeglobals.d_texturewin.originy > 0 ) {
-				g_qeglobals.d_texturewin.originy = 0;
-			}
-			Sys_SetCursorPos( textures_cursorx, textures_cursory );
 
-			// (g_PrefsDlg.m_bTextureScrollbar && g_qeglobals_gui.d_texture_scroll != NULL)
-			// fixes broken texture scrolling when scrollbar is disabled
-			GtkAdjustment *vadjustment = gtk_range_get_adjustment( GTK_RANGE( g_qeglobals_gui.d_texture_scroll ) );
-			gtk_adjustment_set_value( vadjustment, abs( g_qeglobals.d_texturewin.originy ) );
-			//
-		}
+            checkTextureWindowBoundaries();
+
+            Sys_SetCursorPos( textures_cursorx, textures_cursory );
+
+            // (g_PrefsDlg.m_bTextureScrollbar && g_qeglobals_gui.d_texture_scroll != NULL)
+            // fixes broken texture scrolling when scrollbar is disabled
+            GtkAdjustment *vadjustment = gtk_range_get_adjustment( GTK_RANGE( g_qeglobals_gui.d_texture_scroll ) );
+            gtk_adjustment_set_value( vadjustment, abs( g_qeglobals.d_texturewin.originy ) );
+        }
 		return;
 	}
 }
+
 
 /*
    ============================================================================
@@ -1604,7 +1624,7 @@ int imax( int iFloor, int i ) {
    ============
  */
 void Texture_Draw( int width, int height ){
-	int x, y, last_y = 0, last_height = 0, nWidth, nHeight;
+    int x, y, last_y = 0, last_height = 0, nWidth, nHeight;
 	qtexture_t *q;
 	char *name;
 
@@ -1639,12 +1659,12 @@ void Texture_Draw( int width, int height ){
 
 		if ( y != last_y ) {
 			last_y = y;
-			last_height = 0;
+            last_height = 0;
 		}
-		last_height = MAX( nHeight, last_height );
+        last_height = MAX( nHeight, last_height );
 
 		// Is this texture visible?
-		if ( ( y - nHeight - FONT_HEIGHT < g_qeglobals.d_texturewin.originy )
+        if ( ( y - nHeight - FONT_HEIGHT < g_qeglobals.d_texturewin.originy )
 			 && ( y > g_qeglobals.d_texturewin.originy - height ) ) {
 			// borders rules:
 			// if it's the current texture, draw a thick red line, else:
@@ -1703,7 +1723,7 @@ void Texture_Draw( int width, int height ){
 			qglColor3f( 1,1,1 );
 			qglBegin( GL_QUADS );
 			qglTexCoord2f( 0,0 );
-			qglVertex2f( x,y - FONT_HEIGHT );
+            qglVertex2f( x,y - FONT_HEIGHT );
 			qglTexCoord2f( 1,0 );
 			qglVertex2f( x + nWidth,y - FONT_HEIGHT );
 			qglTexCoord2f( 1,1 );
@@ -1716,7 +1736,7 @@ void Texture_Draw( int width, int height ){
 			qglDisable( GL_TEXTURE_2D );
 			qglColor3f( 1,1,1 );
 
-			qglRasterPos2f( x, y - FONT_HEIGHT + 2 );
+            qglRasterPos2f( x, y - FONT_HEIGHT + 6 );
 
 			// don't draw the directory name
 			name = (char*)pCurrentShader->getName();
@@ -1729,7 +1749,7 @@ void Texture_Draw( int width, int height ){
 		}
 	}
 
-	g_qeglobals.d_texturewin.m_nTotalHeight = abs( y ) + last_height + FONT_HEIGHT + 4;
+    g_qeglobals.d_texturewin.m_nTotalHeight = abs( y ) + last_height + FONT_HEIGHT * 2 + 4;
 
 	// reset the current texture
 	qglBindTexture( GL_TEXTURE_2D, 0 );
@@ -1941,17 +1961,18 @@ void TexWnd::OnMButtonUp( guint32 flags, int pointx, int pointy ){
 
 void TexWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
 	Texture_MouseMoved( pointx, pointy - g_nTextureOffset, flags );
-	// if scrollbar is hidden, we don't seem to get an update
-	if ( !g_PrefsDlg.m_bTextureScrollbar ) {
-		RedrawWindow();
-	}
+
+    checkTextureWindowBoundaries();
+    RedrawWindow();
 }
 
 void TexWnd::OnVScroll(){
 	GtkAdjustment *vadjustment = gtk_range_get_adjustment( GTK_RANGE( g_qeglobals_gui.d_texture_scroll ) );
 
 	g_qeglobals.d_texturewin.originy = -(int)gtk_adjustment_get_value( vadjustment );
-	RedrawWindow();
+
+    checkTextureWindowBoundaries();
+    RedrawWindow();
 }
 
 void TexWnd::UpdatePrefs(){
@@ -1969,7 +1990,9 @@ void TexWnd::UpdatePrefs(){
 		gtk_widget_hide( g_qeglobals_gui.d_texture_scroll );
 	}
 	m_bNeedRange = true;
-	RedrawWindow();
+
+    checkTextureWindowBoundaries();
+    RedrawWindow();
 }
 
 void TexWnd::FocusEdit() {
@@ -1997,7 +2020,7 @@ void TexWnd::OnMouseWheel( bool bUp, int pointx, int pointy ){
 	GtkAdjustment *vadjustment = gtk_range_get_adjustment( GTK_RANGE( g_qeglobals_gui.d_texture_scroll ) );
 	gtk_adjustment_set_value( vadjustment, abs( g_qeglobals.d_texturewin.originy ) );
 
-	RedrawWindow();
+    checkTextureWindowBoundaries();
 }
 
 void TexWnd::DragDropTexture( guint32 flags, int pointx, int pointy ){
