@@ -34,7 +34,7 @@
 
 //Cubic clipping distance is an integer between max & min
 //The multiplier is multiplied by this integer to determine the render distance
-#define CUBIC_CLIPPING_MAX 56
+#define CUBIC_CLIPPING_MAX 32
 #define CUBIC_CLIPPING_MIN 1
 #define CUBIC_CLIPPING_MULTIPLIER 2048
 
