@@ -20,6 +20,7 @@
 // PrtView.cpp : Defines the initialization routines for the DLL.
 //
 
+#include "../include/version.h"
 #include "stdafx.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,9 +76,14 @@ void InitInstance(){
 	strcat( INIfn, ".ini" );
 #else // if defined( __linux__ ) || defined( __FreeBSD__ ) || defined( __APPLE__ )
 	strcpy( INIfn, g_get_home_dir() );
-    strcat( INIfn, "/.dogiradiant/" );
+    strcat( INIfn, "/.");
+    strcat( INIfn, PREFS_SUBDIRECTORY );
+/*
+    // NAB622: I don't see the point of this since PRTView won't be getting updates that require changing the prefs
+    strcat( INIfn, "/" );
 	strcat( INIfn, RADIANT_VERSION );
-	strcat( INIfn, "/prtview.ini" );
+*/
+    strcat( INIfn, "/prtview.ini" );
 #endif
 
 	portals.show_2d = INIGetInt( RENDER_2D, FALSE ) ? true : false;
