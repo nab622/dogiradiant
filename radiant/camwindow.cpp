@@ -143,23 +143,19 @@ void CamWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
 	// that can be re-enabled by removing the checks for HasCapture and not shift/ctrl down
 	// but the scaling/rotating (unless done with the steps set in the surface inspector
 	// dialog) is way too sensitive to be of any use
-	if ( HasCapture() && Sys_AltDown() &&
-		 !( ( flags & MK_SHIFT ) || ( flags & MK_CONTROL ) ) ) {
-		if ( flags & MK_CONTROL ) {
+    if ( HasCapture() && flags & MK_CONTROL ) {
+        Select_ShiftTexture( pointx - m_ptLastCursorX, m_ptLastCursorY - pointy );
+        if ( Sys_AltDown() ) {
             Select_RotateTexture( pointy - m_ptLastCursorY );
+        }
+        if ( flags & MK_SHIFT ) {
+            Select_ScaleTexture( ( pointx - m_ptLastCursorX ) / 8, ( m_ptLastCursorY - pointy ) / 8 );
 		}
-		else
-		if ( flags & MK_SHIFT ) {
-			Select_ScaleTexture( pointx - m_ptLastCursorX, m_ptLastCursorY - pointy );
-		}
-		else{
-			Select_ShiftTexture( pointx - m_ptLastCursorX, m_ptLastCursorY - pointy );
-		}
-	}
-	else
+    }
+    else
 	{
 		Cam_MouseMoved( pointx, height - 1 - pointy, flags );
-	}
+    }
 	m_ptLastCursorX = pointx;
 	m_ptLastCursorY = pointy;
 
@@ -335,32 +331,49 @@ void CamWnd::Cam_ChangeFloor( qboolean up ){
 	Sys_UpdateWindows( W_CAMERA | W_Z_OVERLAY );
 }
 
-void CamWnd::Cam_PositionDrag(){
-	int x, y;
+void CamWnd::Cam_PositionDrag( int buttons ){
+    int x, y;
 
-	Sys_GetCursorPos( &x, &y );
-	if ( x != m_ptCursorX || y != m_ptCursorY ) {
-		x -= m_ptCursorX;
-		VectorMA( m_Camera.origin, x, m_Camera.vright, m_Camera.origin );
-		y -= m_ptCursorY;
-		m_Camera.origin[2] -= y;
-		Sys_SetCursorPos( m_ptCursorX, m_ptCursorY );
-		Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
-	}
+    //Bring this value in and greatly reduce it before use
+    float multiplier = calculateSpeed() / 4;
+    //Impose a min and max so it doesn't get too crazy
+    if ( multiplier > 128 ) {
+    multiplier = 128;
+    } else if ( multiplier < MIN_GRID_PRECISION / 2 ) {
+            multiplier = MIN_GRID_PRECISION / 2;
+    }
+
+    Sys_GetCursorPos( &x, &y );
+    if ( x != m_ptCursorX || y != m_ptCursorY ) {
+        float xf = (x - m_ptCursorX) * multiplier;
+        float yf = (y - m_ptCursorY) * multiplier;
+        VectorMA( m_Camera.origin, xf, m_Camera.vright, m_Camera.origin );
+        if ( buttons & MK_SHIFT ) {
+            m_Camera.origin[2] -= yf;
+        } else {
+            VectorMA( m_Camera.origin, -yf, m_Camera.vup, m_Camera.origin );
+        }
+        Sys_SetCursorPos( m_ptCursorX, m_ptCursorY );
+        Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
+    }
 }
 
 void CamWnd::Cam_MouseControl( float dtime ){
-	Cam_KeyControl( dtime );
+    Cam_KeyControl( dtime );
 
-	if ( g_PrefsDlg.m_bCamFreeLook ) {
+    if ( g_PrefsDlg.m_bCamFreeLook ) {
 		int dx, dy;
 		gint x, y;
 
-		if ( !m_bFreeMove || m_nCambuttonstate == MK_CONTROL ) {
-			return;
-		}
+        if ( !m_bFreeMove ) {
+            return;
+        }
 
-		// Update angles
+        if ( m_nCambuttonstate & MK_CONTROL ) {
+            return;
+        }
+
+        // Update angles
 		Sys_GetCursorPos( &m_ptCursorX, &m_ptCursorY );
 
 		dx = m_ptLastCamCursorX - m_ptCursorX;
@@ -375,18 +388,18 @@ void CamWnd::Cam_MouseControl( float dtime ){
 
 		// Don't use pitch
 		if ( !g_PrefsDlg.m_bCamFreeLookStrafe ) {
-			if ( g_PrefsDlg.m_bCamInverseMouse ) {
-				m_Camera.angles[PITCH] -= dy * dtime * g_PrefsDlg.m_nAngleSpeed;
+            if ( g_PrefsDlg.m_bCamInverseMouse ) {
+                m_Camera.angles[PITCH] -= dy * dtime * g_PrefsDlg.m_nAngleSpeed;
 			}
 			else{
-				m_Camera.angles[PITCH] += dy * dtime * g_PrefsDlg.m_nAngleSpeed;
+               m_Camera.angles[PITCH] += dy * dtime * g_PrefsDlg.m_nAngleSpeed;
 			}
 		}
 		else {
             VectorMA( m_Camera.origin, dy * calculateSpeed(), m_Camera.forward, m_Camera.origin );
 		}
 
-		m_Camera.angles[YAW] += dx * dtime * g_PrefsDlg.m_nAngleSpeed;
+        m_Camera.angles[YAW] += dx * dtime * g_PrefsDlg.m_nAngleSpeed;
 
 		if ( m_Camera.angles[PITCH] > 90 ) {
 			m_Camera.angles[PITCH] = 90;
@@ -406,9 +419,9 @@ void CamWnd::Cam_MouseControl( float dtime ){
 			int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
 			Sys_UpdateWindows( nUpdate );
 			g_pParentWnd->OnTimer();
-		}
-	}
-	else
+        }
+    }
+    else
 	{
 		int xl, xh;
 		int yl, yh;
@@ -426,7 +439,7 @@ void CamWnd::Cam_MouseControl( float dtime ){
 			}
 		}
 
-		xf = (float)( m_ptButtonX - m_Camera.width / 2 ) / ( m_Camera.width / 2 );
+        xf = (float)( m_ptButtonX - m_Camera.width / 2 ) / ( m_Camera.width / 2 );
 		yf = (float)( m_ptButtonY - m_Camera.height / 2 ) / ( m_Camera.height / 2 );
 
 		xl = m_Camera.width / 3;
@@ -450,7 +463,7 @@ void CamWnd::Cam_MouseControl( float dtime ){
 		}
 
         VectorMA( m_Camera.origin, yf * dtime * calculateSpeed(), m_Camera.forward, m_Camera.origin );
-		m_Camera.angles[YAW] += xf * -dtime * g_PrefsDlg.m_nAngleSpeed;
+        m_Camera.angles[YAW] += xf * -dtime * g_PrefsDlg.m_nAngleSpeed;
 
 		int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
 		Sys_UpdateWindows( nUpdate );
@@ -462,10 +475,10 @@ void CamWnd::Cam_KeyControl( float dtime ) {
 
 	// Update angles
 	if ( m_Camera.movementflags & MOVE_ROTLEFT ) {
-		m_Camera.angles[YAW] += 15 * dtime * g_PrefsDlg.m_nAngleSpeed;
+        m_Camera.angles[YAW] += 5 * dtime * g_PrefsDlg.m_nAngleSpeed;
 	}
 	if ( m_Camera.movementflags & MOVE_ROTRIGHT ) {
-		m_Camera.angles[YAW] -= 15 * dtime * g_PrefsDlg.m_nAngleSpeed;
+        m_Camera.angles[YAW] -= 5 * dtime * g_PrefsDlg.m_nAngleSpeed;
 	}
 
 	// Update position
@@ -498,7 +511,7 @@ static gint camwindow_focusout( GtkWidget* widget, GdkEventKey* event, gpointer 
 }
 
 void CamWnd::ToggleFreeMove(){
-	GdkWindow *window;
+    GdkWindow *window;
 	GtkWidget *widget;
 
 	m_bFreeMove = !m_bFreeMove;
@@ -615,29 +628,29 @@ void CamWnd::Cam_MouseDown( int x, int y, int buttons ){
 		 || ( buttons == ( nMouseButton | MK_SHIFT ) )
 		 || ( buttons == ( nMouseButton | MK_CONTROL ) )
 		 || ( buttons == ( nMouseButton | MK_SHIFT | MK_CONTROL ) ) ) {
-		if ( g_PrefsDlg.m_nMouseButtons == 2 && ( buttons == ( MK_RBUTTON | MK_SHIFT ) ) ) {
+        if ( g_PrefsDlg.m_nMouseButtons == 2 && ( buttons == ( MK_RBUTTON | MK_SHIFT ) ) ) {
 			if ( g_PrefsDlg.m_bCamFreeLook ) {
-				ToggleFreeMove();
+                ToggleFreeMove();
 			}
 			else{
-				Cam_MouseControl( 0.1f );
-			}
+                Cam_MouseControl( 0.1f );
+            }
 		}
-		else
-		{
-			// something global needs to track which window is responsible for stuff
+        else
+        {
+            // something global needs to track which window is responsible for stuff
 			Patch_SetView( W_CAMERA );
-			Drag_Begin( x, y, buttons, m_Camera.vright, m_Camera.vup, m_Camera.origin, dir, true );
-		}
+            Drag_Begin( x, y, buttons, m_Camera.vright, m_Camera.vup, m_Camera.origin, dir, true );
+        }
 		return;
 	}
 
 	if ( buttons == MK_RBUTTON ) {
 		if ( g_PrefsDlg.m_bCamFreeLook ) {
-			ToggleFreeMove();
+            ToggleFreeMove();
 		}
 		else{
-			Cam_MouseControl( 0.1f );
+            Cam_MouseControl( 0.1f );
 		}
 		return;
 	}
@@ -735,8 +748,8 @@ void CamWnd::Cam_MouseMoved( int x, int y, int buttons ){
 	m_ptButtonX = x;
 	m_ptButtonY = y;
 
-	if ( ( m_bFreeMove && ( buttons & MK_CONTROL ) && !( buttons & MK_SHIFT ) ) || ( !m_bFreeMove && ( buttons == ( MK_RBUTTON | MK_CONTROL ) ) ) ) {
-		Cam_PositionDrag();
+    if ( ( m_bFreeMove && ( buttons & MK_CONTROL ) ) ) {
+        Cam_PositionDrag( buttons );
 		Sys_UpdateWindows( W_XY | W_CAMERA | W_Z );
 		return;
 	}

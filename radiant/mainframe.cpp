@@ -445,7 +445,7 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 	else{ switch ( id )
 		  {
 		  case ID_FILE_NEW: g_pParentWnd->OnFileNew(); break;
-		  case ID_FILE_SLEEP: g_pParentWnd->OnSleep(); break;
+          case ID_FILE_SLEEP: g_pParentWnd->OnSleep(); break;
 		  case ID_FILE_OPEN: g_pParentWnd->OnFileOpen(); break;
 		  case ID_FILE_SAVE: g_pParentWnd->OnFileSave(); break;
 		  case ID_FILE_SAVEAS: g_pParentWnd->OnFileSaveas(); break;
@@ -591,8 +591,9 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 		  case ID_TEXTUREWINDOW_SCALEUP: g_pParentWnd->OnTexturewindowScaleup(); break;
 		  case ID_TEXTUREWINDOW_SCALEDOWN: g_pParentWnd->OnTexturewindowScaledown(); break;
 		  case ID_MISC_BENCHMARK: g_pParentWnd->OnMiscBenchmark(); break;
-		  case ID_COLOR_SETORIGINAL: g_pParentWnd->OnColorSetoriginal(); break;
-		  case ID_COLOR_SETQER: g_pParentWnd->OnColorSetqer(); break;
+          case ID_COLOR_SETDOGI: g_pParentWnd->OnColorSetDogi(); break;
+          case ID_COLOR_SETORIGINAL: g_pParentWnd->OnColorSetoriginal(); break;
+          case ID_COLOR_SETQER: g_pParentWnd->OnColorSetqer(); break;
 		  case ID_COLOR_SETBLACK: g_pParentWnd->OnColorSetblack(); break;
 		  case ID_COLOR_SETYDNAR: g_pParentWnd->OnColorSetydnar(); break; /* ydnar */
 		  case ID_TEXTUREBK: g_pParentWnd->OnTexturebk(); break;
@@ -994,13 +995,18 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 
 	create_menu_item_with_mnemonic( menu, _( "_New Map" ),
 									G_CALLBACK( HandleCommand ), ID_FILE_NEW );
-	menu_separator( menu );
+
+/*
+// NAB622: This is pointless and caused a lot of lost data for me in the past. It's 2020, we don't need Radiant to sleep
+    menu_separator( menu );
 
 	//++timo temporary experimental stuff for sleep mode..
 	item = create_menu_item_with_mnemonic( menu, _( "_Sleep" ),
 										   G_CALLBACK( HandleCommand ), ID_FILE_SLEEP );
 	g_object_set_data( G_OBJECT( window ), "menu_file_sleep", item );
-	menu_separator( menu );
+*/
+
+    menu_separator( menu );
 	// end experimental
 
 	item = create_menu_item_with_mnemonic( menu, _( "_Open..." ),
@@ -1495,8 +1501,9 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 	create_menu_item_with_mnemonic( menu, _( "_Benchmark" ), G_CALLBACK( HandleCommand ), ID_MISC_BENCHMARK );
 	menu_in_menu = create_menu_in_menu_with_mnemonic( menu, _( "Colors" ) );
 	menu_3 = create_menu_in_menu_with_mnemonic( menu_in_menu, _( "Themes" ) );
-	create_menu_item_with_mnemonic( menu_3, _( "QE4 Original" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETORIGINAL );
-	create_menu_item_with_mnemonic( menu_3, _( "Q3Radiant Original" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETQER );
+    create_menu_item_with_mnemonic( menu_3, _( "Dogiradiant" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETDOGI );
+    create_menu_item_with_mnemonic( menu_3, _( "QE4 Original" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETORIGINAL );
+    create_menu_item_with_mnemonic( menu_3, _( "Q3Radiant Original" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETQER );
 	create_menu_item_with_mnemonic( menu_3, _( "Black and Green" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETBLACK );
 	create_menu_item_with_mnemonic( menu_3, _( "Maya/Max/Lightwave Emulation" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETYDNAR );
 
@@ -1532,9 +1539,14 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 	create_menu_item_with_mnemonic( menu_in_menu, _( "Detail Brush..." ),
 									G_CALLBACK( HandleCommand ), ID_COLORS_DETAIL );
 
+/*
+// NAB622: Removed this, it's pointless on new computers
+
 	create_menu_item_with_mnemonic( menu, _( "_Gamma..." ),
 									G_CALLBACK( HandleCommand ), ID_MISC_GAMMA );
-	create_menu_item_with_mnemonic( menu, _( "Find brush..." ),
+*/
+
+    create_menu_item_with_mnemonic( menu, _( "Find brush..." ),
 									G_CALLBACK( HandleCommand ), ID_MISC_FINDBRUSH );
 	item = create_menu_item_with_mnemonic( menu, _( "Next leak spot" ),
 										   G_CALLBACK( HandleCommand ), ID_MISC_NEXTLEAKSPOT );
@@ -2595,7 +2607,7 @@ GtkWidget* create_framed_texwnd( TexWnd* texwnd ){
 }
 
 static ZWnd *create_floating_zwnd( MainFrame *mainframe ){
-	ZWnd *pZWnd = new ZWnd();
+    ZWnd *pZWnd = new ZWnd();
 	GtkWidget* wnd = create_floating( mainframe );
 
 	gtk_window_set_title( GTK_WINDOW( wnd ), _( "Z" ) );
@@ -2805,7 +2817,9 @@ void MainFrame::Create(){
 						}
 
 						// z
-						m_pZWnd = new ZWnd();
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+                        m_pZWnd = new ZWnd();
 						{
 							GtkWidget* frame = create_framed_widget( m_pZWnd->GetWidget() );
 							if ( CurrentStyle() == eRegular ) {
@@ -2815,7 +2829,7 @@ void MainFrame::Create(){
 								gtk_paned_add2( GTK_PANED( hsplit2 ), frame );
 							}
 						}
-
+*/
 						// textures
 						m_pTexWnd = new TexWnd();
 						{
@@ -2904,11 +2918,13 @@ void MainFrame::Create(){
 			m_pCamWnd->m_pParent = wnd;
 		}
 
-		if ( g_PrefsDlg.m_bFloatingZ ) {
-			m_pZWnd = create_floating_zwnd( this );
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+        if ( g_PrefsDlg.m_bFloatingZ ) {
+            m_pZWnd = create_floating_zwnd( this );
 
 			{
-				GtkWidget* wnd = create_floating( this );
+                GtkWidget* wnd = create_floating( this );
 				gtk_window_set_title( GTK_WINDOW( wnd ), _( "XY View" ) );
 
 #ifdef _WIN32
@@ -2929,11 +2945,12 @@ void MainFrame::Create(){
 				m_pXYWnd->m_pParent = wnd;
 
 				gtk_widget_show( wnd );
-			}
+            }
 		}
 		else
 		{
-			GtkWidget* wnd = create_floating( this );
+*/
+            GtkWidget* wnd = create_floating( this );
 			gtk_window_set_title( GTK_WINDOW( wnd ), _( "XY View" ) );
 
 #ifdef _WIN32
@@ -2943,34 +2960,44 @@ void MainFrame::Create(){
 #endif
 			load_window_pos( wnd, g_PrefsDlg.mWindowInfo.posXYWnd );
 
-			m_pZWnd = new ZWnd();
+// NAB622: Disabling the Z window. It serves no purpose
+/*
+            m_pZWnd = new ZWnd();
 			m_pZWnd->m_pParent = wnd;
-
-			m_pXYWnd = new XYWnd();
+*/
+            m_pXYWnd = new XYWnd();
 			m_pXYWnd->SetViewType( XY );
 			m_pXYWnd->m_pParent = wnd;
 
 
-			{
+// NAB622: Disabling the Z window. It serves no purpose
+//            {
 				GtkWidget* hsplit = gtk_hpaned_new();
 				m_pSplits[0] = hsplit;
 				gtk_container_add( GTK_CONTAINER( wnd ), hsplit );
 				gtk_widget_show( hsplit );
 
-				{
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+                {
 					GtkWidget* frame = create_framed_widget( m_pZWnd->GetWidget() );
 					gtk_paned_add1( GTK_PANED( hsplit ), frame );
 				}
 				{
-					GtkWidget* frame = create_framed_widget( m_pXYWnd->GetWidget() );
+*/
+                    GtkWidget* frame = create_framed_widget( m_pXYWnd->GetWidget() );
 					gtk_paned_add2( GTK_PANED( hsplit ), frame );
-				}
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+                }
 			}
+*/
 
 			gtk_widget_show( wnd );
 
 			gtk_paned_set_position( GTK_PANED( m_pSplits[0] ), g_PrefsDlg.mWindowInfo.nZFloatWidth );
-		}
+// NAB622: Disabling the Z window. It serves no purpose
+//        }
 
 		{
 			GtkWidget* wnd = create_floating( this );
@@ -3138,7 +3165,8 @@ void MainFrame::Create(){
 		}
 
 		m_pTexWnd->m_pParent = g_pGroupDlg->m_pWidget;
-		m_pZWnd = create_floating_zwnd( this );
+// NAB622: Disabling the Z window. It serves no purpose
+//        m_pZWnd = create_floating_zwnd( this );
 
 		while ( gtk_events_pending() )
 			gtk_main_iteration();
@@ -3226,7 +3254,7 @@ MainFrame::MainFrame(){
 	m_pXYWnd = (XYWnd*)NULL;
 	m_pCamWnd = NULL;
 	m_pTexWnd = (TexWnd*)NULL;
-	m_pZWnd = (ZWnd*)NULL;
+//	m_pZWnd = (ZWnd*)NULL;      NAB622: Disabling the Z window. It serves no purpose
 	m_pYZWnd = (XYWnd*)NULL;
 	m_pXZWnd = (XYWnd*)NULL;
 	m_pActiveXY = (XYWnd*)NULL;
@@ -3264,9 +3292,12 @@ void MainFrame::ReleaseContexts(){
 	if ( m_pTexWnd ) {
 		m_pTexWnd->DestroyContext();
 	}
-	if ( m_pZWnd ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+    if ( m_pZWnd ) {
 		m_pZWnd->DestroyContext();
 	}
+*/
 }
 
 void MainFrame::CreateContexts(){
@@ -3285,9 +3316,12 @@ void MainFrame::CreateContexts(){
 	if ( m_pTexWnd ) {
 		m_pTexWnd->CreateContext();
 	}
-	if ( m_pZWnd ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+    if ( m_pZWnd ) {
 		m_pZWnd->CreateContext();
 	}
+*/
 }
 
 static void Sys_Iconify( GtkWidget *w ){
@@ -3355,7 +3389,11 @@ void RefreshModelSkin( GSList **pModels, entitymodel_t *model ){
 }
 
 void MainFrame::OnSleep(){
-	m_bSleeping ^= 1;
+    // NAB622: Disabled sleep mode. I don't see the point. It caused me all kinds of issues in the past too.
+    // It's 2020, why are we worried about the program sleeping??
+    return;
+
+    m_bSleeping ^= 1;
 	if ( m_bSleeping ) {
 		// useful when trying to debug crashes in the sleep code
 		Sys_Printf( "Going into sleep mode..\n" );
@@ -3364,9 +3402,12 @@ void MainFrame::OnSleep(){
 		DispatchRadiantMsg( RADIANT_SLEEP );
 		Sys_Printf( "Done.\n" );
 
-		if ( CurrentStyle() == eSplit ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+        if ( CurrentStyle() == eSplit ) {
 			Sys_Iconify( m_pZWnd->m_pParent );
 		}
+*/
 
 		Sys_Iconify( m_pWidget );
 		Select_Deselect();
@@ -3385,9 +3426,12 @@ void MainFrame::OnSleep(){
 	else
 	{
 		Sys_Printf( "Waking up\n" );
-		if ( CurrentStyle() == eSplit ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+        if ( CurrentStyle() == eSplit ) {
 			Sys_Restore( m_pZWnd->m_pParent );
 		}
+*/
 
 		Sys_Restore( m_pWidget );
 
@@ -3503,13 +3547,16 @@ void MainFrame::OnDelete(){
 	// NOTE TTimo do we have to save a different window depending on the view mode?
 	save_window_pos( g_pGroupDlg->m_pWidget, g_PrefsDlg.mWindowInfo.posEntityWnd );
 
-	if ( g_PrefsDlg.m_bFloatingZ ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+    if ( g_PrefsDlg.m_bFloatingZ ) {
 		save_window_pos( m_pZWnd->m_pParent, g_PrefsDlg.mWindowInfo.posZWnd );
 	}
 	else{
 		g_PrefsDlg.mWindowInfo.nZFloatWidth = gtk_paned_get_position( GTK_PANED( m_pSplits[0] ) );
 	}
-	if( g_PrefsDlg.m_bShowTexDirList && m_pSplits[4] ) {
+*/
+    if( g_PrefsDlg.m_bShowTexDirList && m_pSplits[4] ) {
 		g_PrefsDlg.mWindowInfo.nTextureDirectoryListWidth = gtk_paned_get_position( GTK_PANED( m_pSplits[4] ) );
 	}
 
@@ -3574,13 +3621,17 @@ void MainFrame::OnDestroy(){
 		else
 		{
 			if ( g_PrefsDlg.m_bFloatingZ || CurrentStyle() == eSplit ) {
-				if ( gtk_widget_get_visible( m_pZWnd->m_pParent ) ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+                if ( gtk_widget_get_visible( m_pZWnd->m_pParent ) ) {
 					g_PrefsDlg.m_bZVis = TRUE;
 				}
 				else{
 					g_PrefsDlg.m_bZVis = FALSE;
 				}
-			}
+*/
+                g_PrefsDlg.m_bZVis = FALSE;
+            }
 		}
 		g_PrefsDlg.SavePrefs();
 		Sys_Printf( "Done prefs\n" );
@@ -3593,7 +3644,7 @@ void MainFrame::OnDestroy(){
 	delete m_pXYWnd; m_pXYWnd = NULL;
 	delete m_pYZWnd; m_pYZWnd = NULL;
 	delete m_pXZWnd; m_pXZWnd = NULL;
-	delete m_pZWnd; m_pZWnd = NULL;
+//	delete m_pZWnd; m_pZWnd = NULL;     // NAB622: Disabling the Z window. It serves no purpose
 	delete m_pTexWnd; m_pTexWnd = NULL;
 	delete m_pCamWnd; m_pCamWnd = NULL;
 
@@ -4170,11 +4221,14 @@ void MainFrame::UpdateWindows( int nBits ){
 		}
 	}
 
-	if ( nBits & ( W_Z | W_Z_OVERLAY ) ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+    if ( nBits & ( W_Z | W_Z_OVERLAY ) ) {
 		if ( m_pZWnd ) {
 			m_pZWnd->RedrawWindow();
 		}
 	}
+*/
 
     if ( nBits & W_TEXTURE ) {
         if ( m_pTexWnd ) {
@@ -4250,7 +4304,7 @@ void MainFrame::RoutineProcessing(){
 
 		// run time dependant behavior
 		if ( m_pCamWnd ) {
-			m_pCamWnd->Cam_MouseControl( delta );
+            m_pCamWnd->Cam_MouseControl( delta );
 		}
 
 		if ( g_nUpdateBits ) {
@@ -4909,7 +4963,7 @@ void MainFrame::OnPrefs() {
                               MB_OK | MB_ICONINFORMATION);
         }
 
-        // if the view mode was switched to floating, set the Z window on by 
+        // if the view mode was switched to floating, set the Z window on by
         // default. this was originally intended as a bug fix, but the fix is 
         // elsewhere .. anyway making sure we force Z on each time is good
         // (and we simply hope there will be a SavePrefs before we die)
@@ -5082,6 +5136,8 @@ void MainFrame::OnToggleviewYz(){
 }
 
 void MainFrame::OnTogglez(){
+// NAB622: Disabling the Z window. It serves no purpose
+    return;
 	if ( g_pParentWnd->FloatingGroupDialog() ) { // QE4 style
 		if ( m_pZWnd && m_pZWnd->m_pParent ) {
 			if ( gtk_widget_get_visible( m_pZWnd->m_pParent ) ) {
@@ -6231,6 +6287,75 @@ void MainFrame::OnTextureWad( unsigned int nID ){
 
 void MainFrame::OnMiscBenchmark(){
 	m_pCamWnd->BenchMark();
+}
+
+void MainFrame::OnColorSetDogi(){
+    g_qeglobals.d_savedinfo.colors[COLOR_TEXTUREBACK][0] = 0.25f;
+    g_qeglobals.d_savedinfo.colors[COLOR_TEXTUREBACK][1] = 0.25f;
+    g_qeglobals.d_savedinfo.colors[COLOR_TEXTUREBACK][2] = 0.25f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDBACK][0] = 0.2f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDBACK][1] = 0.2f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDBACK][2] = 0.2f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMINOR][0] = 0.3f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMINOR][1] = 0.3f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMINOR][2] = 0.3f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMAJOR][0] = 0.3f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMAJOR][1] = 0.4f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMAJOR][2] = 0.415f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_CAMERABACK][0] = 0.25f;
+    g_qeglobals.d_savedinfo.colors[COLOR_CAMERABACK][1] = 0.25f;
+    g_qeglobals.d_savedinfo.colors[COLOR_CAMERABACK][2] = 0.25f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_ENTITY][0] = 0.7f;
+    g_qeglobals.d_savedinfo.colors[COLOR_ENTITY][1] = 0.7f;
+    g_qeglobals.d_savedinfo.colors[COLOR_ENTITY][2] = 0.1f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDBLOCK][0] = 0.0f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDBLOCK][1] = 0.0f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDBLOCK][2] = 1.0f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDTEXT][0] = 1.0f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDTEXT][1] = 1.0f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDTEXT][2] = 1.0f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_BRUSHES][0] = 0.7f;
+    g_qeglobals.d_savedinfo.colors[COLOR_BRUSHES][1] = 0.7f;
+    g_qeglobals.d_savedinfo.colors[COLOR_BRUSHES][2] = 0.7f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES][0] = 1.0f;
+    g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES][1] = 0.2f;
+    g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES][2] = 0.1f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_CLIPPER][0] = 0.2f;
+    g_qeglobals.d_savedinfo.colors[COLOR_CLIPPER][1] = 0.2f;
+    g_qeglobals.d_savedinfo.colors[COLOR_CLIPPER][2] = 1.0f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_VIEWNAME][0] = 0.5f;
+    g_qeglobals.d_savedinfo.colors[COLOR_VIEWNAME][1] = 0.0f;
+    g_qeglobals.d_savedinfo.colors[COLOR_VIEWNAME][2] = 0.75f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES3D][0] = 1.0f;
+    g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES3D][1] = 0.2f;
+    g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES3D][2] = 0.1f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMINOR_ALT][0] = 0.24f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMINOR_ALT][1] = 0.24f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMINOR_ALT][2] = 0.24f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMAJOR_ALT][0] = 0.35f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMAJOR_ALT][1] = 0.35f;
+    g_qeglobals.d_savedinfo.colors[COLOR_GRIDMAJOR_ALT][2] = 0.35f;
+
+    g_qeglobals.d_savedinfo.colors[COLOR_DETAIL][0] = 0.6f;
+    g_qeglobals.d_savedinfo.colors[COLOR_DETAIL][1] = 0.6f;
+    g_qeglobals.d_savedinfo.colors[COLOR_DETAIL][2] = 0.6f;
+
+    g_PrefsDlg.SavePrefs();
+    Sys_UpdateWindows( W_ALL );
 }
 
 void MainFrame::OnColorSetoriginal(){

@@ -2234,9 +2234,9 @@ void XYWnd::XY_DrawGrid(){
     step = currentGridSize = g_qeglobals.d_gridsize * majorSkipMultiples;
     stepx = stepy = g_qeglobals.d_gridsize;
 
-    // NAB622: Grid lines are now forcefully attached to the grid size setting.
-    // If adding a preference to detach them, this is where to add the check
-    if( 0 ) {
+    // NAB622: Experimented with forcing the grid lines to attach to the grid size setting, but the results were...unsatisfactory.
+    // This IF statement is what should check to preference to enable it.
+    if( 1 ) {
         while ( ( step * m_fScale ) < minSize ) {
             // If the grid lines are too close together, refactor and resize
             step *= refactorAmt;

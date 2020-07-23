@@ -107,7 +107,7 @@ bool m_bFreeMove;
 protected:
 void Cam_Init();
 void Cam_BuildMatrix();
-void Cam_PositionDrag();
+void Cam_PositionDrag( int buttons );
 void Cam_KeyControl( float dtime );
 void Cam_MouseDown( int x, int y, int buttons );
 void Cam_MouseUp( int x, int y, int buttons );

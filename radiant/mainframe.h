@@ -113,10 +113,11 @@ struct SKeyInfo
 #define ID_COLORS_GRIDBLOCK             32837
 #define ID_COLORS_VIEWNAME              32838
 #define ID_COLORS_DETAIL                37002
-#define ID_COLOR_SETORIGINAL            32839
-#define ID_COLOR_SETQER                 32840
-#define ID_COLOR_SETBLACK               32841
-#define ID_COLOR_SETYDNAR               37001  /* ydnar */
+#define ID_COLOR_SETDOGI                37100
+#define ID_COLOR_SETORIGINAL            37101
+#define ID_COLOR_SETQER                 37102
+#define ID_COLOR_SETBLACK               37103
+#define ID_COLOR_SETYDNAR               37104  /* ydnar */
 #define ID_BYEBYE                       32842
 #define ID_SELECT_SCALE                 32843
 #define ID_SELECT_MOUSEROTATE           32844
@@ -760,6 +761,7 @@ void OnColorsCameraBack();
 void OnColorsGridblock();
 void OnColorsViewname();
 void OnColorsDetail();
+void OnColorSetDogi();
 void OnColorSetoriginal();
 void OnColorSetqer();
 void OnColorSetblack();
