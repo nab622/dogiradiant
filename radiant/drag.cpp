@@ -200,7 +200,7 @@ void Drag_Setup( int x, int y, int buttons,
 			for ( f = t.brush->brush_faces ; f ; f = f->next )
 				Brush_SelectFaceForDragging( t.brush, f, false );
 		}
-		else{
+        else {
 			Sys_Printf( "Dragging entire selection\n" );
 		}
 
@@ -249,7 +249,7 @@ void Drag_Setup( int x, int y, int buttons,
 	Sys_Printf( "Side stretch\n" );
 	drag_ok = true;
 
-	Undo_Start( "side stretch" );
+    Undo_Start( "Side stretch" );
 	Undo_AddBrushList( &selected_brushes );
 }
 
@@ -316,10 +316,11 @@ void Drag_Begin( int x, int y, int buttons,
 	int nFlag;
 
 	drag_ok = false;
+
 	VectorCopy( vec3_origin, pressdelta );
 	VectorCopy( vec3_origin, vPressStart );
 
-	drag_first = true;
+    drag_first = true;
 	peLink = NULL;
 
 	altdown = Sys_AltDown();
@@ -487,7 +488,7 @@ void Drag_Begin( int x, int y, int buttons,
 						if ( fLargest == 0.0f ) {
 							vColor[0] = vColor[1] = vColor[2] = 1.0f;
 						}
-						else
+                        else
 						{
 							float fScale = 1.0f / fLargest;
 							for ( int i = 0; i < 3; i++ )
@@ -558,7 +559,7 @@ void MoveSelection( vec3_t move ){
 			fAdj = move[2];
 			nAxis = 1;
 		}
-		else{
+        else {
 			nAxis = 0;
 		}
 
@@ -598,7 +599,7 @@ void MoveSelection( vec3_t move ){
 					  ( g_nScaleHow & SCALE_Y ) ? 1.0f : v[1],
 					  ( g_nScaleHow & SCALE_Z ) ? 1.0f : v[2] );
 		// is that really necessary???
-		Sys_UpdateWindows( W_ALL );
+        Sys_UpdateWindows( W_ALL );
 		return;
 	}
 
@@ -643,7 +644,7 @@ void MoveSelection( vec3_t move ){
                             
                             vec3_t ends[16];
                             if ( g_qeglobals.d_num_move_points > 16 ) {
-                              Sys_Printf( "More than 16 vertexes select? Go home, you're drunk\n" );
+                              Sys_Printf( "More than 16 vertices selected? Go home, you're drunk\n" );
                               return;
                             }
 
@@ -665,9 +666,15 @@ void MoveSelection( vec3_t move ){
 			}
 			return;
 		}
-		//all other selection types
+
+        //all other selection types
 		for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ )
 			VectorAdd( g_qeglobals.d_move_points[i], move, g_qeglobals.d_move_points[i] );
+
+        bool outsideGridBoundaries = false;
+        bool draggedBackwards = false;
+        bool maxBrushSize = false;
+
 		for ( b = selected_brushes.next; b != &selected_brushes; b = b->next )
 		{
 			bool bMoved = false;
@@ -686,10 +693,18 @@ void MoveSelection( vec3_t move ){
 			Brush_Build( b,true,true,false,false ); // don't filter
 			for ( i = 0 ; i < 3 ; i++ )
 			{
-				if ( b->mins[i] > b->maxs[i]
-					 || b->maxs[i] - b->mins[i] > g_MaxBrushSize ) {
-					break;  // dragged backwards or fucked up
-				}
+                if ( b->maxs[i] > g_MaxWorldCoord || b->mins[i] < g_MinWorldCoord ) {
+                    outsideGridBoundaries = true;
+                    break;
+                }
+                if ( b->mins[i] > b->maxs[i] ) {
+                    draggedBackwards = true;
+                    break;
+                }
+                if ( b->maxs[i] - b->mins[i] > g_MaxBrushSize ) {
+                    maxBrushSize = true;
+                    break;
+                }
 			}
 			if ( i != 3 ) {
 				break;
@@ -699,6 +714,9 @@ void MoveSelection( vec3_t move ){
 				VectorSubtract( vTemp2, b->mins, vTemp2 );
 				VectorSubtract( vTemp2, vTemp, vTemp2 );
 				//if (!Patch_DragScale(b->nPatchID, vTemp2, move))
+                if ( !areWeOutOfBounds( b->maxs ) || !areWeOutOfBounds( b->mins ) ) {
+                    outsideGridBoundaries = true;
+                }
 				if ( !Patch_DragScale( b->pPatch, vTemp2, move ) ) {
 					b = NULL;
 					break;
@@ -708,15 +726,23 @@ void MoveSelection( vec3_t move ){
 		// if any of the brushes were crushed out of existance
         // cancel the entire move
 		if ( b != &selected_brushes ) {
-			Sys_Printf( "Brush dragged backwards, move canceled\n" );
-			for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ )
+            if( outsideGridBoundaries ) {
+                Sys_Printf( "Grid limit exceeded, move cancelled\n" );
+            }
+            if( draggedBackwards ) {
+                Sys_Printf( "Brush dragged backwards, move cancelled\n" );
+            }
+            if( maxBrushSize ) {
+                Sys_Printf( "Maximum brush size reached, move cancelled\n" );
+            }
+
+            for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ )
 				VectorSubtract( g_qeglobals.d_move_points[i], move, g_qeglobals.d_move_points[i] );
 
 			for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next )
 				Brush_Build( b,true,true,false,false );  // don't filter
 		}
-
-	}
+    }
 	else
 	{
 		// reset face originals from vertex edit mode
@@ -740,7 +766,7 @@ void MoveSelection( vec3_t move ){
    Drag_MouseMoved
    ===========
  */
-void Drag_MouseMoved( int x, int y, int buttons ){
+void Drag_MouseMoved( int x, int y, int buttons ) {
 	vec3_t move, delta;
 	int i;
 
@@ -787,16 +813,19 @@ void Drag_MouseMoved( int x, int y, int buttons ){
 		for ( i = 0 ; i < 3 ; i++ )
 		{
 			move[i] = drag_xvec[i] * ( x - pressx ) + drag_yvec[i] * ( y - pressy );
-            if ( g_PrefsDlg.m_bSnap ) {
+            if ( g_PrefsDlg.m_bSnap )
+            {
                 move[i] = floor( move[i] / g_qeglobals.d_gridsize + 0.5 ) * g_qeglobals.d_gridsize;
             }
-		}
-	}
+        }
+    }
+
 
 	VectorSubtract( move, pressdelta, delta );
+
 	VectorCopy( move, pressdelta );
 
-	MoveSelection( delta );
+    MoveSelection( delta );
 }
 
 /*

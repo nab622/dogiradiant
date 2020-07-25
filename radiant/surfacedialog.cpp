@@ -27,6 +27,7 @@
 
 
 
+
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 // This code is mostly dead, or unused. the surface inspector logic is now in a plugin, either for idtech2 or idtech3
@@ -272,6 +273,8 @@ static gint OnTextureKey( GtkWidget* widget, GdkEventKey* event, gpointer data )
 }
 
 static void OnCancel( GtkWidget *widget, gpointer data ){
+    // NAB622: The undo portion of this has been disabled because it conflicted with the new undo method
+/*
     g_qeglobals.d_texturewin.texdef = g_old_texdef;
 	// cancel the last do if we own it
 	if ( g_dlgSurface.m_nUndoId == Undo_GetUndoId() ) {
@@ -283,6 +286,7 @@ static void OnCancel( GtkWidget *widget, gpointer data ){
 		g_bListenUpdate = true;
 		g_dlgSurface.m_nUndoId = 0;
 	}
+*/
     g_dlgSurface.HideDlg();
 }
 
@@ -670,7 +674,7 @@ void SurfaceDlg::BuildDialog() {
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_widget_show( spin );
 
-	label = gtk_label_new( _( "Step" ) );
+    label = gtk_label_new( _( "Step" ) );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 3, 4,
 					  (GtkAttachOptions) ( GTK_FILL ),
@@ -704,14 +708,14 @@ void SurfaceDlg::BuildDialog() {
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_widget_show( spin );
 
-	label = gtk_label_new( _( "Step" ) );
+    label = gtk_label_new( _( "Step" ) );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 4, 5,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( label );
 
-	entry = gtk_entry_new();
+    entry = gtk_entry_new();
 	g_object_set_data( G_OBJECT( dlg ), "rotate_inc", entry );
 	g_signal_connect( G_OBJECT( entry ), "changed",
 						G_CALLBACK( OnIncrementChanged ), NULL );
@@ -828,7 +832,7 @@ void SurfaceDlg::BuildDialog() {
 	gtk_size_group_add_widget( button_group, fit_button );
 	g_object_unref( button_group );
 
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 1, 32, 1, 10, 0 ) ), 1, 0 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 1, 32, 1, 10, 0 ) ), 1, 0 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 2, 3, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -836,7 +840,7 @@ void SurfaceDlg::BuildDialog() {
 	gtk_widget_show( spin );
 	AddDialogData( spin, &m_nWidth, DLG_SPIN_INT );
 
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 1, 32, 1, 10, 0 ) ), 1, 0 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 1, 32, 1, 10, 0 ) ), 1, 0 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 3, 4, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );

@@ -46,7 +46,7 @@ trace_t Test_Ray( vec3_t origin, vec3_t dir, int flags ){
 	t.dist = DIST_START;
 
 	if ( flags & SF_CYCLE ) {
-		CPtrArray array;
+        CPtrArray array;
 		brush_t *pToSelect = ( selected_brushes.next != &selected_brushes ) ? selected_brushes.next : NULL;
 		Select_Deselect();
 
@@ -67,9 +67,6 @@ trace_t Test_Ray( vec3_t origin, vec3_t dir, int flags ){
 			if ( !g_PrefsDlg.m_bSelectModels && ( brush->owner->eclass->nShowFlags & ECLASS_MISCMODEL ) ) {
 				continue;
 			}
-
-			//if (!g_bShowPatchBounds && brush->patchBrush)
-			//  continue;
 
 			face = Brush_Ray( origin, dir, brush, &dist, flags );
 
@@ -108,7 +105,7 @@ trace_t Test_Ray( vec3_t origin, vec3_t dir, int flags ){
 	}
 
 	if ( !( flags & SF_SELECTED_ONLY ) ) {
-		for ( brush = active_brushes.next ; brush != &active_brushes ; brush = brush->next )
+        for ( brush = active_brushes.next ; brush != &active_brushes ; brush = brush->next )
 		{
 			if ( ( flags & SF_ENTITIES_FIRST ) && ( brush->owner == world_entity || !brush->owner->eclass->fixedsize ) ) {
 				continue;
@@ -126,10 +123,12 @@ trace_t Test_Ray( vec3_t origin, vec3_t dir, int flags ){
 				continue;
 			}
 
-			//if (!g_bShowPatchBounds && brush->patchBrush)
-			//  continue;
+            // If we hit a patch, do not try to select a single face, as there are none
+            if ( ( flags & SF_SINGLEFACE ) && brush->patchBrush ) {
+                continue;
+            }
 
-			face = Brush_Ray( origin, dir, brush, &dist, flags );
+            face = Brush_Ray( origin, dir, brush, &dist, flags );
 			if ( face && dist > 0 && dist < t.dist ) {
 				t.dist = dist;
 				t.brush = brush;
@@ -733,76 +732,147 @@ vec3_t select_origin;
 vec3_t select_matrix[3];
 qboolean select_fliporder;
 
+bool performTransform( bool bSnap, bool bRotation, int nAxis, float fDeg, bool applyTransform ) {
+    brush_t *b;
+    face_t  *f;
+    int i, j;
+    vec3_t temp, tmporigin, test, test2;
+
+    for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next )
+    {
+        if ( b->owner->eclass->fixedsize ) {
+            if( !applyTransform ) {
+                VectorCopy( b->owner->origin, tmporigin );
+                // transform the origin point
+                VectorSubtract( b->owner->origin, select_origin, temp );
+                for ( j = 0 ; j < 3 ; j++ ) {
+                    test[j] = DotProduct( temp, select_matrix[j] ) + select_origin[j];
+                }
+
+                if( areWeOutOfBounds( test ) ) {
+                    return false;
+                }
+
+            } else {
+                VectorCopy( b->owner->origin, tmporigin );
+                // transform the origin point
+                VectorSubtract( b->owner->origin, select_origin, temp );
+                for ( j = 0 ; j < 3 ; j++ )
+                    b->owner->origin[j] = DotProduct( temp, select_matrix[j] ) + select_origin[j];
+
+                // update the origin key
+                char text[64];
+                sprintf( text, "%i %i %i",
+                         (int)b->owner->origin[0], (int)b->owner->origin[1], (int)b->owner->origin[2] );
+
+                SetKeyValue( b->owner, "origin", text );
+                /*\todo remove brush-based bounding box for fixedsize entities */
+                VectorSubtract( b->owner->origin, tmporigin, temp );
+
+                }
+
+            for ( f = b->brush_faces ; f ; f = f->next ) {
+                //Test first
+                if( !applyTransform ) {
+                    for ( i = 0 ; i < 3 ; i++ ) {
+                        VectorAdd( f->planepts[i], temp, test );
+                    }
+                    if( areWeOutOfBounds( test ) ) {
+                        return false;
+                    }
+                } else {
+                    // move fixedsize bbox to new origin
+                    for ( i = 0 ; i < 3 ; i++ ) {
+                        VectorAdd( f->planepts[i], temp, f->planepts[i] );
+                    }
+                }
+            }
+
+            if( applyTransform ) {
+                // NAB622: Let's do it for reals this time!
+                Brush_Build( b, bSnap,true,false,false ); // don't filter
+            }
+
+        }
+
+        else if ( b->patchBrush ) {
+            // NAB622: FIXME: Pretty sure this needs something done to it before it'll work....
+
+            if ( !bRotation && !( ( g_qeglobals.d_select_mode == sel_curvepoint && g_qeglobals.d_num_move_points != 0 ) || g_bPatchBendMode ) ) {
+                // invert patch if this is a mirroring operation, unless points are selected or bendmode is active
+                if( applyTransform ) {
+                    // NAB622: Let's do it for reals this time!
+                    patchInvert( b->pPatch );
+                }
+            }
+            // NOTE: does not clamp points to integers
+            if( applyTransform ) {
+                // NAB622: Let's do it for reals this time!
+                Patch_ApplyMatrix( b->pPatch, select_origin, select_matrix, false );
+            }
+        }
+        else
+        {
+            for ( f = b->brush_faces ; f ; f = f->next )
+            {
+                // FIXME: only in BP mode!
+                // if we are using Brush Primitives texturing, we need to compute the texture matrix after the geometric transformation
+                // (with the default texturing you don't need to compute anything for flipping and mirroring operations)
+                //      if (bApplyBPrimit) {
+                //        ApplyMatrix_BrushPrimit (f, select_matrix, select_origin, select_fliporder);
+                //      }
+
+                if( !applyTransform ) {
+                    for ( i = 0 ; i < 3 ; i++ )
+                    {
+                        VectorSubtract( f->planepts[i], select_origin, test2 );
+                        for ( j = 0 ; j < 3 ; j++ ) {
+                            test[j] = DotProduct( test2, select_matrix[j] ) + select_origin[j];
+                        }
+                        if( areWeOutOfBounds( test ) ) {
+                            return false;
+                        }
+                    }
+                } else {
+                    for ( i = 0 ; i < 3 ; i++ )
+                    {
+                        VectorSubtract( f->planepts[i], select_origin, temp );
+                        for ( j = 0 ; j < 3 ; j++ ) {
+                            f->planepts[i][j] = DotProduct( temp, select_matrix[j] ) + select_origin[j];
+                        }
+                    }
+                }
+
+                if ( select_fliporder ) {
+                    // NAB622: It shouldn't be possible for this to go out-of-bounds...
+                    VectorCopy( f->planepts[0], temp );
+                    VectorCopy( f->planepts[2], f->planepts[0] );
+                    VectorCopy( temp, f->planepts[2] );
+                }
+            }
+            if( applyTransform ) {
+                // NAB622: Let's do it for reals this time!
+                Brush_Build( b, bSnap,true,false,false ); // don't filter
+            }
+        }
+    }
+    return true;
+}
+
 // FIXME: bApplyBPrimit is supposed to be temporary
 // TODO: manage Brush_Build calls, too many of them with the texture processing
 // FIXME: the undo doesn't seem to work correctly on texturing and flip/rotate operations?? this is not supposed to be related to the texture locking code, so what is happening?
 // FIXME: ApplyMatrix works on flipping operation, b0rks on Rotations (so does the "regular" rotation code??)
 // FIXME: what is getting called in free rotation mode? that used to work right?
-void Select_ApplyMatrix( bool bSnap, bool bRotation, int nAxis, float fDeg ){ //, qboolean bApplyBPrimit)
-	brush_t *b;
-	face_t  *f;
-	int i, j;
-	vec3_t temp, tmporigin;
-
-	for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next )
-	{
-		if ( b->owner->eclass->fixedsize ) {
-			VectorCopy( b->owner->origin, tmporigin );
-			// transform the origin point
-			VectorSubtract( b->owner->origin, select_origin, temp );
-			for ( j = 0 ; j < 3 ; j++ )
-				b->owner->origin[j] = DotProduct( temp, select_matrix[j] ) + select_origin[j];
-
-			// update the origin key
-			char text[64];
-			sprintf( text, "%i %i %i",
-					 (int)b->owner->origin[0], (int)b->owner->origin[1], (int)b->owner->origin[2] );
-			SetKeyValue( b->owner, "origin", text );
-
-			/*\todo remove brush-based bounding box for fixedsize entities */
-			VectorSubtract( b->owner->origin, tmporigin, temp );
-			for ( f = b->brush_faces ; f ; f = f->next )
-			{
-				// move fixedsize bbox to new origin
-				for ( i = 0 ; i < 3 ; i++ )
-					VectorAdd( f->planepts[i], temp, f->planepts[i] );
-			}
-			Brush_Build( b, bSnap,true,false,false ); // don't filter
-
-		}
-		else if ( b->patchBrush ) {
-			if ( !bRotation && !( ( g_qeglobals.d_select_mode == sel_curvepoint && g_qeglobals.d_num_move_points != 0 ) || g_bPatchBendMode ) ) {
-				// invert patch if this is a mirroring operation, unless points are selected or bendmode is active
-				patchInvert( b->pPatch );
-			}
-			// NOTE: does not clamp points to integers
-			Patch_ApplyMatrix( b->pPatch, select_origin, select_matrix, false );
-		}
-		else
-		{
-			for ( f = b->brush_faces ; f ; f = f->next )
-			{
-				// FIXME: only in BP mode!
-				// if we are using Brush Primitives texturing, we need to compute the texture matrix after the geometric transformation
-				// (with the default texturing you don't need to compute anything for flipping and mirroring operations)
-				//      if (bApplyBPrimit) {
-				//        ApplyMatrix_BrushPrimit (f, select_matrix, select_origin, select_fliporder);
-				//      }
-				for ( i = 0 ; i < 3 ; i++ )
-				{
-					VectorSubtract( f->planepts[i], select_origin, temp );
-					for ( j = 0 ; j < 3 ; j++ )
-						f->planepts[i][j] = DotProduct( temp, select_matrix[j] ) + select_origin[j];
-				}
-				if ( select_fliporder ) {
-					VectorCopy( f->planepts[0], temp );
-					VectorCopy( f->planepts[2], f->planepts[0] );
-					VectorCopy( temp, f->planepts[2] );
-				}
-			}
-			Brush_Build( b, bSnap,true,false,false ); // don't filter
-		}
-	}
+bool Select_ApplyMatrix( bool bSnap, bool bRotation, int nAxis, float fDeg ){ //, qboolean bApplyBPrimit)
+    // NAB622: Simulate the entire operation first to make sure nothing goes out-of-bounds
+    if( performTransform( bSnap, bRotation, nAxis, fDeg, false ) ) {
+        performTransform( bSnap, bRotation, nAxis, fDeg, true );
+    } else {
+        Sys_Printf("Operation failed - went out of bounds!\n");
+        return false;
+    }
+    return true;
 }
 
 void ProjectOnPlane( vec3_t& normal,float dist,vec3_t& ez, vec3_t& p ){
@@ -1034,22 +1104,31 @@ void Select_FlipAxis( int axis ){
 	select_matrix[axis][axis] = -1;
 	select_fliporder = true;
 
-	// texture locking
-	if ( g_PrefsDlg.m_bRotateLock ) {
-		// axis flipping inverts space orientation, we have to use a general texture locking algorithm instead of the RotateFaceTexture
-		if ( g_qeglobals.m_bBrushPrimitMode ) {
-			Select_ApplyMatrix_BrushPrimit();
-		}
-		else
-		{
-			// there's never been flip locking for non BP mode, this would be tricky to write and there's not much interest for it with the coming of BP format
-			// what could be done is converting regular to BP, locking, then back to regular :)
-			Sys_FPrintf( SYS_WRN, "WARNING: regular texturing doesn't have texture lock on flipping operations\n" );
-		}
-	}
-	// geometric transformation
-	Select_ApplyMatrix( true, false, 0, 0 );
-	Sys_UpdateWindows( W_ALL );
+    if( performTransform( true, false, 0, 0, false ) ) {
+        // NAB622: Make sure the transform is possible before modifying any textures!
+
+        // texture locking
+        if ( g_PrefsDlg.m_bRotateLock ) {
+            // axis flipping inverts space orientation, we have to use a general texture locking algorithm instead of the RotateFaceTexture
+/*
+            if ( g_qeglobals.m_bBrushPrimitMode ) {
+                Select_ApplyMatrix_BrushPrimit();
+            }
+            else
+            {
+*/
+                // there's never been flip locking for non BP mode, this would be tricky to write and there's not much interest for it with the coming of BP format
+                // what could be done is converting regular to BP, locking, then back to regular :)
+                Sys_FPrintf( SYS_WRN, "WARNING: regular texturing doesn't have texture lock on flipping operations\n" );
+//          }
+        }
+
+        performTransform( true, false, 0, 0, true );
+
+        Sys_UpdateWindows( W_ALL );
+    } else {
+        Sys_Printf("Operation failed - went out of bounds!\n");
+    }
 }
 
 
@@ -1075,7 +1154,12 @@ void Select_Scale( float x, float y, float z ){
 				f->planepts[i][0] += select_origin[0];
 				f->planepts[i][1] += select_origin[1];
 				f->planepts[i][2] += select_origin[2];
-			}
+
+                if( areWeOutOfBounds( f->planepts[i] ) ) {
+                    Sys_Printf( "Scale cancelled - out of bounds!\n" );
+                    return;
+                }
+            }
 		}
 		Brush_Build( b, false,true,false,false ); // don't filter
 		if ( b->patchBrush ) {
@@ -1163,24 +1247,31 @@ void Select_RotateAxis( int axis, float deg, bool bPaint, bool bMouse ){
 	}
 
 
-	// texture locking
-	if ( g_PrefsDlg.m_bRotateLock ) {
-		// Terrible hack, reversing input rotation angle to correct
-		// texture rotation direction for X and Z axes.
-		// RotateTextures needs to be changed to fix this properly?
-		if ( axis == 1 ) {
-			RotateTextures( axis, deg, select_origin );
-		}
-		else{
-			RotateTextures( axis, deg * -1, select_origin );
-		}
-	}
-	// geometric transformation
-	Select_ApplyMatrix( !bMouse, true, axis, deg ); //, false);
+    if( performTransform( !bMouse, true, axis, deg, false ) ) {
+        //Make sure the transform is possible before modifying any textures!
 
-	if ( bPaint ) {
-		Sys_UpdateWindows( W_ALL );
-	}
+        // texture locking
+        if ( g_PrefsDlg.m_bRotateLock ) {
+            // Terrible hack, reversing input rotation angle to correct
+            // texture rotation direction for X and Z axes.
+            // RotateTextures needs to be changed to fix this properly?
+            if ( axis == 1 ) {
+                RotateTextures( axis, deg, select_origin );
+            }
+            else{
+                RotateTextures( axis, deg * -1, select_origin );
+            }
+        }
+        // geometric transformation
+        Select_ApplyMatrix( !bMouse, true, axis, deg ); //, false);
+
+        if ( bPaint ) {
+            Sys_UpdateWindows( W_ALL );
+        }
+    } else {
+        Sys_Printf("Operation failed - went out of bounds!\n");
+    }
+
 }
 
 /*
@@ -1473,8 +1564,12 @@ void Select_MergeEntity(){
    ====================
  */
 void Select_Seperate( void ) {
-    Undo_Start( "Entity ungroup into worldspawn" );
+    Undo_Start( "move entity brushes into worldspawn" );
+    Undo_AddBrushList( &selected_brushes );
+
     Select_GroupEntity( world_entity );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
@@ -1563,13 +1658,23 @@ void ShiftTextureRelative_Camera( face_t *f, int x, int y ){
 	ShiftTextureRelative_BrushPrimit( f, XY[0], XY[1] );
 }
 
-void Select_ShiftTexture( int x, int y ){
+float getGridValueForTextureChanges() {
+    return CLAMP( g_qeglobals.d_gridsize, 1, 128 ) / 10000;
+}
+
+float calculateRotatingValueBeneathMax( float input, float max ) {
+    float output = fmod( input, max );
+    if( output < 0 ) output += max;
+    return output;
+}
+
+void Select_ShiftTexture( int x, int y ) {
 	brush_t     *b;
 	face_t      *f;
 
 	int nFaceCount = g_ptrSelectedFaces.GetSize();
 
-	if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
+    if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
 		return;
 	}
 
@@ -1582,13 +1687,18 @@ void Select_ShiftTexture( int x, int y ){
 			}
 			else
 			{
-				f->texdef.shift[0] += x;
-				f->texdef.shift[1] += y;
-			}
+                f->texdef.shift[0] += x * getGridValueForTextureChanges() * 100;
+                f->texdef.shift[1] += y * getGridValueForTextureChanges() * 100;
+
+                // NAB622: Make sure these are within range of the resolution...no point exceeding it
+                f->texdef.shift[0] = calculateRotatingValueBeneathMax( f->texdef.shift[0], f->d_texture->width );
+                f->texdef.shift[1] = calculateRotatingValueBeneathMax( f->texdef.shift[1], f->d_texture->height );
+            }
 		}
 		Brush_Build( b,true,true,false,false ); // don't filter
 		if ( b->patchBrush ) {
-			Patch_ShiftTexture( b->pPatch, x, y );
+            // NAB622: FIXME: Add code for patches' texdefs to be clamped as well
+            Patch_ShiftTexture( b->pPatch, x * getGridValueForTextureChanges() * 100, y * getGridValueForTextureChanges() * 100 );
 		}
 	}
 
@@ -1602,24 +1712,28 @@ void Select_ShiftTexture( int x, int y ){
 			}
 			else
 			{
-				selFace->texdef.shift[0] += x;
-				selFace->texdef.shift[1] += y;
-			}
+                selFace->texdef.shift[0] += x * getGridValueForTextureChanges() * 100;
+                selFace->texdef.shift[1] += y * getGridValueForTextureChanges() * 100;
+
+                // NAB622: Make sure these are within range of the resolution...no point exceeding it
+                f->texdef.shift[0] = calculateRotatingValueBeneathMax( selFace->texdef.shift[0], f->d_texture->width );
+                f->texdef.shift[1] = calculateRotatingValueBeneathMax( selFace->texdef.shift[1], f->d_texture->height );
+            }
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}
 	}
 
-    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
+    Sys_UpdateWindows( W_CAMERA | W_SURFACE );
 }
 
 //  setting float as input
-void Select_ScaleTexture( float x, float y ){
+void Select_ScaleTexture( float x, float y ) {
 	brush_t     *b;
-	face_t      *f;
+    face_t      *f;
 
 	int nFaceCount = g_ptrSelectedFaces.GetSize();
 
-	if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
+    if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
 		return;
 	}
 
@@ -1638,18 +1752,18 @@ void Select_ScaleTexture( float x, float y ){
 				// compute fake shift scale rot
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
 				// update
-				scale[0] += static_cast<float>( x ) * 0.1;
-				scale[1] += static_cast<float>( y ) * 0.1;
+                scale[0] += static_cast<float>( x ) * getGridValueForTextureChanges() / 20;
+                scale[1] += static_cast<float>( y ) * getGridValueForTextureChanges() / 20;
 				// compute new normalized texture matrix
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				// apply to face texture matrix
 				ConvertTexMatWithQTexture( &bp, NULL, &f->brushprimit_texdef, f->d_texture );
-			}
+            }
 			else
 			{
-				f->texdef.scale[0] += x;
-				f->texdef.scale[1] += y;
-			}
+                f->texdef.scale[0] += x * getGridValueForTextureChanges() / 20;
+                f->texdef.scale[1] += y * getGridValueForTextureChanges() / 20;
+            }
 		}
 		Brush_Build( b,true,true,false,false ); // don't filter
 		if ( b->patchBrush ) {
@@ -1669,21 +1783,21 @@ void Select_ScaleTexture( float x, float y ){
 				brushprimit_texdef_t bp;
 				ConvertTexMatWithQTexture( &selFace->brushprimit_texdef, selFace->d_texture, &bp, NULL );
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
-				scale[0] += static_cast<float>( x ) * 0.1;
-				scale[1] += static_cast<float>( y ) * 0.1;
+                scale[0] += static_cast<float>( x ) * getGridValueForTextureChanges() / 20;
+                scale[1] += static_cast<float>( y ) * getGridValueForTextureChanges() / 20;
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				ConvertTexMatWithQTexture( &bp, NULL, &selFace->brushprimit_texdef, selFace->d_texture );
-			}
+            }
 			else
 			{
-				selFace->texdef.scale[0] += x;
-				selFace->texdef.scale[1] += y;
-			}
+                selFace->texdef.scale[0] += x * getGridValueForTextureChanges() / 20;
+                selFace->texdef.scale[1] += y * getGridValueForTextureChanges() / 20;
+            }
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}
 	}
 
-    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
+    Sys_UpdateWindows( W_CAMERA | W_SURFACE );
 }
 
 void Select_RotateTexture( int amt ){
@@ -1692,7 +1806,7 @@ void Select_RotateTexture( int amt ){
 
 	int nFaceCount = g_ptrSelectedFaces.GetSize();
 
-	if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
+    if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
 		return;
 	}
 
@@ -1700,7 +1814,7 @@ void Select_RotateTexture( int amt ){
 	{
 		for ( f = b->brush_faces ; f ; f = f->next )
 		{
-			if ( g_qeglobals.m_bBrushPrimitMode ) {
+            if ( g_qeglobals.m_bBrushPrimitMode ) {
 				// apply same scale as the spinner button of the surface inspector
 				float shift[2];
 				float rotate;
@@ -1711,7 +1825,7 @@ void Select_RotateTexture( int amt ){
 				// compute fake shift scale rot
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
 				// update
-				rotate += amt;
+                rotate += amt * getGridValueForTextureChanges() * 10;
 				// compute new normalized texture matrix
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				// apply to face texture matrix
@@ -1719,14 +1833,16 @@ void Select_RotateTexture( int amt ){
 			}
 			else
 			{
-				f->texdef.rotate += amt;
-				f->texdef.rotate = static_cast<int>( f->texdef.rotate ) % 360;
+                f->texdef.rotate += amt * getGridValueForTextureChanges() * 10;
+                //If the rotation is out of reasonable bounds, push it back. Rotation cannot go beyond the range of 0-360, so anything else is pointless, even negative values
+                f->texdef.rotate = static_cast<float>( calculateRotatingValueBeneathMax( f->texdef.rotate, 360 ) );
 			}
 		}
 		Brush_Build( b,true,true,false,false ); // don't filter
 		if ( b->patchBrush ) {
 			//Patch_RotateTexture(b->nPatchID, amt);
-			Patch_RotateTexture( b->pPatch, amt );
+            // NAB622: FIXME: Patches need added to this
+            Patch_RotateTexture( b->pPatch, amt * ( getGridValueForTextureChanges() * 10 ) );
 		}
 	}
 
@@ -1742,20 +1858,20 @@ void Select_RotateTexture( int amt ){
 				brushprimit_texdef_t bp;
 				ConvertTexMatWithQTexture( &selFace->brushprimit_texdef, selFace->d_texture, &bp, NULL );
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
-				rotate += amt;
+                rotate += amt * ( g_qeglobals.d_gridsize / 100 );
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				ConvertTexMatWithQTexture( &bp, NULL, &selFace->brushprimit_texdef, selFace->d_texture );
 			}
 			else
 			{
-				selFace->texdef.rotate += amt;
-				selFace->texdef.rotate = static_cast<int>( selFace->texdef.rotate ) % 360;
+                selFace->texdef.rotate += amt * ( g_qeglobals.d_gridsize );
+                selFace->texdef.rotate = static_cast<float>( fmod( selFace->texdef.rotate, 360 ) );
 			}
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}
 	}
 
-    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
+    Sys_UpdateWindows( W_CAMERA | W_SURFACE );
 }
 
 // TTimo modified to handle shader architecture:
@@ -1819,7 +1935,7 @@ void FindReplaceTextures( const char* pFind, const char* pReplace, bool bSelecte
 		}
 	}
 
-    Sys_UpdateWindows( W_CAMERA | W_TEXTURE );
+    Sys_UpdateWindows( W_CAMERA | W_TEXTURE | W_SURFACE );
 }
 
 void Select_AllOfType(){

@@ -30,12 +30,15 @@
 #include <GL/gl.h>
 
 extern void DrawPathLines();
-extern void Select_ShiftTexture( int x, int y );
+extern void Select_ShiftTexture( int x, int y, qtexture_t *tex );
 extern void Select_RotateTexture( int amt );
 
 extern int g_nPatchClickedView;
 
 brush_t* g_pSplitList = NULL;
+
+bool freehandTextureAlignment = false;
+
 
 // =============================================================================
 // CamWnd class
@@ -143,14 +146,16 @@ void CamWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
 	// that can be re-enabled by removing the checks for HasCapture and not shift/ctrl down
 	// but the scaling/rotating (unless done with the steps set in the surface inspector
 	// dialog) is way too sensitive to be of any use
-    if ( HasCapture() && flags & MK_CONTROL ) {
-        Select_ShiftTexture( pointx - m_ptLastCursorX, m_ptLastCursorY - pointy );
+    if ( HasCapture() && flags & MK_RBUTTON ) {
+        if ( flags & MK_CONTROL ) {
+            Select_ScaleTexture( ( pointx - m_ptLastCursorX ), ( m_ptLastCursorY - pointy ) );
+        }
+        if ( flags & MK_SHIFT ) {
+            Select_ShiftTexture( pointx - m_ptLastCursorX, m_ptLastCursorY - pointy );
+		}
         if ( Sys_AltDown() ) {
             Select_RotateTexture( pointy - m_ptLastCursorY );
         }
-        if ( flags & MK_SHIFT ) {
-            Select_ScaleTexture( ( pointx - m_ptLastCursorX ) / 8, ( m_ptLastCursorY - pointy ) / 8 );
-		}
     }
     else
 	{
@@ -192,14 +197,17 @@ int CamWnd::calculateSpeed() {
 void CamWnd::OnMouseWheel( bool bUp, int pointx, int pointy ){
 	if ( bUp ) {
         VectorMA( m_Camera.origin, calculateSpeed(), m_Camera.forward, m_Camera.origin );
-//        VectorMA( m_Camera.origin, g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
     }
 	else{
         VectorMA( m_Camera.origin, -calculateSpeed(), m_Camera.forward, m_Camera.origin );
-//        VectorMA( m_Camera.origin, -g_PrefsDlg.m_nMoveSpeed, m_Camera.forward, m_Camera.origin );
     }
 
-	int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
+    // Make sure the camera isn't out of bounds
+    for( int i = 0; i < 3; i++ ) {
+        m_Camera.origin[i] = clampCameraBoundaries( m_Camera.origin[i] );
+    }
+
+    int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
 	Sys_UpdateWindows( nUpdate );
 	g_pParentWnd->OnTimer();
 }
@@ -223,11 +231,25 @@ void CamWnd::OnMButtonUp( guint32 nFlags, int pointx, int pointy ){
 }
 
 void CamWnd::OnRButtonDown( guint32 nFlags, int pointx, int pointy ){
-	OriginalMouseDown( nFlags, pointx, pointy );
+    if( nFlags & MK_CONTROL || nFlags & MK_SHIFT || Sys_AltDown() ) {
+        Undo_Start( "Manual texture alignment" );
+        Sys_Printf("Manually aligning texture\n");
+        Undo_AddBrushList( &selected_brushes );
+        freehandTextureAlignment = true;
+    }
+
+    OriginalMouseDown( nFlags, pointx, pointy );
+
 }
 
 void CamWnd::OnRButtonUp( guint32 nFlags, int pointx, int pointy ){
-	OriginalMouseUp( nFlags, pointx, pointy );
+    if( freehandTextureAlignment == true ) {
+        Undo_EndBrushList( &selected_brushes );
+        Undo_End();
+        freehandTextureAlignment = false;
+    }
+
+    OriginalMouseUp( nFlags, pointx, pointy );
 }
 
 void CamWnd::OriginalMouseUp( guint32 nFlags, int pointx, int pointy ){
@@ -328,6 +350,12 @@ void CamWnd::Cam_ChangeFloor( qboolean up ){
 	}
 
 	m_Camera.origin[2] += current - bestd;
+
+    // Make sure the camera isn't out of bounds
+    for( int i = 0; i < 3; i++ ) {
+        m_Camera.origin[i] = clampCameraBoundaries( m_Camera.origin[i] );
+    }
+
 	Sys_UpdateWindows( W_CAMERA | W_Z_OVERLAY );
 }
 
@@ -335,18 +363,18 @@ void CamWnd::Cam_PositionDrag( int buttons ){
     int x, y;
 
     //Bring this value in and greatly reduce it before use
-    float multiplier = calculateSpeed() / 4;
+    float multiplier = calculateSpeed() / 16;
     //Impose a min and max so it doesn't get too crazy
     if ( multiplier > 128 ) {
     multiplier = 128;
-    } else if ( multiplier < MIN_GRID_PRECISION / 2 ) {
-            multiplier = MIN_GRID_PRECISION / 2;
+    } else if ( multiplier < MIN_GRID_PRECISION / 4 ) {
+            multiplier = MIN_GRID_PRECISION / 4;
     }
 
     Sys_GetCursorPos( &x, &y );
     if ( x != m_ptCursorX || y != m_ptCursorY ) {
-        float xf = (x - m_ptCursorX) * multiplier;
-        float yf = (y - m_ptCursorY) * multiplier;
+        float xf = (x - m_ptCursorX) * multiplier * .25;
+        float yf = (y - m_ptCursorY) * multiplier * .25;
         VectorMA( m_Camera.origin, xf, m_Camera.vright, m_Camera.origin );
         if ( buttons & MK_SHIFT ) {
             m_Camera.origin[2] -= yf;
@@ -354,7 +382,11 @@ void CamWnd::Cam_PositionDrag( int buttons ){
             VectorMA( m_Camera.origin, -yf, m_Camera.vup, m_Camera.origin );
         }
         Sys_SetCursorPos( m_ptCursorX, m_ptCursorY );
-        Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
+
+        // Make sure the camera isn't out of bounds
+        for( int i = 0; i < 3; i++ ) {
+            m_Camera.origin[i] = clampCameraBoundaries( m_Camera.origin[i] );
+        }
     }
 }
 
@@ -495,6 +527,11 @@ void CamWnd::Cam_KeyControl( float dtime ) {
         VectorMA( m_Camera.origin, dtime * calculateSpeed(), m_Camera.right, m_Camera.origin );
 	}
 
+    // Make sure the camera isn't out of bounds
+    for( int i = 0; i < 3; i++ ) {
+        m_Camera.origin[i] = clampCameraBoundaries( m_Camera.origin[i] );
+    }
+
 	// Save a screen update (when m_bFreeMove is enabled, mousecontrol does the update)
 	if ( !m_bFreeMove && m_Camera.movementflags ) {
 		int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
@@ -619,7 +656,7 @@ void CamWnd::Cam_MouseDown( int x, int y, int buttons ){
 	// middle button = grab texture
 	// ctrl-middle button = set entire brush to texture
 	// ctrl-shift-middle button = set single face to texture
-	int nMouseButton = g_PrefsDlg.m_nMouseButtons == 2 ? MK_RBUTTON : MK_MBUTTON;
+    int nMouseButton = g_PrefsDlg.m_nMouseButtons == 2 ? MK_RBUTTON : MK_MBUTTON;
 	if ( ( buttons == MK_LBUTTON )
 		 || ( buttons == ( MK_LBUTTON | MK_SHIFT ) )
 		 || ( buttons == ( MK_LBUTTON | MK_CONTROL ) )

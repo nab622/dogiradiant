@@ -305,7 +305,7 @@ void CXMLPropertyBag::GetPref( const char *name, Str *pV, const char *V ){
 }
 
 void CXMLPropertyBag::GetPref( const char *name, int *pV, int V ){
-	xmlNodePtr pNode;
+    xmlNodePtr pNode;
 	if ( ( pNode = EpairForName( name ) ) && pNode->children && pNode->children->content ) {
 		*pV = atoi( (char *)pNode->children->content );
 	}
@@ -621,15 +621,15 @@ PrefsDlg::PrefsDlg (){
 	m_bSnap = TRUE;
 	m_strUserPath = "";
 	m_nRotation = 0;
-	m_bChaseMouse = FALSE;
-        m_bMousewheelZoom = FALSE;
+    m_bChaseMouse = TRUE;
+    m_bMousewheelZoom = FALSE;
 	m_bTextureScrollbar = TRUE;
 	m_bDisplayLists = TRUE;
 	m_bAntialiasedPointsAndLines = FALSE; // Fishman - Add antialiazed points and lines support. 09/03/00
 	m_bShowShaders = FALSE;
 	m_nShader = -1;
 	m_bNoStipple = FALSE;
-	m_bVertexSplit = FALSE;
+    m_bVertexSplit = TRUE;
 	m_bSelectCurves = TRUE;
 	m_bSelectModels = TRUE;
 	m_nEntityShowState = ENTITY_SKINNED_BOXED;
@@ -884,19 +884,14 @@ CGameDescription::CGameDescription( xmlDocPtr pDoc, const Str &GameFile ){
 	}
 	xmlChar* default_scale = xmlGetProp( pNode, (const xmlChar *)"default_scale" );
 
-    mTextureDefaultScale = 0.2f;
-
-// NAB622: Don't bother with this. Nobody should be using below 0.2 these days anyway, it's ugly above there
-/*
     if ( default_scale ) {
 		mTextureDefaultScale = atof( (const char *)default_scale );
 		xmlFree( default_scale );
                 default_scale = NULL;
-	}
-	else{
+    } else {
         mTextureDefaultScale = 0.2f;
 	}
-*/
+
     xmlChar* eclass_singleload = xmlGetProp( pNode, (const xmlChar*)"eclass_singleload" );
 	if ( eclass_singleload ) {
 		mEClassSingleLoad = true;
@@ -1647,12 +1642,12 @@ void PrefsDlg::BuildDialog(){
             {
                 GtkTreeIter tab;
                 gtk_tree_store_append( store, &tab, NULL );
-                gtk_tree_store_set( store, &tab, 0, _( "Editor Configuration" ), 1, (gpointer)PTAB_LAYOUT, -1 );
+                gtk_tree_store_set( store, &tab, 0, _( "Startup" ), 1, (gpointer)PTAB_STARTUP, -1 );
             }
             {
                 GtkTreeIter tab;
                 gtk_tree_store_append( store, &tab, NULL );
-                gtk_tree_store_set( store, &tab, 0, _( "Startup" ), 1, (gpointer)PTAB_STARTUP, -1 );
+                gtk_tree_store_set( store, &tab, 0, _( "Editor Configuration" ), 1, (gpointer)PTAB_EDITOR, -1 );
             }
             {
                 GtkTreeIter tab;
@@ -1662,7 +1657,7 @@ void PrefsDlg::BuildDialog(){
             {
                 GtkTreeIter tab;
                 gtk_tree_store_append( store, &tab, NULL );
-                gtk_tree_store_set( store, &tab, 0, _( "3D View" ), 1, (gpointer)PTAB_CAMERA, -1 );
+                gtk_tree_store_set( store, &tab, 0, _( "3D View" ), 1, (gpointer)PTAB_3D, -1 );
             }
 /*
 // NAB622: This page has been removed because everything in it was pointless
@@ -1694,7 +1689,7 @@ void PrefsDlg::BuildDialog(){
             {
                 GtkTreeIter tab;
                 gtk_tree_store_append( store, &tab, NULL );
-                gtk_tree_store_set( store, &tab, 0, _( "Shaders" ), 1, (gpointer)PTAB_MISC, -1 );
+                gtk_tree_store_set( store, &tab, 0, _( "Shaders" ), 1, (gpointer)PTAB_SHADERS, -1 );
             }
             {
                 GtkTreeIter tab;
@@ -1848,7 +1843,7 @@ void PrefsDlg::BuildDialog(){
 
 #ifdef ATIHACK_812
     // ATI bugs
-    check = gtk_check_button_new_with_label( _( "ATI and Intel cards w/ buggy drivers (disappearing polygons)" ) );
+    check = gtk_check_button_new_with_label( _( "Enable workaround for ATI and Intel cards w/ buggy drivers (disappearing polygons)" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bGlATIHack, DLG_CHECK_BOOL );
@@ -1988,7 +1983,7 @@ void PrefsDlg::BuildDialog(){
 
     // Add the page to the notebook
     page_index = gtk_notebook_append_page( GTK_NOTEBOOK( notebook ), pageframe, preflabel );
-    assert( page_index == PTAB_CAMERA );
+    assert( page_index == PTAB_3D );
 
 	/******** Texture group *********/
 /*
@@ -2221,10 +2216,6 @@ void PrefsDlg::BuildDialog(){
 	AddDialogData( radio, &m_nLatchedView, DLG_RADIO_INT );
 
     // Show texture directory list
-    size_group = gtk_size_group_new( GTK_SIZE_GROUP_HORIZONTAL );
-    gtk_size_group_add_widget( size_group, ftw_label );
-    gtk_size_group_add_widget( size_group, fth_label );
-    g_object_unref( size_group );
     check = gtk_check_button_new_with_label( _( "Show Texture Directory List" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
@@ -2350,7 +2341,7 @@ void PrefsDlg::BuildDialog(){
 
     // Add the page to the notebook
     page_index = gtk_notebook_append_page( GTK_NOTEBOOK( notebook ), pageframe, preflabel );
-    assert( page_index == PTAB_LAYOUT );
+    assert( page_index == PTAB_EDITOR );
 
 /*
 // NAB622: Force these to always be on the defaults. It's pointless to disable them
@@ -2687,6 +2678,8 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( spin );
 	AddDialogData( spin, &m_fDefTextureScale, DLG_SPIN_FLOAT );
 
+/*
+// NAB622: Removed these, they're pretty useless
     // Clipper tool uses caulk
     check = gtk_check_button_new_with_label( _( "Clipper tool uses caulk" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
@@ -2698,6 +2691,7 @@ void PrefsDlg::BuildDialog(){
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bMakeHollowCaulk, DLG_CHECK_BOOL );
+*/
 
     // caulk new brushes
 	check = gtk_check_button_new_with_label( _( "Always use caulk for new brushes" ) );
@@ -2706,14 +2700,17 @@ void PrefsDlg::BuildDialog(){
 	g_object_set_data( G_OBJECT( dialog ), "check_caulkbrush", check );
 	AddDialogData( check, &m_bCaulkNewBrushes, DLG_CHECK_BOOL );
 
+/*
+// NAB622: This is a dumb option...
     // Vertex editing splits faces
     check = gtk_check_button_new_with_label( _( "Vertex editing splits face" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bVertexSplit, DLG_CHECK_BOOL );
+*/
 
     // Snap to grid
-    check = gtk_check_button_new_with_label( _( "Snap to grid (Also available in Grid menu)" ) );
+    check = gtk_check_button_new_with_label( _( "Snap edits to grid (Also available in Grid menu)" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bSnap, DLG_CHECK_BOOL );
@@ -2724,11 +2721,14 @@ void PrefsDlg::BuildDialog(){
     gtk_widget_show( check );
     AddDialogData( check, &m_bNoClamp, DLG_CHECK_BOOL );
 
+/*
+// NAB622: This is dumb
     // Select patch by bounding box
     check = gtk_check_button_new_with_label( _( "Select patches by bounding box" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bPatchBBoxSelect, DLG_CHECK_BOOL );
+*/
 
     // Patch subdivisions
     // label
@@ -2820,7 +2820,7 @@ void PrefsDlg::BuildDialog(){
 
 	// Add the page to the notebook
 	page_index = gtk_notebook_append_page( GTK_NOTEBOOK( notebook ), pageframe, preflabel );
-	assert( page_index == PTAB_MISC );
+    assert( page_index == PTAB_SHADERS );
 
 	/******** BSP Monitoring group *********/
 	// this is never displayed if the plugin isn't available
@@ -2884,7 +2884,8 @@ void PrefsDlg::BuildDialog(){
 	g_signal_connect( G_OBJECT( check ), "toggled", G_CALLBACK( OnX64Toggle ), this );
 #endif
 
-	// Add the page to the notebook
+
+    // Add the page to the notebook
 	page_index = gtk_notebook_append_page( GTK_NOTEBOOK( notebook ), pageframe, preflabel );
 	assert( page_index == PTAB_BSPMONITOR );
 
@@ -2917,9 +2918,16 @@ void PrefsDlg::LoadTexdefPref( texdef_t* pTexdef, const char* pName ){
 void PrefsDlg::UpdateTextureCompression(){
 	// if OpenGL is not ready yet, don't do anything
 	if ( !g_qeglobals.m_bOpenGLReady ) {
-		Sys_Printf( "OpenGL not ready - postpone texture compression capability check\n" );
+//		Sys_Printf( "OpenGL not ready - postpone texture compression capability check\n" );
 		return;
 	}
+
+    // NAB622: Disabling this entire feature, permanently
+    // Force it to "No compression" and leave
+    g_qeglobals.texture_components = GL_RGBA;
+    m_nTextureCompressionFormat = 0;
+    return;
+
 
 	if ( g_qeglobals.bTextureCompressionSupported ) {
 		if ( m_nTextureCompressionFormat >= 2 && !g_qeglobals.m_bS3CompressionSupported ) {
@@ -3017,9 +3025,10 @@ void PrefsDlg::LoadPrefs(){
 
 	mLocalPrefs.GetPref( PATCHSHOWBOUNDS_KEY,  &g_bPatchShowBounds,  FALSE );
 	mLocalPrefs.GetPref( MOUSE_KEY,            &m_nMouse,            MOUSE_DEF );
-	m_nMouseButtons = m_nMouse ? 3 : 2;
+//	m_nMouseButtons = m_nMouse ? 3 : 2;     // NAB622: Force to a 3 button mouse
+    m_nMouseButtons = 3;
 
-	// project file
+    // project file
 	// if it's not found here, mainframe.cpp will take care of finding one
 	mLocalPrefs.GetPref( LASTPROJ_KEY, &m_strLastProject, "" );
 	mLocalPrefs.GetPref( LASTPROJVER_KEY, &m_nLastProjectVer, -1 );
@@ -3067,7 +3076,7 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( SIZEPAINT_KEY,          &m_bSizePaint,                  FALSE );
 	mLocalPrefs.GetPref( DLLENTITIES_KEY,        &m_bDLLEntities,                FALSE );
 
-	mLocalPrefs.GetPref( DETACHABLEMENUS_KEY,    &m_bLatchedDetachableMenus,            TRUE );
+    mLocalPrefs.GetPref( DETACHABLEMENUS_KEY,    &m_bLatchedDetachableMenus,            FALSE );
 	m_bDetachableMenus = m_bLatchedDetachableMenus;
 
 	if ( g_pGameDescription->mNoPatch ) {
@@ -3107,7 +3116,7 @@ void PrefsDlg::LoadPrefs(){
     mLocalPrefs.GetPref( NOCLAMP_KEY,            &m_bNoClamp,                    TRUE );
 	mLocalPrefs.GetPref( SNAP_KEY,               &m_bSnap,                       TRUE );
 	mLocalPrefs.GetPref( USERINI_KEY,            &m_strUserPath,                 "" );
-	mLocalPrefs.GetPref( ROTATION_KEY,           &m_nRotation,                   45 );
+    mLocalPrefs.GetPref( ROTATION_KEY,           &m_nRotation,                   2.5 );
 	mLocalPrefs.GetPref( CHASEMOUSE_KEY,         &m_bChaseMouse,                 TRUE );
 	mLocalPrefs.GetPref( MOUSEWHEELZOOM_KEY,     &m_bMousewheelZoom,             FALSE );
 	mLocalPrefs.GetPref( ENTITYSHOW_KEY,         &m_nEntityShowState,            ENTITY_SKINNED_BOXED );
@@ -3160,7 +3169,7 @@ void PrefsDlg::LoadPrefs(){
     mLocalPrefs.GetPref( DEFAULTTEXURESCALE_KEY, &m_fDefTextureScale,            g_pGameDescription->mTextureDefaultScale );
     mLocalPrefs.GetPref( CAULKNEWBRUSHES_KEY,    &m_bCaulkNewBrushes,            TRUE );
 	mLocalPrefs.GetPref( SUBDIVISIONS_KEY,       &m_nSubdivisions,               SUBDIVISIONS_DEF );
-	mLocalPrefs.GetPref( CLIPCAULK_KEY,          &m_bClipCaulk,                  FALSE );
+    mLocalPrefs.GetPref( CLIPCAULK_KEY,          &m_bClipCaulk,                  TRUE );
 	mLocalPrefs.GetPref( HOLLOWCAULK_KEY,        &m_bMakeHollowCaulk,            TRUE );
     mLocalPrefs.GetPref( SNAPTTOGRID_KEY,        &m_bSnapTToGrid,                TRUE );
 	mLocalPrefs.GetPref( TARGETFIX_KEY,          &m_bDoTargetFix,                TRUE );
@@ -3189,12 +3198,12 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( SURFACEWND_KEY,         &mWindowInfo.posSurfaceWnd,     default_window_pos );
 	mLocalPrefs.GetPref( ENTITYINFOWND_KEY,      &mWindowInfo.posEntityInfoWnd,  default_window_pos );
 
-	mLocalPrefs.GetPref( ZWIDTH_KEY,             &mWindowInfo.nZWidth,           30 );
+//	mLocalPrefs.GetPref( ZWIDTH_KEY,             &mWindowInfo.nZWidth,           30 );      // NAB622: Z-Window has been disabled
 	mLocalPrefs.GetPref( XYHEIGHT_KEY,           &mWindowInfo.nXYHeight,         300 );
 	mLocalPrefs.GetPref( XYWIDTH_KEY,            &mWindowInfo.nXYWidth,          300 );
 	mLocalPrefs.GetPref( CAMWIDTH_KEY,           &mWindowInfo.nCamWidth,         200 );
 	mLocalPrefs.GetPref( CAMHEIGHT_KEY,          &mWindowInfo.nCamHeight,        200 );
-	mLocalPrefs.GetPref( ZFLOATWIDTH_KEY,        &mWindowInfo.nZFloatWidth,      300 );
+//	mLocalPrefs.GetPref( ZFLOATWIDTH_KEY,        &mWindowInfo.nZFloatWidth,      300 );     // NAB622: Z-Window has been disabled
 #ifdef _WIN32
 	mLocalPrefs.GetPref( STATE_KEY,              &mWindowInfo.nState,            SW_SHOW );
 #endif
@@ -3269,24 +3278,6 @@ void PrefsDlg::LoadPrefs(){
         {0.24f, 0.24f,  0.24f},
         {0.35f, 0.35f, 0.35f},
         {0.6f,  0.6f,   0.6f}
-/*
-    //NAB622: Original values for this list, just in case I got the wrong ones!
-        {0.25f, 0.25f,  0.25f},
-		{1.f,   1.f,    1.f},
-		{0.75f, 0.75f,  0.75f},
-		{0.5f,  0.5f,   0.5f},
-		{0.25f, 0.25f,  0.25f},
-		{0.0f,  0.0f,   0.0f},
-		{0.f,   0.f,    1.f},
-		{0.f,   0.f,    0.f},
-		{0.f,   0.f,    0.f},
-		{1.f,   0.f,    0.f},
-		{0.f,   0.f,    1.f},
-		{0.5f,  0.f,    0.75f},
-		{1.0f,  0.f,    0.f},
-		{0.f,   0.f,    0.f},
-		{0.f,   0.f,    0.f},
-*/
     };
 
 
@@ -3346,13 +3337,16 @@ void PrefsDlg::SavePrefs(){
 		Sys_FPrintf( SYS_ERR, "Error occured while saving local prefs file '%s'\n", m_inipath->str );
 	}
 
-	if ( m_nMouse == 0 ) {
-		m_nMouseButtons = 2;
+/*
+// NAB622: Force to a 3 button mouse
+    if ( m_nMouse == 0 ) {
+        m_nMouseButtons = 2;
 	}
 	else {
 		m_nMouseButtons = 3;
 	}
-
+*/
+    m_nMouseButtons = 3;
 }
 
 void PrefsDlg::PostModal( int code ){
@@ -3405,8 +3399,8 @@ void PrefsDlg::DoSensitivity(){
 		// go ahead, disable everybuddy
 		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_leakstop" ) ), FALSE );
 		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_monitorbsp" ) ), FALSE );
-		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_runengine" ) ), FALSE );
-		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_sleep" ) ), FALSE );
+//		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_runengine" ) ), FALSE );
+//		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_sleep" ) ), FALSE );
 	}
 	else
 	{
@@ -3415,17 +3409,19 @@ void PrefsDlg::DoSensitivity(){
 
 	gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_leakstop" ) ), TRUE );
 	gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_monitorbsp" ) ), TRUE );
-	gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_runengine" ) ), TRUE );
-	gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_sleep" ) ), TRUE );
+//	gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_runengine" ) ), TRUE );
+//	gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_sleep" ) ), TRUE );
 
 	if ( !gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( g_object_get_data( G_OBJECT( m_pWidget ), "check_monitorbsp" ) ) ) ) {
 		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_leakstop" ) ), FALSE );
-		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_runengine" ) ), FALSE );
-		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_sleep" ) ), FALSE );
+//		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_runengine" ) ), FALSE );
+//		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_sleep" ) ), FALSE );
 	}
-	else if ( !gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( g_object_get_data( G_OBJECT( m_pWidget ), "check_runengine" ) ) ) ) {
-		gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_sleep" ) ), FALSE );
+/*
+    else if ( !gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( g_object_get_data( G_OBJECT( m_pWidget ), "check_runengine" ) ) ) ) {
+        gtk_widget_set_sensitive( GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "check_sleep" ) ), FALSE );
 	}
+*/
 }
 
 /*

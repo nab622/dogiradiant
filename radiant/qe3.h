@@ -753,6 +753,13 @@ bool DispatchOnLButtonUp( guint32 nFlags, int x, int y );
 // main.cpp
 extern gint try_destroy_splash( gpointer );
 
+
+//mainframe.cpp
+bool areWeOutOfBounds( vec3_t inputVectors );
+float clampBoundaries( float input );
+float clampCameraBoundaries( float input );
+
+
 #include "mainframe.h"
 #include "preferences.h"
 #include "findtexturedialog.h"
@@ -813,6 +820,7 @@ extern bool g_bPathMode;
 extern void RunScript( char* pBuffer );
 extern bool ExtractPath_and_Filename( const char* pPath, CString& strPath, CString& strFilename );
 extern void Select_Scale( float x, float y, float z );
+extern float calculateRotatingValueBeneathMax( float input, float max );
 extern void Select_RotateTexture( int amt );
 extern void Select_ScaleTexture( float x, float y );
 extern void Select_ShiftTexture( int x, int y );

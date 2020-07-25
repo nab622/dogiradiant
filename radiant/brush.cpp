@@ -1136,10 +1136,12 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 	float dot, front, back, frac, smallestfrac;
 
 #ifdef DBG_VERT
-	Sys_Printf( "Bursh_MoveVertex: %p vertex: %g %g %g delta: %g %g %g end: %g %g %g snap: %s\n", b, vertex[0], vertex[1], vertex[2], delta[0], delta[1], delta[2], end[0], end[1], end[2], bSnap ? "true" : "false" );
+    Sys_Printf( "Brush_MoveVertex: %p vertex: %g %g %g delta: %g %g %g end: %g %g %g snap: %s\n", b, vertex[0], vertex[1], vertex[2], delta[0], delta[1], delta[2], end[0], end[1], end[2], bSnap ? "true" : "false" );
 #endif
 
-	result = true;
+    Sys_Printf( "Brush_MoveVertex: %p vertex: %g %g %g delta: %g %g %g end: %g %g %g snap: %s\n", b, vertex[0], vertex[1], vertex[2], delta[0], delta[1], delta[2], end[0], end[1], end[2], bSnap ? "true" : "false" );
+
+    result = true;
 	//
 	tmpw.numpoints = 3;
 	tmpw.maxpoints = 3;
@@ -3718,7 +3720,13 @@ void Face_FitTexture( face_t * face, int nHeight, int nWidth ){
 		temp = ( temp + 1 ) * ( face->d_texture->height * nHeight );
 		td->shift[1] = (int)( temp - td->shift[1] ) % ( face->d_texture->height * nHeight );
 
-	}
+
+        // NAB622: Clamp the shift and rotate values
+        // Don't bother doing it in the mess above...it's kinda broken anyhow
+        td->shift[0] = calculateRotatingValueBeneathMax( td->shift[0], face->d_texture->width );
+        td->shift[1] = calculateRotatingValueBeneathMax( td->shift[1], face->d_texture->height );
+        td->rotate = calculateRotatingValueBeneathMax( td->rotate, 360 );
+    }
 }
 
 void Brush_FitTexture( brush_t *b, int nHeight, int nWidth ){

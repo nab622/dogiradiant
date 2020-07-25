@@ -166,7 +166,7 @@ static void resize( GtkWidget *widget, GtkAllocation *allocation, gpointer data 
 
     // NAB622: Without this here, the windows get messed up when something is resized
     // Redrawing the 3D view would make these operations PAINFULLY slow. So just do everything else
-    Sys_UpdateWindows( W_Z | W_XY | W_TEXTURE | W_CONSOLE );
+    Sys_UpdateWindows( W_XY | W_TEXTURE | W_CONSOLE );
 }
 
 static gint timer( gpointer data ){

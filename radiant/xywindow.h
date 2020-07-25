@@ -173,6 +173,7 @@ int m_ptDragX, m_ptDragY;
 int m_ptDragAdjX, m_ptDragAdjY;
 int m_ptDragTotalX, m_ptDragTotalY;
 
+bool areWeOffTheGrid( int pointx, int pointy );
 void OriginalButtonUp( guint32 nFlags, int point, int pointy );
 void OriginalButtonDown( guint32 nFlags, int point, int pointy );
 //  void ProduceSplits(brush_t** pFront, brush_t** pBack);

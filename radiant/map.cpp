@@ -56,14 +56,13 @@ void Map_Init(){
 
 bool g_bCancel_Map_LoadFile;  // Hydra: moved this here
 
-// TTimo
-// need that in a variable, will have to tweak depending on the game
-vec_t g_MaxWorldCoord = 64 * 1024;
-vec_t g_MinWorldCoord = -64 * 1024;
+
+vec_t g_MaxWorldCoord = MAX_MAP_SIZE;
+vec_t g_MinWorldCoord = MIN_MAP_SIZE;
 
 // the max size we allow on brushes, this is dependant on world coords too
 // makes more sense to say smaller I think?
-vec_t g_MaxBrushSize = ( g_MaxWorldCoord - 1 ) * 2;
+vec_t g_MaxBrushSize = g_MaxWorldCoord - g_MinWorldCoord;
 
 void AddRegionBrushes( void );
 void RemoveRegionBrushes( void );

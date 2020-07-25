@@ -379,12 +379,12 @@ void HandleKeyUp( GtkWidget *widget, gpointer data ){
 
 	switch ( id )
 	{
-	case ID_CAMERA_FORWARD: g_pParentWnd->OnCameraForward( FALSE ); break;
-	case ID_CAMERA_BACK: g_pParentWnd->OnCameraBack( FALSE ); break;
-	case ID_CAMERA_LEFT: g_pParentWnd->OnCameraLeft( FALSE ); break;
-	case ID_CAMERA_RIGHT: g_pParentWnd->OnCameraRight( FALSE ); break;
-	case ID_CAMERA_STRAFELEFT: g_pParentWnd->OnCameraStrafeleft( FALSE ); break;
-	case ID_CAMERA_STRAFERIGHT: g_pParentWnd->OnCameraStraferight( FALSE ); break;
+        case ID_CAMERA_FORWARD: g_pParentWnd->OnCameraForward( FALSE ); break;
+        case ID_CAMERA_BACK: g_pParentWnd->OnCameraBack( FALSE ); break;
+        case ID_CAMERA_LEFT: g_pParentWnd->OnCameraLeft( FALSE ); break;
+        case ID_CAMERA_RIGHT: g_pParentWnd->OnCameraRight( FALSE ); break;
+        case ID_CAMERA_STRAFELEFT: g_pParentWnd->OnCameraStrafeleft( FALSE ); break;
+        case ID_CAMERA_STRAFERIGHT: g_pParentWnd->OnCameraStraferight( FALSE ); break;
 	}
 }
 
@@ -1377,7 +1377,7 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
                                                  G_CALLBACK( HandleCommand ), ID_GRID_4096, FALSE );
     g_object_set_data( G_OBJECT( window ), "menu_grid_4096", item );
     menu_separator( menu );
-	item = create_check_menu_item_with_mnemonic( menu, _( "Snap to grid" ),
+    item = create_check_menu_item_with_mnemonic( menu, _( "Snap edits to grid" ),
 												 G_CALLBACK( HandleCommand ), ID_SNAPTOGRID, TRUE );
 	g_object_set_data( G_OBJECT( window ), "menu_snaptogrid", item );
 
@@ -1795,13 +1795,31 @@ static GtkWidget * toolbar_append_item( GtkToolbar *toolbar, const gchar *text, 
 }
 static GtkWidget * toolbar_append_space( GtkToolbar *toolbar )
 {
-	GtkToolItem *sep_item;
+    GtkToolItem *sep_item;
 
-	sep_item = gtk_separator_tool_item_new();
-	gtk_toolbar_insert( GTK_TOOLBAR( toolbar ), sep_item, -1 ); //-1 append
-	gtk_widget_show( GTK_WIDGET( sep_item ) );
+    sep_item = gtk_separator_tool_item_new();
+    gtk_toolbar_insert( GTK_TOOLBAR( toolbar ), sep_item, -1 ); //-1 append
+    gtk_widget_show( GTK_WIDGET( sep_item ) );
 
-	return GTK_WIDGET( sep_item );
+    return GTK_WIDGET( sep_item );
+}
+static GtkWidget * toolbar_append_vseparator( GtkToolbar *toolbar )
+{
+    GtkWidget *sep_item = gtk_vseparator_new();
+
+    gtk_toolbar_append_widget( GTK_TOOLBAR( toolbar ), sep_item, "", "" );
+    gtk_widget_show( GTK_WIDGET( sep_item ) );
+
+    return GTK_WIDGET( sep_item );
+}
+static GtkWidget * toolbar_append_hseparator( GtkToolbar *toolbar )
+{
+    GtkWidget *sep_item = gtk_hseparator_new();
+
+    gtk_toolbar_append_widget( GTK_TOOLBAR( toolbar ), sep_item, "", "" );
+    gtk_widget_show( GTK_WIDGET( sep_item ) );
+
+    return GTK_WIDGET( sep_item );
 }
 static GtkWidget * toolbar_append_element( GtkToolbar *toolbar, short childtype, const char* unused, const gchar *text, const gchar *tooltip_text, const gchar *private_text, GtkWidget *icon, GCallback callback, gpointer data )
 {
@@ -1820,7 +1838,8 @@ static GtkWidget * toolbar_append_element( GtkToolbar *toolbar, short childtype,
 }
 
 void MainFrame::create_main_toolbar( GtkWidget *window, GtkWidget *vbox ){
-	GtkWidget *toolbar, *w;
+    GtkWidget *toolbar, *w;
+    GtkWidget *hseparation, *vseparation;
 	const short TOOLBAR_CHILD_TOGGLEBUTTON = 1;
 
 	toolbar = gtk_toolbar_new();
@@ -1838,28 +1857,34 @@ void MainFrame::create_main_toolbar( GtkWidget *window, GtkWidget *vbox ){
 								 new_image_icon("file_save.png"), G_CALLBACK( HandleCommand ),
 								 GINT_TO_POINTER( ID_FILE_SAVE ) );
 	g_object_set_data( G_OBJECT( window ), "tb_file_save", w );
-	toolbar_append_space( GTK_TOOLBAR( toolbar ) );
-	w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "x-axis Flip" ), "",
+
+
+//    toolbar_append_space( GTK_TOOLBAR( toolbar ) );
+    toolbar_append_vseparator( GTK_TOOLBAR(  toolbar ));
+//    toolbar_append_space( GTK_TOOLBAR( toolbar ) );
+
+
+    w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "X-axis Flip" ), "",
 								 new_image_icon("brush_flipx.png"), G_CALLBACK( HandleCommand ),
 								 GINT_TO_POINTER( ID_BRUSH_FLIPX ) );
 	g_object_set_data( G_OBJECT( window ), "tb_brush_flipx", w );
-	w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "x-axis Rotate" ), "",
+    w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "X-axis Rotate" ), "",
 								 new_image_icon("brush_rotatex.png"), G_CALLBACK( HandleCommand ),
 								 GINT_TO_POINTER( ID_BRUSH_ROTATEX ) );
 	g_object_set_data( G_OBJECT( window ), "tb_brush_rotatex", w );
-	w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "y-axis Flip" ), "",
+    w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "Y-axis Flip" ), "",
 								 new_image_icon("brush_flipy.png"), G_CALLBACK( HandleCommand ),
 								 GINT_TO_POINTER( ID_BRUSH_FLIPY ) );
 	g_object_set_data( G_OBJECT( window ), "tb_brush_flipy", w );
-	w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "y-axis Rotate" ), "",
+    w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "Y-axis Rotate" ), "",
 								 new_image_icon("brush_rotatey.png"), G_CALLBACK( HandleCommand ),
 								 GINT_TO_POINTER( ID_BRUSH_ROTATEY ) );
 	g_object_set_data( G_OBJECT( window ), "tb_brush_rotatey", w );
-	w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "z-axis Flip" ), "",
+    w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "Z-axis Flip" ), "",
 								 new_image_icon("brush_flipz.png"), G_CALLBACK( HandleCommand ),
 								 GINT_TO_POINTER( ID_BRUSH_FLIPZ ) );
 	g_object_set_data( G_OBJECT( window ), "tb_brush_flipz", w );
-	w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "z-axis Rotate" ), "",
+    w = toolbar_append_item( GTK_TOOLBAR( toolbar ), "", _( "Z-axis Rotate" ), "",
 								 new_image_icon("brush_rotatez.png"), G_CALLBACK( HandleCommand ),
 								 GINT_TO_POINTER( ID_BRUSH_ROTATEZ ) );
 	g_object_set_data( G_OBJECT( window ), "tb_brush_rotatez", w );
@@ -1921,7 +1946,7 @@ void MainFrame::create_main_toolbar( GtkWidget *window, GtkWidget *vbox ){
 	}
 
 	w = toolbar_append_element( GTK_TOOLBAR( toolbar ), TOOLBAR_CHILD_TOGGLEBUTTON, NULL,
-										"", _( "Make Detail Brushes" ), "", new_image_icon("toggle_struct.png"),
+                                        "", _( "Toggle Structural / Brush Creation" ), "", new_image_icon("toggle_struct.png"),
 										G_CALLBACK( HandleCommand ), GINT_TO_POINTER( ID_TOGGLE_DETAIL ) );
 		g_object_set_data( G_OBJECT( window ), "ttb_toggle_detail", w );
 
@@ -5321,8 +5346,8 @@ void MainFrame::OnViewZzoomout(){
 
 void MainFrame::OnViewCubein(){
     if (g_PrefsDlg.m_nCubicScale < CUBIC_CLIPPING_MIN ) {
-        Sys_Printf( "WARNING: Below minimum clipping distance, correcting\n");
         g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MIN;
+        Sys_Printf( "WARNING: Below minimum clipping distance, correcting\n");
         g_PrefsDlg.SavePrefs();
         return;
     }
@@ -5341,8 +5366,8 @@ void MainFrame::OnViewCubein(){
 
 void MainFrame::OnViewCubeout(){
     if (g_PrefsDlg.m_nCubicScale > CUBIC_CLIPPING_MAX ) {
-        Sys_Printf( "WARNING: Above maximum clipping distance, correcting\n");
         g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MAX;
+        Sys_Printf( "WARNING: Above maximum clipping distance, correcting\n");
         g_PrefsDlg.SavePrefs();
         return;
     }
@@ -6007,7 +6032,7 @@ void MainFrame::OnGrid( unsigned int nID ){
         case ID_GRID_2048: g_qeglobals.d_gridsize = 2048.0; break;
         case ID_GRID_4096: g_qeglobals.d_gridsize = 4096.0; break;
         default:
-            g_qeglobals.d_gridsize = 8.0;
+            g_qeglobals.d_gridsize = 16.0;
     }
 
     // NAB622: g_qeglobals.d_bSmallGrid and Sys_UpdateWindows are handled in the following function, no need for it here
@@ -7606,62 +7631,112 @@ void MainFrame::OnViewCrosshair(){
 }
 
 void MainFrame::OnSelectionTextureRotateclock(){
-    Undo_Start( "rotate clockwise" );
+    Undo_Start( "Rotate clockwise" );
+    Sys_Printf( "Rotating texture clockwise\n" );
+    Undo_AddBrushList( &selected_brushes );
+
     Select_RotateTexture( abs( g_PrefsDlg.m_nRotation ) );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureRotatecounter(){
-    Undo_Start( "rotate counterclockwise" );
+    Undo_Start( "Rotate counterclockwise" );
+    Sys_Printf( "Rotating texture counterclockwise\n" );
+    Undo_AddBrushList( &selected_brushes );
+
     Select_RotateTexture( -abs( g_PrefsDlg.m_nRotation ) );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureScaleup(){
-    Undo_Start( "scale up" );
-    Select_ScaleTexture( 0, g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] );
+    Undo_Start( "Scale vertical up" );
+    Sys_Printf( "Scaling texture\n" );
+    Undo_AddBrushList( &selected_brushes );
+
+    Select_ScaleTexture( 0, g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] * 10 );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureScaledown(){
-    Undo_Start( "scale down" );
-    Select_ScaleTexture( 0, -g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] );
+    Undo_Start( "Scale vertical down" );
+    Sys_Printf( "Scaling texture\n" );
+    Undo_AddBrushList( &selected_brushes );
+
+    Select_ScaleTexture( 0, -g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] * 10 );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureScaleLeft(){
-    Undo_Start( "scale left" );
-    Select_ScaleTexture( -g_qeglobals.d_savedinfo.m_SIIncrement.scale[0],0 );
+    Undo_Start( "Scale horizontal down" );
+    Sys_Printf( "Scaling texture\n" );
+    Undo_AddBrushList( &selected_brushes );
+
+    Select_ScaleTexture( -g_qeglobals.d_savedinfo.m_SIIncrement.scale[0] * 10, 0 );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureScaleRight(){
-    Undo_Start( "scale right" );
-	Select_ScaleTexture( g_qeglobals.d_savedinfo.m_SIIncrement.scale[0],0 );
+    Undo_Start( "Scale horizontal right" );
+    Sys_Printf( "Scaling texture\n" );
+    Undo_AddBrushList( &selected_brushes );
+
+    Select_ScaleTexture( g_qeglobals.d_savedinfo.m_SIIncrement.scale[0] * 10, 0 );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureShiftleft(){
-    Undo_Start( "shift left" );
-    Select_ShiftTexture( (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[0], 0 );
+    Undo_Start( "Shift left" );
+    Sys_Printf( "Shifting texture\n" );
+    Undo_AddBrushList( &selected_brushes );
+
+    Select_ShiftTexture( (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[0] * 10, 0 );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureShiftright(){
-    Undo_Start( "shift right" );
-    Select_ShiftTexture( (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[0], 0 );
+    Undo_Start( "Shift right" );
+    Sys_Printf( "Shifting texture\n" );
+    Undo_AddBrushList( &selected_brushes );
+
+    Select_ShiftTexture( (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[0] * 10, 0 );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureShiftup(){
-    Undo_Start( "shift up" );
-    Select_ShiftTexture( 0, (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] );
+    Undo_Start( "Shift up" );
+    Sys_Printf( "Shifting texture\n" );
+    Undo_AddBrushList( &selected_brushes );
+
+    Select_ShiftTexture( 0, (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] * 10 );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
 void MainFrame::OnSelectionTextureShiftdown(){
-    Undo_Start( "shift down" );
-    Select_ShiftTexture( 0, (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] );
+    Undo_Start( "Shift down" );
+    Sys_Printf( "Shifting texture\n" );
+    Undo_AddBrushList( &selected_brushes );
+
+    Select_ShiftTexture( 0, (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] * 10 );
+
+    Undo_EndBrushList( &selected_brushes );
     Undo_End();
 }
 
@@ -7720,6 +7795,9 @@ void MainFrame::applyGridSize( float newSize ) {
         item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_2048" ) );
     } else if ( g_qeglobals.d_gridsize == 4096.0 ) {
         item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_4096" ) );
+    } else {
+        // Default grid size
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_16" ) );
     }
 
     SetGridStatus();
@@ -7740,14 +7818,14 @@ void MainFrame::applyGridSize( float newSize ) {
 void MainFrame::OnGridPrev(){
     GtkWidget *item;
 
-    //NAB622: Made this into a function, is cleaner
+    // NAB622: Made this into a function, is cleaner
     applyGridSize( g_qeglobals.d_gridsize / 2.0 );
 }
 
 void MainFrame::OnGridNext(){
 	GtkWidget *item;
 
-    //NAB622: Made this into a function, is cleaner
+    // NAB622: Made this into a function, is cleaner
     applyGridSize( g_qeglobals.d_gridsize * 2.0 );
 }
 

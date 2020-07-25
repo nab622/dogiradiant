@@ -103,6 +103,7 @@ void Cam_MouseControl( float dtime );
 void Cam_ChangeFloor( qboolean up );
 void ToggleFreeMove();
 bool m_bFreeMove;
+bool freehandTextureAlignment;
 
 protected:
 void Cam_Init();

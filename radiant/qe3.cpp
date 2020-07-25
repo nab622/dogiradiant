@@ -43,6 +43,28 @@
 QEGlobals_t g_qeglobals;
 QEGlobals_GUI_t g_qeglobals_gui;
 
+
+// NAB622: Not sure where to put these, so here they are for now
+bool areWeOutOfBounds( vec3_t inputVectors ) {
+    for( int i = 0; i < 3; i++ ) {
+        if(inputVectors[i] < MIN_MAP_SIZE || inputVectors[i] > MAX_MAP_SIZE) {
+            return true;
+        }
+    }
+    return false;
+}
+
+float clampBoundaries( float input ) {
+    return CLAMP( input, MIN_MAP_SIZE, MAX_MAP_SIZE );
+}
+
+float clampCameraBoundaries( float input ) {
+    // NAB622: This cushion multiplier will allow the camera outside the grid, just slightly
+    float cushion = 1.015;
+    return CLAMP( input, MIN_MAP_SIZE * cushion, MAX_MAP_SIZE * cushion );
+}
+
+
 // leo: Track memory allocations for debugging
 // NOTE TTimo this was never used and probably not relevant
 //   there are tools to do that
@@ -897,7 +919,7 @@ void QE_Init( void ){
 	/*
 	** initialize variables
 	*/
-	g_qeglobals.d_gridsize = 8;
+    g_qeglobals.d_gridsize = 16;
 	g_qeglobals.d_showgrid = true;
 
 	QE_InitVFS();

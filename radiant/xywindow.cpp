@@ -1020,38 +1020,33 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 	m_ptDownX = 0;
 	m_ptDownY = 0;
 
-    //NAB622: These two values keep grid movements from crawling at lower grid sizes, or shooting off too fast at larger grid sizes
-    float minMovement = 8;
-    float maxMovement = 64;
-
     if ( g_PrefsDlg.m_bChaseMouse == TRUE &&
-         ( pointx < 0 || pointy < 0 || pointx > m_nWidth || pointy > m_nHeight ) &&
-         HasCapture() ) {
-        float fAdjustment = ( g_qeglobals.d_gridsize );
-        if ( fAdjustment < minMovement) {
-            fAdjustment = minMovement;
-        }
-        else if ( fAdjustment > maxMovement) {
-            fAdjustment = maxMovement;
-        }
-//        float fAdjustment = ( g_qeglobals.d_gridsize / 8 * 64 ) / m_fScale;
-        //m_ptDrag = point;
+         ( pointx < 0 || pointy < 0 || pointx > m_nWidth || pointy > m_nHeight )
+         && HasCapture() ) {
+
+        //NAB622: This keeps grid movements from crawling at lower grid sizes, or shooting off too fast at larger grid sizes
+        float fAdjustment = CLAMP(fAdjustment, 8, 64 );
+
         m_ptDragAdjX = 0;
         m_ptDragAdjY = 0;
 
-        if ( pointx < 0 ) {
-			m_ptDragAdjX = (int)( -fAdjustment );
-		}
-		else if ( pointx > m_nWidth ) {
-			m_ptDragAdjX = (int)( fAdjustment );
-		}
+        //NAB622: If we are off the grid, don't move any further
+        if( !areWeOffTheGrid( pointx, pointy ) ) {
+            if ( pointx < 0 ) {
+                m_ptDragAdjX = (int)( -fAdjustment );
+            }
 
-		if ( pointy < 0 ) {
-			m_ptDragAdjY = (int)( -fAdjustment );
-		}
-		else if ( pointy > m_nHeight ) {
-			m_ptDragAdjY = (int)( fAdjustment );
-		}
+            else if ( pointx > m_nWidth ) {
+                m_ptDragAdjX = (int)( fAdjustment );
+            }
+
+            if ( pointy < 0 ) {
+                m_ptDragAdjY = (int)( -fAdjustment );
+            }
+            else if ( pointy > m_nHeight ) {
+                m_ptDragAdjY = (int)( fAdjustment );
+            }
+        }
 
         if ( !HasTimer() ) {
 			SetTimer( 50 );
@@ -1069,7 +1064,7 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 		pressy += m_ptDragTotalY;
 	}
 
-	bool bCrossHair = false;
+    bool bCrossHair = false;
 	if ( !m_bRButtonDown ) {
 		tdp[0] = tdp[1] = tdp[2] = 0.0;
 		SnapToPoint( pointx, m_nHeight - 1 - pointy, tdp );
@@ -1226,11 +1221,17 @@ void XYWnd::OnTimer(){
 	int nDim2 = ( m_nViewType == XY ) ? 1 : 2;
 	m_vOrigin[nDim1] += m_ptDragAdjX / m_fScale;
 	m_vOrigin[nDim2] -= m_ptDragAdjY / m_fScale;
-	Sys_UpdateWindows( W_XY | W_CAMERA );
+
+    // Make sure the camera isn't out of bounds
+    m_vOrigin[nDim1] = clampCameraBoundaries(m_vOrigin[nDim1]);
+    m_vOrigin[nDim2] = clampCameraBoundaries(m_vOrigin[nDim2]);
+
+    Sys_UpdateWindows( W_XY | W_CAMERA );
 	m_ptDragX += m_ptDragAdjX;
 	m_ptDragY += m_ptDragAdjY;
 	m_ptDragTotalX += m_ptDragAdjX;
 	m_ptDragTotalY += m_ptDragAdjY;
+
 	XY_MouseMoved( m_ptDragX, m_nHeight - 1 - m_ptDragY, m_nScrollFlags );
 }
 
@@ -1329,8 +1330,7 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 
 	VectorClear( point );
 	XY_ToPoint( x, y, point );
-
-	VectorCopy( point, origin );
+    VectorCopy( point, origin );
 
 	VectorClear( dir );
 	if ( m_nViewType == XY ) { // view facing dir = negative Z
@@ -1385,10 +1385,17 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 	// control mbutton = move camera
 	if ( m_nButtonstate == ( MK_CONTROL | nMouseButton ) ) {
 		VectorCopyXY( point, g_pParentWnd->GetCamWnd()->Camera()->origin );
-		Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
+
+        // Make sure the camera isn't out of bounds
+        for( int i = 0; i < 3; i++ ) {
+            point[i] = clampCameraBoundaries( point[i] );
+        }
+
+        Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
 	}
 
 	// mbutton = angle camera
+// NAB622: FIXME: This can result in the camera turning upside-down somehow
 	if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
 		 ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
 		VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
@@ -1402,7 +1409,9 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 		}
 	}
 
-	// shift mbutton = move z checker
+/*
+// NAB622: This is useless and has been removed
+    // shift mbutton = move z checker
 	if ( m_nButtonstate == ( MK_SHIFT | nMouseButton ) ) {
 		if ( RotateMode() || g_bPatchBendMode ) {
 			SnapToPoint( x, y, point );
@@ -1433,6 +1442,7 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 			return;
 		}
 	}
+*/
 
 	update_xor_rectangle_xy( m_XORRectangle );
 }
@@ -1468,7 +1478,7 @@ qboolean XYWnd::DragDelta( int x, int y, vec3_t move ){
 	VectorSubtract( delta, m_vPressdelta, move );
 	VectorCopy( delta, m_vPressdelta );
 
-	if ( move[0] || move[1] || move[2] ) {
+    if ( move[0] || move[1] || move[2] ) {
 		return true;
 	}
 	return false;
@@ -1755,7 +1765,7 @@ void XYWnd::NewBrushDrag( int x, int y ){
    ==============
  */
 void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
-	vec3_t point;
+    vec3_t point;
 
 	if ( !m_nButtonstate ) {
 		if ( g_bCrossHairs ) {
@@ -1766,7 +1776,15 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 
 	// lbutton without selection = drag new brush
 	if ( m_nButtonstate == MK_LBUTTON && !m_bPress_selection && g_qeglobals.d_select_mode != sel_curvepoint && g_qeglobals.d_select_mode != sel_areatall ) {
-		NewBrushDrag( x, y );
+
+        // NAB622: Make sure we're still on the grid
+        if( areWeOffTheGrid( x, y ) ) {
+            Sys_Printf( "Operation cancelled - cannot work outside the grid!\n" );
+            return;
+        }
+        Sys_Printf( "Create brush\n" );
+
+        NewBrushDrag( x, y );
 		return;
 	}
 
@@ -1785,11 +1803,19 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 	if ( m_nButtonstate == ( MK_CONTROL | nMouseButton ) ) {
 		SnapToPoint( x, y, point );
 		VectorCopyXY( point, g_pParentWnd->GetCamWnd()->Camera()->origin );
-		Sys_UpdateWindows( W_XY_OVERLAY | W_CAMERA );
+
+        // Make sure the camera isn't out of bounds
+        for( int i = 0; i < 3; i++ ) {
+            point[i] = clampCameraBoundaries( point[i] );
+        }
+
+        Sys_UpdateWindows( W_XY_OVERLAY | W_CAMERA );
 		return;
 	}
 
-	// shift mbutton = move z checker
+/*
+// NAB622: This has been removed
+    // shift mbutton = move z checker
 	if ( m_nButtonstate == ( MK_SHIFT | nMouseButton ) ) {
 		if ( RotateMode() || g_bPatchBendMode ) {
 			SnapToPoint( x, y, point );
@@ -1820,11 +1846,19 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 		Sys_UpdateWindows( W_XY_OVERLAY | W_Z );
 		return;
 	}
+*/
 
 	// mbutton = angle camera
 	if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
 		 ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
-		SnapToPoint( x, y, point );
+
+        // NAB622: Make sure we're still on the grid, no point angling the camera that way
+        if( areWeOffTheGrid( x, y ) ) {
+            Sys_Printf( "Operation cancelled - cannot edit outside the grid!\n" );
+            return;
+        }
+
+        SnapToPoint( x, y, point );
 		VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
 
 		int n1 = ( m_nViewType == XY ) ? 1 : 2;
@@ -1846,6 +1880,10 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 			m_vOrigin[nDim1] -= ( x - m_ptCursorX ) / m_fScale;
 			m_vOrigin[nDim2] += ( y - m_ptCursorY ) / m_fScale;
 			Sys_SetCursorPos( m_ptCursorX, m_ptCursorY );
+
+            // NAB622: Make sure we aren't outside the grid
+            m_vOrigin[nDim1] = clampBoundaries( m_vOrigin[nDim1] );
+            m_vOrigin[nDim2] = clampBoundaries( m_vOrigin[nDim2] );
 
 			// create an empty cursor
 			if ( !g_bWaitCursor ) {
@@ -1889,20 +1927,31 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 	}
 }
 
+bool XYWnd::areWeOffTheGrid( int x, int y ) {
+    vec3_t testPoint;
+    XY_ToPoint( x, m_pWidget->allocation.height - 1 - y, testPoint );
+
+    if( areWeOutOfBounds( testPoint ) ) {
+        return true;
+    }
+    return false;
+}
+
 void XYWnd::OriginalButtonDown( guint32 nFlags, int pointx, int pointy ){
-	SetFocus();
+    SetFocus();
 	SetCapture();
 	XY_MouseDown( pointx, m_pWidget->allocation.height - 1 - pointy, nFlags );
-	m_nScrollFlags = nFlags;
+
+    m_nScrollFlags = nFlags;
 }
 
 void XYWnd::OriginalButtonUp( guint32 nFlags, int pointx, int pointy ){
-	XY_MouseUp( pointx, m_pWidget->allocation.height - 1 - pointy, nFlags );
+    XY_MouseUp( pointx, m_pWidget->allocation.height - 1 - pointy, nFlags );
 	ReleaseCapture();
 }
 
 void XYWnd::DropClipPoint( guint32 nFlags, int pointx, int pointy ){
-	if ( g_pMovingClip ) {
+    if ( g_pMovingClip ) {
 		SetCapture();
 		SnapToPoint( pointx, m_pWidget->allocation.height - 1 - pointy, *g_pMovingClip );
 	}

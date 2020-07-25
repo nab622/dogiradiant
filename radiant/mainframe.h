@@ -64,6 +64,13 @@ struct SKeyInfo
 // Do not change this setting lightly, as Radiant now uses it as an epsilon when calculating vertex locations to fix a "Snap to grid" bug!
 #define MIN_GRID_PRECISION 0.125
 
+// NAB622: This is the maximum distance the grid can go in any one direction.
+// This is a define now because the camera controls are attached to it, amongst other things
+#define MAX_MAP_SIZE 65536
+
+// NAB622: Don't touch this, it is just calculating the minimum grid distance to be the the opposite of the maximum
+#define MIN_MAP_SIZE -MAX_MAP_SIZE
+
 #define ID_FILE_NEW 0xE100
 #define ID_FILE_OPEN 0xE101
 #define ID_FILE_SAVE 0xE103
