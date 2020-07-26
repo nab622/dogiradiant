@@ -1662,17 +1662,17 @@ float getGridValueForTextureChanges() {
     return CLAMP( g_qeglobals.d_gridsize, 1, 128 ) / 10000;
 }
 
-float calculateRotatingValueBeneathMax( float input, float max ) {
+float calculateRotatingValueBeneathMax( float input, int max ) {
     float output = fmod( input, max );
     if( output < 0 ) output += max;
     return output;
 }
 
 void Select_ShiftTexture( int x, int y ) {
-	brush_t     *b;
+    brush_t     *b;
 	face_t      *f;
 
-	int nFaceCount = g_ptrSelectedFaces.GetSize();
+    int nFaceCount = g_ptrSelectedFaces.GetSize();
 
     if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
 		return;
@@ -1716,8 +1716,8 @@ void Select_ShiftTexture( int x, int y ) {
                 selFace->texdef.shift[1] += y * getGridValueForTextureChanges() * 100;
 
                 // NAB622: Make sure these are within range of the resolution...no point exceeding it
-                f->texdef.shift[0] = calculateRotatingValueBeneathMax( selFace->texdef.shift[0], f->d_texture->width );
-                f->texdef.shift[1] = calculateRotatingValueBeneathMax( selFace->texdef.shift[1], f->d_texture->height );
+                selFace->texdef.shift[0] = calculateRotatingValueBeneathMax( selFace->texdef.shift[0], selFace->d_texture->width );
+                selFace->texdef.shift[1] = calculateRotatingValueBeneathMax( selFace->texdef.shift[1], selFace->d_texture->height );
             }
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}
@@ -1864,7 +1864,7 @@ void Select_RotateTexture( int amt ){
 			}
 			else
 			{
-                selFace->texdef.rotate += amt * ( g_qeglobals.d_gridsize );
+                selFace->texdef.rotate += amt * getGridValueForTextureChanges() * 10;
                 selFace->texdef.rotate = static_cast<float>( fmod( selFace->texdef.rotate, 360 ) );
 			}
 			Brush_Build( selBrush,true,true,false,false ); // don't filter

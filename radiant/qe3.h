@@ -820,7 +820,7 @@ extern bool g_bPathMode;
 extern void RunScript( char* pBuffer );
 extern bool ExtractPath_and_Filename( const char* pPath, CString& strPath, CString& strFilename );
 extern void Select_Scale( float x, float y, float z );
-extern float calculateRotatingValueBeneathMax( float input, float max );
+extern float calculateRotatingValueBeneathMax( float input, int max );
 extern void Select_RotateTexture( int amt );
 extern void Select_ScaleTexture( float x, float y );
 extern void Select_ShiftTexture( int x, int y );

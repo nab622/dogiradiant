@@ -1852,12 +1852,6 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 	if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
 		 ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
 
-        // NAB622: Make sure we're still on the grid, no point angling the camera that way
-        if( areWeOffTheGrid( x, y ) ) {
-            Sys_Printf( "Operation cancelled - cannot edit outside the grid!\n" );
-            return;
-        }
-
         SnapToPoint( x, y, point );
 		VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
 

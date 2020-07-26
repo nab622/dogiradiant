@@ -593,7 +593,7 @@ PrefsDlg::PrefsDlg (){
 	m_nAutoSave = 5;
 	m_bSaveBeep = TRUE;
 	m_bLoadLastMap = FALSE;
-    m_bTextureWindow = TRUE;    //NAB622: This is the texture filtering feature, formerly called texture subsets. From now on, this is ON BY DEFAULT.
+    m_bTextureWindow = TRUE;
     m_bSnapShots = FALSE;
 	m_fTinySize = 0.5;
 	m_bCleanTiny = FALSE;
@@ -613,7 +613,7 @@ PrefsDlg::PrefsDlg (){
 	m_bZVis = FALSE;
 	m_bSizePaint = FALSE;
 	m_bDLLEntities = FALSE;
-    m_bDetachableMenus = FALSE; //NAB622: This is now disabled by default. Feature remains in-place
+    m_bDetachableMenus = FALSE;
 	m_bPatchToolbar = TRUE;
 	m_bWideToolbar = TRUE;
 	m_bPluginToolbar = TRUE;
@@ -1642,12 +1642,12 @@ void PrefsDlg::BuildDialog(){
             {
                 GtkTreeIter tab;
                 gtk_tree_store_append( store, &tab, NULL );
-                gtk_tree_store_set( store, &tab, 0, _( "Startup" ), 1, (gpointer)PTAB_STARTUP, -1 );
+                gtk_tree_store_set( store, &tab, 0, _( "Radiant Configuration" ), 1, (gpointer)PTAB_EDITOR, -1 );
             }
             {
                 GtkTreeIter tab;
                 gtk_tree_store_append( store, &tab, NULL );
-                gtk_tree_store_set( store, &tab, 0, _( "Editor Configuration" ), 1, (gpointer)PTAB_EDITOR, -1 );
+                gtk_tree_store_set( store, &tab, 0, _( "Startup" ), 1, (gpointer)PTAB_STARTUP, -1 );
             }
             {
                 GtkTreeIter tab;
@@ -1843,7 +1843,7 @@ void PrefsDlg::BuildDialog(){
 
 #ifdef ATIHACK_812
     // ATI bugs
-    check = gtk_check_button_new_with_label( _( "Enable workaround for ATI and Intel cards w/ buggy drivers (disappearing polygons)" ) );
+    check = gtk_check_button_new_with_label( _( "Enable workaround for ATI and Intel cards with buggy drivers\n(disappearing polygons)" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bGlATIHack, DLG_CHECK_BOOL );
@@ -2134,9 +2134,9 @@ void PrefsDlg::BuildDialog(){
 */
 
     /******** Layout group *********/
-    preflabel = gtk_label_new( _( "Editor Configuration" ) );
+    preflabel = gtk_label_new( _( "Radiant Configuration" ) );
     gtk_widget_show( preflabel );
-    pageframe = gtk_frame_new( _( "Editor Configuration" ) );
+    pageframe = gtk_frame_new( _( "Radiant Configuration" ) );
     gtk_container_set_border_width( GTK_CONTAINER( pageframe ), 5 );
     gtk_widget_show( pageframe );
     vbox = gtk_vbox_new( FALSE, 5 );
@@ -2144,73 +2144,76 @@ void PrefsDlg::BuildDialog(){
     gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
     gtk_widget_show( vbox );
 
-/*
-    // label
-    label = gtk_label_new( _( "Window Layout:" ) );
-    gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
-    gtk_widget_show( label );
-*/
-
     // View types
 	// table
-    table = gtk_table_new( 2, 5, FALSE );
+    table = gtk_table_new( 6, 2, FALSE );
 	gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
-	gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
-	gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
+    gtk_table_set_col_spacings( GTK_TABLE( table ), 10 );
 	gtk_widget_show( table );
+
+    // label
+    label = gtk_label_new( _( "Window layout:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 0, 1,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.0 );
+    gtk_widget_show( label );
+
     // view type 1
 	pixmap = new_image_icon("window1.png");
-    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 0, 1,
+    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 1, 2,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_widget_show( pixmap );
+    gtk_widget_show( pixmap );
 
 	// view type 2
 	pixmap = new_image_icon("window2.png");
-    gtk_table_attach( GTK_TABLE( table ), pixmap, 1, 2, 0, 1,
+    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 2, 3,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( pixmap );
 
 	// view type 3
 	pixmap = new_image_icon("window3.png");
-    gtk_table_attach( GTK_TABLE( table ), pixmap, 2, 3, 0, 1,
+    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 3, 4,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( pixmap );
 
 	// view type 4
 	pixmap = new_image_icon("window4.png");
-    gtk_table_attach( GTK_TABLE( table ), pixmap, 3, 4, 0, 1,
+    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 4, 5,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( pixmap );
 
+
 	// view type 1 selector
-	radio = gtk_radio_button_new( NULL );
-    gtk_table_attach( GTK_TABLE( table ), radio, 0, 1, 1, 2,
-					  (GtkAttachOptions) ( 0 ),
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Standard window layout" );
+    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 1, 2,
+                      (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_widget_show( radio );
+                        gtk_widget_show( radio );
 
 	// view type 2 selector
-	radio = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON( radio ) );
-    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 1, 2,
-					  (GtkAttachOptions) ( 0 ),
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Floating windows layout" );
+    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 2, 3,
+                      (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( radio );
 
 	// view type 3 selector
-	radio = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON( radio ) );
-    gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 1, 2,
-					  (GtkAttachOptions) ( 0 ),
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "3-Grid windows layout" );
+    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 3, 4,
+                      (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( radio );
 
 	// view type 4 selector
-	radio = gtk_radio_button_new_from_widget( GTK_RADIO_BUTTON( radio ) );
-    gtk_table_attach( GTK_TABLE( table ), radio, 3, 4, 1, 2,
-					  (GtkAttachOptions) ( 0 ),
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Reverse standard window layout" );
+    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 4, 5,
+                      (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( radio );
 	AddDialogData( radio, &m_nLatchedView, DLG_RADIO_INT );
@@ -2468,14 +2471,14 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( table );
 
 	// label
-	label = gtk_label_new( _( "Rotation increment:" ) );
+    label = gtk_label_new( _( "Default rotation step (Surface inspector only):" ) );
 	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
 
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 45, 0, 65535, 1, 10, 0 ) ), 1, 0 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 45, 0, 360, 1, 10, 0 ) ), 1, 0 );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 0, 1,
@@ -2515,7 +2518,7 @@ void PrefsDlg::BuildDialog(){
 	AddDialogData( check, &m_bSnapShots, DLG_CHECK_BOOL );
 */
 
-	// load last project on open
+    // load last project on open
 	check = gtk_check_button_new_with_label( _( "Load last project on open" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
 	gtk_widget_show( check );
@@ -2710,13 +2713,13 @@ void PrefsDlg::BuildDialog(){
 */
 
     // Snap to grid
-    check = gtk_check_button_new_with_label( _( "Snap edits to grid (Also available in Grid menu)" ) );
+    check = gtk_check_button_new_with_label( _( "Snap edits to grid\n(Also available in Grid menu)" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bSnap, DLG_CHECK_BOOL );
 
     // Don't clamp plane points
-    check = gtk_check_button_new_with_label( _( "Don't clamp plane points" ) );
+    check = gtk_check_button_new_with_label( _( "Don't snap curve points to grid" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bNoClamp, DLG_CHECK_BOOL );
@@ -2867,12 +2870,15 @@ void PrefsDlg::BuildDialog(){
 	AddDialogData( check, &g_PrefsDlg.m_bDoSleep, DLG_CHECK_BOOL );
 */
 
-	// use q3map2's texture projection
+/*
+// NAB622: Why is this even an option, we are literally using q3map2 to compile...
+    // use q3map2's texture projection
 	check = gtk_check_button_new_with_label( _( "Texturing compatible with q3map2" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
 	gtk_widget_show( check );
 	g_object_set_data( G_OBJECT( dialog ), "check_q3map2", check );
 	AddDialogData( check, &g_PrefsDlg.m_bQ3Map2Texturing, DLG_CHECK_BOOL );
+*/
 
 #ifdef _WIN32
         // use 64 bit q3map2
@@ -3113,7 +3119,7 @@ void PrefsDlg::LoadPrefs(){
 
 	mLocalPrefs.GetPref( SHOWTEXDIRLIST_KEY,     &m_bShowTexDirList,             TRUE );
 
-    mLocalPrefs.GetPref( NOCLAMP_KEY,            &m_bNoClamp,                    TRUE );
+    mLocalPrefs.GetPref( NOCLAMP_KEY,            &m_bNoClamp,                    FALSE );
 	mLocalPrefs.GetPref( SNAP_KEY,               &m_bSnap,                       TRUE );
 	mLocalPrefs.GetPref( USERINI_KEY,            &m_strUserPath,                 "" );
     mLocalPrefs.GetPref( ROTATION_KEY,           &m_nRotation,                   2.5 );
