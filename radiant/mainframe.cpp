@@ -1507,7 +1507,7 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 	create_menu_item_with_mnemonic( menu, _( "_Benchmark" ), G_CALLBACK( HandleCommand ), ID_MISC_BENCHMARK );
 	menu_in_menu = create_menu_in_menu_with_mnemonic( menu, _( "Colors" ) );
 	menu_3 = create_menu_in_menu_with_mnemonic( menu_in_menu, _( "Themes" ) );
-    create_menu_item_with_mnemonic( menu_3, _( "UpgRadiant" ), G_CALLBACK( HandleCommand ), ID_COLOR_SET_UPGRADIANT );
+    create_menu_item_with_mnemonic( menu_3, _( "upgRadiant" ), G_CALLBACK( HandleCommand ), ID_COLOR_SET_UPGRADIANT );
     create_menu_item_with_mnemonic( menu_3, _( "QE4 Original" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETORIGINAL );
     create_menu_item_with_mnemonic( menu_3, _( "Q3Radiant Original" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETQER );
 	create_menu_item_with_mnemonic( menu_3, _( "Black and Green" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETBLACK );

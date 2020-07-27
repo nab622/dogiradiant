@@ -5,4 +5,4 @@
 
 // NAB622: This is the location local.pref and other configuration files will be stored
 // If you fork the project, please change this so it doesn't conflict with others
-#define PREFS_SUBDIRECTORY "UpgRadiant"
+#define PREFS_SUBDIRECTORY "upgRadiant"
