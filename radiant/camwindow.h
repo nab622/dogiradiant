@@ -101,6 +101,7 @@ virtual ~CamWnd();
 camera_t *Camera(){return &m_Camera; };
 void Cam_MouseControl( float dtime );
 void Cam_ChangeFloor( qboolean up );
+void StopFreeMove();
 void ToggleFreeMove();
 bool m_bFreeMove;
 bool freehandTextureAlignment;

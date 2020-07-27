@@ -727,13 +727,13 @@ void MoveSelection( vec3_t move ){
         // cancel the entire move
 		if ( b != &selected_brushes ) {
             if( outsideGridBoundaries ) {
-                Sys_Printf( "Grid limit exceeded, move cancelled\n" );
+                Sys_Printf( "Grid limit exceeded, operation cancelled\n" );
             }
             if( draggedBackwards ) {
-                Sys_Printf( "Brush dragged backwards, move cancelled\n" );
+                Sys_Printf( "Brush dragged backwards, operation cancelled\n" );
             }
             if( maxBrushSize ) {
-                Sys_Printf( "Maximum brush size reached, move cancelled\n" );
+                Sys_Printf( "Maximum brush size reached, operation cancelled\n" );
             }
 
             for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ )

@@ -1545,7 +1545,7 @@ static void OnX64Toggle( GtkWidget *widget, gpointer data ) {
 
 void PrefsDlg::BuildDialog(){
 	// Main Preferences dialog
-	GtkWidget *dialog, *mainvbox, *hbox, *sc_win, *preflabel;
+    GtkWidget *dialog, *mainvbox, *hbox, *sc_win, *preflabel, *windowConfigViewport;
 
 	GtkWidget *ftw_label, *fth_label;
 	// Widgets on notebook pages
@@ -2144,46 +2144,54 @@ void PrefsDlg::BuildDialog(){
     gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
     gtk_widget_show( vbox );
 
-    // View types
-	// table
-    table = gtk_table_new( 6, 2, FALSE );
-	gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
-    gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
-    gtk_table_set_col_spacings( GTK_TABLE( table ), 10 );
-	gtk_widget_show( table );
+    // Viewport for window configurations
+    windowConfigViewport = gtk_viewport_new( NULL, NULL );
+    gtk_box_pack_start( GTK_BOX( vbox ), windowConfigViewport, FALSE, TRUE, 0 );
+    gtk_viewport_set_shadow_type( GTK_VIEWPORT( windowConfigViewport ), GTK_SHADOW_IN );
+    gtk_widget_show( windowConfigViewport );
 
+    // Windows configurations
+	// table
+    table = gtk_table_new( 6, 3, FALSE );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
+    gtk_table_set_col_spacings( GTK_TABLE( table ), 10 );
+    gtk_container_add( GTK_CONTAINER( windowConfigViewport ), table );
+    gtk_widget_show( table );
+
+/*
     // label
     label = gtk_label_new( _( "Window layout:" ) );
-    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 0, 1,
+    gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 0, 1,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.0 );
     gtk_widget_show( label );
+*/
 
     // view type 1
 	pixmap = new_image_icon("window1.png");
-    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 1, 2,
+    gtk_table_attach( GTK_TABLE( table ), pixmap, 1, 2, 1, 2,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_widget_show( pixmap );
 
 	// view type 2
 	pixmap = new_image_icon("window2.png");
-    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 2, 3,
+    gtk_table_attach( GTK_TABLE( table ), pixmap, 1, 2, 2, 3,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( pixmap );
 
 	// view type 3
 	pixmap = new_image_icon("window3.png");
-    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 3, 4,
+    gtk_table_attach( GTK_TABLE( table ), pixmap, 1, 2, 3, 4,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( pixmap );
 
 	// view type 4
 	pixmap = new_image_icon("window4.png");
-    gtk_table_attach( GTK_TABLE( table ), pixmap, 0, 1, 4, 5,
+    gtk_table_attach( GTK_TABLE( table ), pixmap, 1, 2, 4, 5,
 					  (GtkAttachOptions) ( 0 ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( pixmap );
@@ -2191,28 +2199,28 @@ void PrefsDlg::BuildDialog(){
 
 	// view type 1 selector
     radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Standard window layout" );
-    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 1, 2,
+    gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 1, 2,
                       (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
                         gtk_widget_show( radio );
 
 	// view type 2 selector
     radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Floating windows layout" );
-    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 2, 3,
+    gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 2, 3,
                       (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( radio );
 
 	// view type 3 selector
-    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "3-Grid windows layout" );
-    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 3, 4,
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "3 Grid windows layout" );
+    gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 3, 4,
                       (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( radio );
 
 	// view type 4 selector
     radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Reverse standard window layout" );
-    gtk_table_attach( GTK_TABLE( table ), radio, 1, 2, 4, 5,
+    gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 4, 5,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( radio );

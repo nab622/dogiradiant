@@ -44,6 +44,10 @@ bool g_bRotateMode;
 bool g_bClipMode;
 bool g_bRogueClipMode;
 bool g_bSwitch;
+
+bool createdBrushOffGrid = false;
+bool creatingNewBrush = false;
+
 ClipPoint g_Clip1;
 ClipPoint g_Clip2;
 ClipPoint g_Clip3;
@@ -1767,6 +1771,11 @@ void XYWnd::NewBrushDrag( int x, int y ){
 void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
     vec3_t point;
 
+    if ( createdBrushOffGrid ) {
+        // If we started creating a new brush by clicking outside the grid, cancel
+        return;
+    }
+
 	if ( !m_nButtonstate ) {
 		if ( g_bCrossHairs ) {
 			Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
@@ -1779,10 +1788,15 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 
         // NAB622: Make sure we're still on the grid
         if( areWeOffTheGrid( x, y ) ) {
-            Sys_Printf( "Operation cancelled - cannot work outside the grid!\n" );
+            Sys_Printf( "Cannot create brushes outside the grid!\n" );
+            createdBrushOffGrid = true;
             return;
         }
-        Sys_Printf( "Create brush\n" );
+
+        if( !creatingNewBrush ) {
+            Sys_Printf( "Create brush\n" );
+            creatingNewBrush = true;
+        }
 
         NewBrushDrag( x, y );
 		return;
@@ -1941,7 +1955,9 @@ void XYWnd::OriginalButtonDown( guint32 nFlags, int pointx, int pointy ){
 
 void XYWnd::OriginalButtonUp( guint32 nFlags, int pointx, int pointy ){
     XY_MouseUp( pointx, m_pWidget->allocation.height - 1 - pointy, nFlags );
-	ReleaseCapture();
+    createdBrushOffGrid = false;
+    creatingNewBrush = false;
+    ReleaseCapture();
 }
 
 void XYWnd::DropClipPoint( guint32 nFlags, int pointx, int pointy ){

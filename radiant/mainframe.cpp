@@ -810,9 +810,15 @@ static void mainframe_destroy( GtkWidget *widget, gpointer data ){
 static gint mainframe_keypress( GtkWidget* widget, GdkEventKey* event, gpointer data ){
 	unsigned int code = gdk_keyval_to_upper( event->keyval );
 
-	if ( code == GDK_KEY_ISO_Left_Tab ) {
-		code = GDK_KEY_Tab;
-	}
+    if ( code == GDK_KEY_ISO_Left_Tab ) {
+        code = GDK_KEY_Tab;
+    }
+
+    // NAB622: This needs to be here! If the user is stuck with free look on
+    // and some other window gets in the way, this is the way out
+    if ( code == GDK_KEY_Escape ) {
+        g_pParentWnd->GetCamWnd()->StopFreeMove();
+    }
 
 #ifdef DBG_KBD
 	Sys_Printf( "key: %d (keyval: %d) (ctrl: %d)\n", code, event->keyval, event->state & GDK_CONTROL_MASK );

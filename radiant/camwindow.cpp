@@ -142,19 +142,17 @@ void update_xor_rectangle( XORRectangle& xor_rectangle ){
 
 void CamWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
     int height = m_pWidget->allocation.height;
-	// NOTE RR2DO2 this hasn't got any use anymore really. It is an old qeradiant feature
-	// that can be re-enabled by removing the checks for HasCapture and not shift/ctrl down
-	// but the scaling/rotating (unless done with the steps set in the surface inspector
-	// dialog) is way too sensitive to be of any use
+
     if ( HasCapture() && flags & MK_RBUTTON ) {
         if ( flags & MK_CONTROL ) {
             Select_ScaleTexture( ( pointx - m_ptLastCursorX ), ( m_ptLastCursorY - pointy ) );
         }
         if ( flags & MK_SHIFT ) {
             Select_ShiftTexture( ( pointx - m_ptLastCursorX ), (m_ptLastCursorY - pointy) );
-		}
+        }
         if ( Sys_AltDown() ) {
             Select_RotateTexture( pointy - m_ptLastCursorY );
+
         }
     }
     else
@@ -182,13 +180,7 @@ int CamWnd::calculateSpeed() {
     int max = 2048;
 
     float newSpeed = g_qeglobals.d_gridsize;
-    if( newSpeed < min ) {
-        // Too slow!
-        newSpeed = min;
-    } else if ( newSpeed > max ) {
-        // Too fast!
-        newSpeed = max;
-    }
+    newSpeed = CLAMP(newSpeed, min, max);
 
     //m_nMoveSpeed is an integer. Must round it up
     return (int) ceil( newSpeed );
@@ -366,11 +358,7 @@ void CamWnd::Cam_PositionDrag( int buttons ){
     //Bring this value in and greatly reduce it before use
     float multiplier = calculateSpeed() / 16;
     //Impose a min and max so it doesn't get too crazy
-    if ( multiplier > 128 ) {
-    multiplier = 128;
-    } else if ( multiplier < MIN_GRID_PRECISION / 4 ) {
-            multiplier = MIN_GRID_PRECISION / 4;
-    }
+    multiplier = CLAMP( multiplier, MIN_GRID_PRECISION / 4, 128 );
 
     Sys_GetCursorPos( &x, &y );
     if ( x != m_ptCursorX || y != m_ptCursorY ) {
@@ -402,7 +390,7 @@ void CamWnd::Cam_MouseControl( float dtime ){
             return;
         }
 
-        if ( m_nCambuttonstate & MK_CONTROL ) {
+        if ( m_nCambuttonstate & MK_CONTROL || m_nCambuttonstate & MK_SHIFT || Sys_AltDown() ) {
             return;
         }
 
@@ -544,15 +532,21 @@ void CamWnd::Cam_KeyControl( float dtime ) {
 // NOTE TTimo if there's an OS-level focus out of the application
 //   then we can release the camera cursor grab
 static gint camwindow_focusout( GtkWidget* widget, GdkEventKey* event, gpointer data ){
-	g_pParentWnd->GetCamWnd()->ToggleFreeMove();
+    g_pParentWnd->GetCamWnd()->StopFreeMove();
 	return FALSE;
+}
+
+void CamWnd::StopFreeMove(){
+    if( m_bFreeMove ) {
+        g_pParentWnd->GetCamWnd()->ToggleFreeMove();
+    }
 }
 
 void CamWnd::ToggleFreeMove(){
     GdkWindow *window;
 	GtkWidget *widget;
 
-	m_bFreeMove = !m_bFreeMove;
+    m_bFreeMove = !m_bFreeMove;
 	Camera()->movementflags = 0;
 	m_ptLastCamCursorX = m_ptCursorX;
 	m_ptLastCamCursorY = m_ptCursorY;
@@ -571,8 +565,8 @@ void CamWnd::ToggleFreeMove(){
 		GdkDisplay *display;
 		GdkCursor *cursor;
 
-		SetFocus();
-		SetCapture();
+        SetFocus();
+        SetCapture();
 
 		display = gdk_window_get_display( window );
 		cursor = gdk_cursor_new_for_display( display, GDK_BLANK_CURSOR );
@@ -683,7 +677,7 @@ void CamWnd::Cam_MouseDown( int x, int y, int buttons ){
 		return;
 	}
 
-	if ( buttons == MK_RBUTTON ) {
+    if ( buttons == MK_RBUTTON && !Sys_AltDown() ) {
 		if ( g_PrefsDlg.m_bCamFreeLook ) {
             ToggleFreeMove();
 		}
