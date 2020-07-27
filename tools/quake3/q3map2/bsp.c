@@ -671,9 +671,6 @@ int BSPMain( int argc, char **argv ){
 	maxSurfaceIndexes = game->maxSurfaceIndexes;
 	emitFlares = game->emitFlares;
 
-    //T-junctions have been set to ALWAYS be disabled. They're utterly pointless.
-    notjunc = qtrue;
-
 	/* process arguments */
 	for ( i = 1; i < ( argc - 1 ); i++ )
 	{
@@ -719,15 +716,11 @@ int BSPMain( int argc, char **argv ){
 			Sys_Printf( "Ignoring curved surfaces (patches)\n" );
 			noCurveBrushes = qtrue;
 		}
-/*
-//T-junctions have been set to ALWAYS be disabled. They're utterly pointless.
-
-        else if ( !strcmp( argv[ i ], "-notjunc" ) ) {
+		else if ( !strcmp( argv[ i ], "-notjunc" ) ) {
 			Sys_Printf( "T-junction fixing disabled\n" );
 			notjunc = qtrue;
 		}
-*/
-        else if ( !strcmp( argv[ i ], "-fakemap" ) ) {
+		else if ( !strcmp( argv[ i ], "-fakemap" ) ) {
 			Sys_Printf( "Generating fakemap.map\n" );
 			fakemap = qtrue;
 		}

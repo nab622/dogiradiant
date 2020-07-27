@@ -120,7 +120,7 @@ struct SKeyInfo
 #define ID_COLORS_GRIDBLOCK             32837
 #define ID_COLORS_VIEWNAME              32838
 #define ID_COLORS_DETAIL                37002
-#define ID_COLOR_SETDOGI                37100
+#define ID_COLOR_SET_UPGRADIANT         37100
 #define ID_COLOR_SETORIGINAL            37101
 #define ID_COLOR_SETQER                 37102
 #define ID_COLOR_SETBLACK               37103
@@ -768,7 +768,7 @@ void OnColorsCameraBack();
 void OnColorsGridblock();
 void OnColorsViewname();
 void OnColorsDetail();
-void OnColorSetDogi();
+void OnColorSetUpgRadiant();
 void OnColorSetoriginal();
 void OnColorSetqer();
 void OnColorSetblack();

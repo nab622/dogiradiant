@@ -978,11 +978,11 @@ typedef enum
 }
 surfaceType_t;
 
-extern char            *surfaceTypes[ NUM_SURFACE_TYPES ]
 #ifndef MAIN_C
+	extern char * surfaceTypes [NUM_SURFACE_TYPES];
 ;
 #else
-	=
+	char * surfaceTypes [NUM_SURFACE_TYPES] =
 	{
 	"SURFACE_BAD",
 	"SURFACE_FACE",

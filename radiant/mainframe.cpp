@@ -591,7 +591,7 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 		  case ID_TEXTUREWINDOW_SCALEUP: g_pParentWnd->OnTexturewindowScaleup(); break;
 		  case ID_TEXTUREWINDOW_SCALEDOWN: g_pParentWnd->OnTexturewindowScaledown(); break;
 		  case ID_MISC_BENCHMARK: g_pParentWnd->OnMiscBenchmark(); break;
-          case ID_COLOR_SETDOGI: g_pParentWnd->OnColorSetDogi(); break;
+          case ID_COLOR_SET_UPGRADIANT: g_pParentWnd->OnColorSetUpgRadiant(); break;
           case ID_COLOR_SETORIGINAL: g_pParentWnd->OnColorSetoriginal(); break;
           case ID_COLOR_SETQER: g_pParentWnd->OnColorSetqer(); break;
 		  case ID_COLOR_SETBLACK: g_pParentWnd->OnColorSetblack(); break;
@@ -1507,7 +1507,7 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 	create_menu_item_with_mnemonic( menu, _( "_Benchmark" ), G_CALLBACK( HandleCommand ), ID_MISC_BENCHMARK );
 	menu_in_menu = create_menu_in_menu_with_mnemonic( menu, _( "Colors" ) );
 	menu_3 = create_menu_in_menu_with_mnemonic( menu_in_menu, _( "Themes" ) );
-    create_menu_item_with_mnemonic( menu_3, _( "UpgRadiant" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETDOGI );
+    create_menu_item_with_mnemonic( menu_3, _( "UpgRadiant" ), G_CALLBACK( HandleCommand ), ID_COLOR_SET_UPGRADIANT );
     create_menu_item_with_mnemonic( menu_3, _( "QE4 Original" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETORIGINAL );
     create_menu_item_with_mnemonic( menu_3, _( "Q3Radiant Original" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETQER );
 	create_menu_item_with_mnemonic( menu_3, _( "Black and Green" ), G_CALLBACK( HandleCommand ), ID_COLOR_SETBLACK );
@@ -6257,7 +6257,7 @@ void MainFrame::OnMiscBenchmark(){
 	m_pCamWnd->BenchMark();
 }
 
-void MainFrame::OnColorSetDogi(){
+void MainFrame::OnColorSetUpgRadiant(){
     g_qeglobals.d_savedinfo.colors[COLOR_TEXTUREBACK][0] = 0.25f;
     g_qeglobals.d_savedinfo.colors[COLOR_TEXTUREBACK][1] = 0.25f;
     g_qeglobals.d_savedinfo.colors[COLOR_TEXTUREBACK][2] = 0.25f;
