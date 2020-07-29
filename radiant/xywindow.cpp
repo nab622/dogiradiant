@@ -1267,7 +1267,10 @@ void XYWnd::OnRButtonDown( guint32 flags, int pointx, int pointy ){
 	m_ptDownY = pointy;
 	m_bRButtonDown = true;
 
-	if ( g_PrefsDlg.m_nMouseButtons == 3 ) { // 3 button mouse
+/*
+// NAB622: I hate this
+
+    if ( g_PrefsDlg.m_nMouseButtons == 3 ) { // 3 button mouse
 		if ( flags & MK_CONTROL ) {
 			if ( ClipMode() ) { // already there?
 				DropClipPoint( flags, pointx, pointy );
@@ -1281,7 +1284,8 @@ void XYWnd::OnRButtonDown( guint32 flags, int pointx, int pointy ){
 			return;
 		}
 	}
-	OriginalButtonDown( flags, pointx, pointy );
+*/
+    OriginalButtonDown( flags, pointx, pointy );
 }
 
 void XYWnd::OnLButtonUp( guint32 flags, int pointx, int pointy ){
@@ -1304,23 +1308,24 @@ void XYWnd::OnMButtonUp( guint32 flags, int pointx, int pointy ){
 }
 
 void XYWnd::OnRButtonUp( guint32 flags, int pointx, int pointy ){
-	m_bRButtonDown = false;
-	if ( ( pointx == m_ptDownX ) && ( pointy == m_ptDownY ) ) { // mouse didn't move
+    m_bRButtonDown = false;
+    if ( ( pointx == m_ptDownX ) && ( pointy == m_ptDownY ) ) { // mouse didn't move
 		bool bGo = true;
 		if ( Sys_AltDown() ) {
 			bGo = false;
 		}
-		if ( flags & MK_CONTROL ) {
+        if ( flags & MK_CONTROL ) {
 			bGo = false;
 		}
-		if ( flags & MK_SHIFT ) {
+        if ( flags & MK_SHIFT ) {
 			bGo = false;
 		}
-		if ( bGo ) {
+        if ( bGo ) {
 			HandleDrop();
 		}
 	}
-	OriginalButtonUp( flags, pointx, pointy );
+
+    OriginalButtonUp( flags, pointx, pointy );
 }
 
 void XYWnd::XY_MouseDown( int x, int y, int buttons ){
@@ -1399,18 +1404,50 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 	}
 
 	// mbutton = angle camera
-// NAB622: FIXME: This can result in the camera turning upside-down somehow
+    // NAB622: FIXME: This can result in the camera turning upside-down somehow
 	if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
 		 ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
-		VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
+
+        VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
 
 		int n1 = ( m_nViewType == XY ) ? 1 : 2;
 		int n2 = ( m_nViewType == YZ ) ? 1 : 0;
 		int nAngle = ( m_nViewType == XY ) ? YAW : PITCH;
-		if ( point[n1] || point[n2] ) {
-			g_pParentWnd->GetCamWnd()->Camera()->angles[nAngle] = 180 / Q_PI*atan2( point[n1], point[n2] );
-			Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
-		}
+
+        if ( point[n1] || point[n2] ) {
+            g_pParentWnd->GetCamWnd()->Camera()->angles[nAngle] = 180 / Q_PI*atan2( point[n1], point[n2] );
+        }
+
+        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180, 360) - 180;
+        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180, 360) - 180;
+
+        if ( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] > 90 ) {
+            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = 180 - g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
+            if( !cameraFlipped ) {
+                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
+                cameraFlipped = true;
+            }
+        }
+        else if ( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] < -90 ) {
+            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = -180 - g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
+            if( !cameraFlipped ) {
+                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
+                cameraFlipped = true;
+            }
+        } else {
+            if( cameraFlipped ) {
+                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180;
+                cameraFlipped = false;
+            }
+        }
+
+        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180, 360) - 180;
+        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180, 360) - 180;
+
+        Sys_Printf("YAW: %f  -  PITCH: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
+
+        Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
+        return;
 	}
 
 /*
@@ -1588,10 +1625,13 @@ void XYWnd::HandleDrop(){
 										G_CALLBACK( HandleCommand ), ID_SELECTION_MAKE_STRUCTURAL );
 		menu_separator( menu ); nID++;
 
-		menu_in_menu = create_menu_in_menu_with_mnemonic( menu, "Smart Entities" );
+/*
+// NAB622: What even are these
+        menu_in_menu = create_menu_in_menu_with_mnemonic( menu, "Smart Entities" );
 		create_menu_item_with_mnemonic( menu_in_menu, "Smart__Train",
 										G_CALLBACK( HandleCommand ), nID++ );
 		menu_separator( menu ); nID++;
+*/
 
 		submenu = NULL;
 		submenu_root = NULL;
@@ -1862,22 +1902,52 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 	}
 */
 
-	// mbutton = angle camera
-	if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
-		 ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
+    // mbutton = angle camera
+    // NAB622: FIXME: This can result in the camera turning upside-down somehow
+    if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
+         ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
 
         SnapToPoint( x, y, point );
-		VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
+        VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
 
-		int n1 = ( m_nViewType == XY ) ? 1 : 2;
-		int n2 = ( m_nViewType == YZ ) ? 1 : 0;
-		int nAngle = ( m_nViewType == XY ) ? YAW : PITCH;
-		if ( point[n1] || point[n2] ) {
-			g_pParentWnd->GetCamWnd()->Camera()->angles[nAngle] = 180 / Q_PI*atan2( point[n1], point[n2] );
-			Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
-		}
-		return;
-	}
+        int n1 = ( m_nViewType == XY ) ? 1 : 2;
+        int n2 = ( m_nViewType == YZ ) ? 1 : 0;
+        int nAngle = ( m_nViewType == XY ) ? YAW : PITCH;
+        if ( point[n1] || point[n2] ) {
+            g_pParentWnd->GetCamWnd()->Camera()->angles[nAngle] = 180 / Q_PI*atan2( point[n1], point[n2] );
+        }
+
+        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180, 360) - 180;
+        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180, 360) - 180;
+
+        if ( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] > 90 ) {
+            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = 180 - g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
+            if( !cameraFlipped ) {
+                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
+                cameraFlipped = true;
+            }
+        }
+        else if ( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] < -90 ) {
+            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = -180 - g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
+            if( !cameraFlipped ) {
+                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
+                cameraFlipped = true;
+            }
+        } else {
+            if( cameraFlipped ) {
+                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180;
+                cameraFlipped = false;
+            }
+        }
+
+        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180, 360) - 180;
+        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180, 360) - 180;
+
+        Sys_Printf("YAW: %f  -  PITCH: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
+
+        Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
+        return;
+    }
 
 	// rbutton = drag xy origin
 	if ( m_nButtonstate == MK_RBUTTON ) {

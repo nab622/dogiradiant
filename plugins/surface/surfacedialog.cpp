@@ -47,7 +47,12 @@
 
 #define DEFAULT_SHIFT_INCREMENT_VALUE 1.0
 #define DEFAULT_SCALE_INCREMENT_VALUE 0.1
-#define DEFAULT_ROTATE_INCREMENT_VALUE 1.0
+#define DEFAULT_ROTATE_INCREMENT_VALUE 22.5
+
+// NAB622: Not sure how to get this from the prefs - so just define it here for now.
+// Everything that needs to reference the default scale value below already references
+// this value, so changing this value to the value from the prefs will do the job in the future
+#define DEFAULT_SCALE_VALUE 0.2
 
 
 vector<texdef_to_face_t> g_texdef_face_vector;
@@ -161,6 +166,7 @@ GtkWidget *fit_width_spinbutton;
 GtkAdjustment *fit_height_spinbutton_adj;
 GtkWidget *fit_height_spinbutton;
 GtkWidget *fit_button;
+GtkWidget *axial_button;
 GtkWidget *reset_shift_button;
 GtkWidget *reset_scale_button;
 GtkWidget *reset_rotate_button;
@@ -188,6 +194,7 @@ static void on_fit_width_spinbutton_value_changed( GtkSpinButton *spinbutton, gp
 static void on_fit_height_spinbutton_value_changed( GtkSpinButton *spinbutton, gpointer user_data );
 static void on_fit_button_clicked( GtkButton *button, gpointer user_data );
 
+static void on_axial_button_clicked( GtkButton *button, gpointer user_data );
 static void on_reset_shift_button_clicked( GtkButton *button, gpointer user_data );
 static void on_reset_rotate_button_clicked( GtkButton *button, gpointer user_data );
 static void on_reset_scale_button_clicked( GtkButton *button, gpointer user_data );
@@ -228,17 +235,28 @@ void IsFaceConflicting(){
 		return;
 	}
 
-	g_bListenChanged = FALSE;
-
 	tmp_texdef = &get_texdef_face_list()->texdef;
 
-	strcpy( texture_name, tmp_texdef->GetName() );
+    // NAB622: Before we do anything else, NORMALIZE ALL shift & rotate values! There's no reason for them to be beyond their maximums!
+    if ( !texdef_face_list_empty() ) {
+        for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
+        {
+            tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
+            tmp_texdef->shift[0] = calculateRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
+            tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
+            tmp_texdef->rotate = calculateRotatingValueBeneathMax( tmp_texdef->rotate, 360 );
+        }
+    }
+
+    g_bListenChanged = FALSE;
+
+    strcpy( texture_name, tmp_texdef->GetName() );
 
 	texdef_SI_values.shift[0] = tmp_texdef->shift[0];
 	texdef_SI_values.shift[1] = tmp_texdef->shift[1];
 	texdef_SI_values.scale[0] = tmp_texdef->scale[0];
 	texdef_SI_values.scale[1] = tmp_texdef->scale[1];
-	texdef_SI_values.rotate = tmp_texdef->rotate;
+    texdef_SI_values.rotate = tmp_texdef->rotate;
 	texdef_SI_values.SetName( texture_name );
 
 	is_HShift_conflicting = FALSE;
@@ -436,10 +454,10 @@ void DoSnapTToGrid( float hscale, float vscale ){
 	l_pIncrement = Get_SI_Inc();
 
 	if ( hscale == 0.0f ) {
-		hscale = 0.5f;
+        hscale = DEFAULT_SCALE_VALUE;
 	}
 	if ( vscale == 0.0f ) {
-		vscale = 0.5f;
+        vscale = DEFAULT_SCALE_VALUE;
 	}
 #ifdef _DEBUG
 	Sys_Printf( "DoSnapTToGrid: hscale %g vscale %g\n", hscale, vscale );
@@ -555,8 +573,8 @@ void InitDefaultIncrement( texdef_t *tex ){
     tex->SetName( "system/caulk" );
     tex->shift[0] = 0;
     tex->shift[1] = 0;
-    tex->scale[0] = 0.2;
-    tex->scale[1] = 0.2;
+    tex->scale[0] = DEFAULT_SCALE_VALUE;
+    tex->scale[1] = DEFAULT_SCALE_VALUE;
     tex->rotate = 0;
 }
 
@@ -694,6 +712,7 @@ GtkWidget* create_SurfaceInspector( void ){
 	GtkWidget *table4;
 	GtkWidget *table5;
     GtkWidget *table7;
+    GtkWidget *axialTable;
 
 	GtkWidget *vbox7;
 
@@ -846,13 +865,33 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
     gtk_widget_show( label );
 
-    label = gtk_label_new( _( "      ┌\nAxial ┤\n      └" ) );
-    gtk_widget_modify_font(label, pango_font_description_from_string("monospace 14"));
-    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
-    gtk_table_attach( GTK_TABLE( table1 ), label, 1, 2, 12, 14,
-                      (GtkAttachOptions) ( GTK_FILL ),
+    axialTable = gtk_table_new( 4, 1, FALSE );
+    gtk_table_set_col_spacings( GTK_TABLE( axialTable ), 2 );
+    gtk_table_set_row_spacings( GTK_TABLE( axialTable ), 2 );
+    gtk_table_attach( GTK_TABLE( table1 ), axialTable, 1, 2, 12, 14,
+                      (GtkAttachOptions) ( GTK_FILL | GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
-    gtk_widget_show( label );
+    gtk_widget_show( axialTable );
+
+
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( axialTable ), eventbox, 0, 3, 0, 1,
+                          (GtkAttachOptions) ( GTK_FILL | GTK_FILL ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( eventbox );
+
+        axial_button = gtk_button_new_with_mnemonic( _( "    Axial    " ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), axial_button );
+        gtk_container_set_border_width( GTK_CONTAINER( axial_button ), 4 );
+        gtk_widget_show( axial_button );
+
+        label = gtk_label_new( _( " ┌\n ┤\n └" ) );
+        gtk_widget_modify_font(label, pango_font_description_from_string("monospace 14"));
+        gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+        gtk_table_attach( GTK_TABLE( axialTable ), label, 3, 4, 0, 1,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( label );
 
     eventbox = gtk_event_box_new();
     gtk_table_attach( GTK_TABLE( table1 ), eventbox, 2, 3, 12, 13,
@@ -1091,7 +1130,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_entry_set_alignment( GTK_ENTRY( vshift_step_spinbutton ), 1.0 ); //right
     gtk_widget_show( vshift_step_spinbutton );
 
-    rotate_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_ROTATE_INCREMENT_VALUE, 0, 359.9999, 1.0, 10.0, 0.0 ) );
+    rotate_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_ROTATE_INCREMENT_VALUE, -99999, 99999, 1.0, 10.0, 0.0 ) );
     rotate_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( rotate_step_spinbutton_adj ), 1, 4 );
     gtk_table_attach( GTK_TABLE( table1 ), rotate_step_spinbutton, 4, 5, 6, 7,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1249,6 +1288,10 @@ GtkWidget* create_SurfaceInspector( void ){
 					  G_CALLBACK( on_fit_button_clicked ),
 					  NULL );
 
+    g_signal_connect( (gpointer) axial_button, "clicked",
+                      G_CALLBACK( on_axial_button_clicked ),
+                      NULL );
+
     g_signal_connect( (gpointer) reset_shift_button, "clicked",
                       G_CALLBACK( on_reset_shift_button_clicked ),
                       NULL );
@@ -1352,8 +1395,8 @@ static void on_vshift_value_spinbutton_value_changed( GtkSpinButton *spinbutton,
 			tmp_orig_texdef = (texdef_t *) &temp_texdef_face_list->orig_texdef;
 			tmp_texdef->shift[1] = texdef_SI_values.shift[1] + texdef_offset.shift[1];
             tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
-            is_VShift_conflicting = FALSE;
         }
+        is_VShift_conflicting = FALSE;
         GetTexMods();
 	}
 }
@@ -1371,9 +1414,9 @@ static void on_hscale_value_spinbutton_value_changed( GtkSpinButton *spinbutton,
 			tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
 			tmp_orig_texdef = (texdef_t *) &temp_texdef_face_list->orig_texdef;
 			tmp_texdef->scale[0] = texdef_SI_values.scale[0] + texdef_offset.scale[0];
-			is_HScale_conflicting = FALSE;
 		}
-		GetTexMods();
+        is_HScale_conflicting = FALSE;
+        GetTexMods();
 	}
 }
 
@@ -1390,9 +1433,9 @@ static void on_vscale_value_spinbutton_value_changed( GtkSpinButton *spinbutton,
 			tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
 			tmp_orig_texdef = (texdef_t *) &temp_texdef_face_list->orig_texdef;
 			tmp_texdef->scale[1] = texdef_SI_values.scale[1] + texdef_offset.scale[1];
-			is_VScale_conflicting = FALSE;
 		}
-		GetTexMods();
+        is_VScale_conflicting = FALSE;
+        GetTexMods();
 	}
 }
 
@@ -1409,10 +1452,10 @@ static void on_rotate_value_spinbutton_value_changed( GtkSpinButton *spinbutton,
 			tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
 			tmp_orig_texdef = (texdef_t *) &temp_texdef_face_list->orig_texdef;
 			tmp_texdef->rotate = texdef_SI_values.rotate + texdef_offset.rotate;
-			is_Rotate_conflicting = FALSE;
             tmp_texdef->rotate = calculateRotatingValueBeneathMax( tmp_texdef->rotate, 360 );
         }
-		GetTexMods();
+        is_Rotate_conflicting = FALSE;
+        GetTexMods();
 	}
 }
 
@@ -1513,8 +1556,8 @@ static void on_rotate_step_spinbutton_value_changed( GtkSpinButton *spinbutton, 
 #endif
 
 	val = gtk_spin_button_get_value( GTK_SPIN_BUTTON( rotate_step_spinbutton ) );
-	adjust = gtk_spin_button_get_adjustment( GTK_SPIN_BUTTON( rotate_value_spinbutton ) );
-	gtk_adjustment_set_step_increment( adjust, val );
+    adjust = gtk_spin_button_get_adjustment( GTK_SPIN_BUTTON( rotate_value_spinbutton ) );
+    gtk_adjustment_set_step_increment( adjust, val );
 	l_pIncrement->rotate = val;
 }
 
@@ -1572,21 +1615,22 @@ static void on_reset_rotate_button_clicked( GtkButton *button, gpointer user_dat
     Sys_UpdateWindows( W_ALL );
 }
 
+static void on_axial_button_clicked( GtkButton *button, gpointer user_data ){
+    // NAB622: Axial button is just the shift and rotate set to 0. Just reset both of those.
+    on_reset_shift_button_clicked( button, user_data );
+    on_reset_rotate_button_clicked( button, user_data );
+}
+
 static void on_reset_scale_button_clicked( GtkButton *button, gpointer user_data ){
     texdef_t* tmp_texdef;
     texdef_to_face_t* temp_texdef_face_list;
 
-    Sys_Printf( "This feature does not work yet!\n" );
-
     if ( !texdef_face_list_empty() && g_bListenChanged ) {
         for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
         {
-            // NAB622: Wasn't sure how to read from the Radiant preferences here...
-/*
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
-            tmp_texdef->scale[0] = g_PrefsDlg.m_fDefTextureScale;
-            tmp_texdef->scale[1] = g_PrefsDlg.m_fDefTextureScale;
-*/
+            tmp_texdef->scale[0] = DEFAULT_SCALE_VALUE;
+            tmp_texdef->scale[1] = DEFAULT_SCALE_VALUE;
         }
     }
 
@@ -1625,6 +1669,21 @@ static void on_vertical_flip_button_clicked( GtkButton *button, gpointer user_da
             tmp_texdef->shift[1] = -tmp_texdef->shift[1];
             tmp_texdef->scale[1] = -tmp_texdef->scale[1];
             tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
+        }
+        GetTexMods();
+    }
+}
+
+static void on_rotate_180_button_clicked( GtkButton *button, gpointer user_data ) {
+    texdef_t* tmp_texdef;
+    texdef_t* tmp_orig_texdef;
+    texdef_to_face_t* temp_texdef_face_list;
+
+    if ( !texdef_face_list_empty() && g_bListenChanged ) {
+        for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
+        {
+            tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
+            tmp_texdef->rotate = calculateRotatingValueBeneathMax( tmp_texdef->rotate - 180, 360 );
         }
         GetTexMods();
     }

@@ -484,6 +484,9 @@ void Patch_LODMatchAll();
 void Patch_CalcBounds( patchMesh_t *p, vec3_t& vMin, vec3_t& vMax );
 
 
+// NAB622: This value is used to stop the camera frop flipping around incessantly
+// when middle clicking in the grid view
+extern bool cameraFlipped;
 
 
 // group stuff

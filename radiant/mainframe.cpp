@@ -7444,7 +7444,7 @@ void MainFrame::OnCameraBack( bool keydown ){
 }
 
 void MainFrame::OnCameraLeft( bool keydown ){
-	if ( m_pCamWnd ) {
+    if ( m_pCamWnd ) {
 		if ( m_pCamWnd->m_bFreeMove ) {
 			OnCameraStrafeleft( keydown );
 			return;
@@ -7469,7 +7469,7 @@ void MainFrame::OnCameraLeft( bool keydown ){
 }
 
 void MainFrame::OnCameraRight( bool keydown ){
-	if ( m_pCamWnd ) {
+    if ( m_pCamWnd ) {
 		if ( m_pCamWnd->m_bFreeMove ) {
 			OnCameraStraferight( keydown );
 			return;
@@ -7506,23 +7506,38 @@ void MainFrame::OnCameraDown(){
 }
 
 void MainFrame::OnCameraAngleup(){
-	m_pCamWnd->Camera()->angles[0] += SPEED_TURN;
-	if ( m_pCamWnd->Camera()->angles[0] > 85 ) {
-		m_pCamWnd->Camera()->angles[0] = 85;
-	}
-	Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
+    m_pCamWnd->Camera()->angles[0] += SPEED_TURN;
+    if ( m_pCamWnd->Camera()->angles[0] > 90 ) {
+        m_pCamWnd->Camera()->angles[0] = 90;
+        // NAB622: Make sure to reset this
+        cameraFlipped = false;
+    } else if ( m_pCamWnd->Camera()->angles[0] < -90 ) {
+        m_pCamWnd->Camera()->angles[0] = -90;
+        // NAB622: Make sure to reset this
+        cameraFlipped = false;
+    }
+    Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
 }
 
 void MainFrame::OnCameraAngledown(){
-	m_pCamWnd->Camera()->angles[0] -= SPEED_TURN;
-	if ( m_pCamWnd->Camera()->angles[0] < -85 ) {
-		m_pCamWnd->Camera()->angles[0] = -85;
-	}
-	Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
+    // NAB622: Make sure to reset this
+    cameraFlipped = false;
+
+    m_pCamWnd->Camera()->angles[0] -= SPEED_TURN;
+    if ( m_pCamWnd->Camera()->angles[0] > 90 ) {
+        m_pCamWnd->Camera()->angles[0] = 90;
+        // NAB622: Make sure to reset this
+        cameraFlipped = false;
+    } else if ( m_pCamWnd->Camera()->angles[0] < -90 ) {
+        m_pCamWnd->Camera()->angles[0] = -90;
+        // NAB622: Make sure to reset this
+        cameraFlipped = false;
+    }
+    Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
 }
 
 void MainFrame::OnCameraStrafeleft( bool keydown ){
-	// FIXME: as soon as gtk supports proper keyup/down support, remove this bit
+    // FIXME: as soon as gtk supports proper keyup/down support, remove this bit
 	if ( m_pCamWnd ) {
 		if ( !m_pCamWnd->m_bFreeMove ) {
 			if ( keydown ) {
@@ -7543,7 +7558,7 @@ void MainFrame::OnCameraStrafeleft( bool keydown ){
 }
 
 void MainFrame::OnCameraStraferight( bool keydown ){
-	// FIXME: as soon as gtk supports proper keyup/down support, remove this bit
+    // FIXME: as soon as gtk supports proper keyup/down support, remove this bit
 	if ( m_pCamWnd ) {
 		if ( !m_pCamWnd->m_bFreeMove ) {
 			if ( keydown ) {

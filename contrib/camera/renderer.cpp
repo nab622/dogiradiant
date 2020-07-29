@@ -110,7 +110,7 @@ void CRenderer::Draw3D() {
 			vec3_t origin = {0.0f, 0.0f, 0.0f}, dir = {0.0f, 0.0f, 0.0f}, angles;
 
 			GetCurrentCam()->GetCam()->getCameraInfo( current, &origin[0], &dir[0], &fov );
-			VectorSet( angles, asin( dir[2] ) * 180 / 3.14159, atan2( dir[1], dir[0] ) * 180 / 3.14159, 0 );
+            VectorSet( angles, asin( dir[2] ) * 180 / 3.14159, atan2( dir[1], dir[0] ) * 180 / 3.14159, 0 );
 			g_CameraTable.m_pfnSetCamera( origin, angles );
 			current = g_FuncTable.m_pfnQGetTickCount();
 		}

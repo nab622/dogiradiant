@@ -2153,8 +2153,8 @@ void PrefsDlg::BuildDialog(){
     // Windows configurations
 	// table
     table = gtk_table_new( 6, 3, FALSE );
-    gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
-    gtk_table_set_col_spacings( GTK_TABLE( table ), 10 );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
+    gtk_table_set_col_spacings( GTK_TABLE( table ), 6 );
     gtk_container_add( GTK_CONTAINER( windowConfigViewport ), table );
     gtk_widget_show( table );
 
@@ -2198,28 +2198,28 @@ void PrefsDlg::BuildDialog(){
 
 
 	// view type 1 selector
-    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Standard window layout" );
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), " Standard window layout" );
     gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 1, 2,
                       (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
                         gtk_widget_show( radio );
 
 	// view type 2 selector
-    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Floating windows layout" );
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), " Floating windows layout" );
     gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 2, 3,
                       (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( radio );
 
 	// view type 3 selector
-    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "3 Grid windows layout" );
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), " 3 Grid windows layout" );
     gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 3, 4,
                       (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( radio );
 
 	// view type 4 selector
-    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), "Reverse standard window layout" );
+    radio = gtk_radio_button_new_with_label_from_widget( GTK_RADIO_BUTTON( radio ), " Reverse standard window layout" );
     gtk_table_attach( GTK_TABLE( table ), radio, 2, 3, 4, 5,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );

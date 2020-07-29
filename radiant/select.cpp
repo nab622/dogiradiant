@@ -1801,7 +1801,7 @@ void Select_ScaleTexture( float x, float y ) {
 }
 
 void Select_RotateTexture( int amt ){
-	brush_t     *b;
+    brush_t     *b;
 	face_t      *f;
 
 	int nFaceCount = g_ptrSelectedFaces.GetSize();
@@ -1826,6 +1826,8 @@ void Select_RotateTexture( int amt ){
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
 				// update
                 rotate += amt * getGridValueForTextureChanges() * 10;
+                rotate = calculateRotatingValueBeneathMax( rotate, 360 );
+                // NAB622: FIXME: This needs to include calculateRotatingValueBeneathMax somehow
 				// compute new normalized texture matrix
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				// apply to face texture matrix
@@ -1858,14 +1860,15 @@ void Select_RotateTexture( int amt ){
 				brushprimit_texdef_t bp;
 				ConvertTexMatWithQTexture( &selFace->brushprimit_texdef, selFace->d_texture, &bp, NULL );
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
-                rotate += amt * ( g_qeglobals.d_gridsize / 100 );
+                rotate += amt * ( getGridValueForTextureChanges() * 10 );
+                rotate = calculateRotatingValueBeneathMax( rotate, 360 );
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				ConvertTexMatWithQTexture( &bp, NULL, &selFace->brushprimit_texdef, selFace->d_texture );
 			}
 			else
 			{
                 selFace->texdef.rotate += amt * getGridValueForTextureChanges() * 10;
-                selFace->texdef.rotate = static_cast<float>( fmod( selFace->texdef.rotate, 360 ) );
+                selFace->texdef.rotate = static_cast<float>( calculateRotatingValueBeneathMax( selFace->texdef.rotate, 360 ) );
 			}
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}

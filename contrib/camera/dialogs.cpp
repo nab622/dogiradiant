@@ -914,7 +914,7 @@ static gint ci_timeline_changed( GtkAdjustment *adjustment ){
 		GetCurrentCam()->GetCam()->startCamera( 0 );
 
 		GetCurrentCam()->GetCam()->getCameraInfo( (long)( gtk_adjustment_get_value( adjustment ) ), &origin[0], &dir[0], &fov );
-		VectorSet( angles, asin( dir[2] ) * 180 / 3.14159, atan2( dir[1], dir[0] ) * 180 / 3.14159, 0 );
+        VectorSet( angles, asin( dir[2] ) * 180 / 3.14159, atan2( dir[1], dir[0] ) * 180 / 3.14159, 0 );
 		g_CameraTable.m_pfnSetCamera( origin, angles );
 	}
 

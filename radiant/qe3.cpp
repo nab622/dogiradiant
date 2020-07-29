@@ -65,6 +65,11 @@ float clampCameraBoundaries( float input ) {
 }
 
 
+// NAB622: This value is used to stop the camera frop flipping around incessantly
+// when middle clicking in the grid view
+bool cameraFlipped = false;
+
+
 // leo: Track memory allocations for debugging
 // NOTE TTimo this was never used and probably not relevant
 //   there are tools to do that

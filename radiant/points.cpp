@@ -92,8 +92,8 @@ void Pointfile_Next( void ){
 	VectorCopy( s_pointvecs[s_check_point], g_pParentWnd->GetXYWnd()->GetOrigin() );
 	VectorSubtract( s_pointvecs[s_check_point + 1], g_pParentWnd->GetCamWnd()->Camera()->origin, dir );
 	VectorNormalize( dir, dir );
-	g_pParentWnd->GetCamWnd()->Camera()->angles[1] = atan2( dir[1], dir[0] ) * 180 / 3.14159;
-	g_pParentWnd->GetCamWnd()->Camera()->angles[0] = asin( dir[2] ) * 180 / 3.14159;
+    g_pParentWnd->GetCamWnd()->Camera()->angles[1] = atan2( dir[1], dir[0] ) * 180 / Q_PI;
+    g_pParentWnd->GetCamWnd()->Camera()->angles[0] = asin( dir[2] ) * 180 / Q_PI;
 
 	Sys_UpdateWindows( W_ALL );
 }
@@ -111,8 +111,8 @@ void Pointfile_Prev( void ){
 	VectorCopy( s_pointvecs[s_check_point], g_pParentWnd->GetXYWnd()->GetOrigin() );
 	VectorSubtract( s_pointvecs[s_check_point + 1], g_pParentWnd->GetCamWnd()->Camera()->origin, dir );
 	VectorNormalize( dir, dir );
-	g_pParentWnd->GetCamWnd()->Camera()->angles[1] = atan2( dir[1], dir[0] ) * 180 / 3.14159;
-	g_pParentWnd->GetCamWnd()->Camera()->angles[0] = asin( dir[2] ) * 180 / 3.14159;
+    g_pParentWnd->GetCamWnd()->Camera()->angles[1] = atan2( dir[1], dir[0] ) * 180 / Q_PI;
+    g_pParentWnd->GetCamWnd()->Camera()->angles[0] = asin( dir[2] ) * 180 / Q_PI;
 
 	Sys_UpdateWindows( W_ALL );
 }
