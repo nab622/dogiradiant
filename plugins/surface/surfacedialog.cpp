@@ -44,6 +44,7 @@
 #define MAX_FIT_INCREMENT 512
 #define MAX_SHIFT_INCREMENT 32768.0
 #define MAX_SCALE_INCREMENT 8192.0
+#define MAX_ROTATE_INCREMENT 16384.0
 
 #define DEFAULT_SHIFT_INCREMENT_VALUE 1.0
 #define DEFAULT_SCALE_INCREMENT_VALUE 0.1
@@ -1072,7 +1073,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_entry_set_alignment( GTK_ENTRY( vshift_value_spinbutton ), 1.0 ); //right
     gtk_widget_show( vshift_value_spinbutton );
 
-    rotate_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -359.9999, 360, 1.0, 10.0, 0.0 ) );
+    rotate_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -MAX_ROTATE_INCREMENT, MAX_ROTATE_INCREMENT, 1.0, 10.0, 0.0 ) );
     rotate_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( rotate_value_spinbutton_adj ), 1, 4 );
     gtk_table_attach( GTK_TABLE( table1 ), rotate_value_spinbutton, 2, 3, 6, 7,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1130,7 +1131,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_entry_set_alignment( GTK_ENTRY( vshift_step_spinbutton ), 1.0 ); //right
     gtk_widget_show( vshift_step_spinbutton );
 
-    rotate_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_ROTATE_INCREMENT_VALUE, -99999, 99999, 1.0, 10.0, 0.0 ) );
+    rotate_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_ROTATE_INCREMENT_VALUE, -MAX_ROTATE_INCREMENT, MAX_ROTATE_INCREMENT, 1.0, 10.0, 0.0 ) );
     rotate_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( rotate_step_spinbutton_adj ), 1, 4 );
     gtk_table_attach( GTK_TABLE( table1 ), rotate_step_spinbutton, 4, 5, 6, 7,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),

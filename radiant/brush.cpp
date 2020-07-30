@@ -1125,21 +1125,20 @@ int Brush_Convex( brush_t *b ){
 
 #define MAX_MOVE_FACES      64
 
-int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool bSnap ){
+bool Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool bSnap ){
 	face_t *f, *face, *newface, *lastface, *nextface;
 	face_t *movefaces[MAX_MOVE_FACES];
 	int movefacepoints[MAX_MOVE_FACES];
 	winding_t *w, tmpw;
 	vec3_t start, mid;
 	plane_t plane;
-	int i, j, k, nummovefaces, result, done;
+    int i, j, k, nummovefaces, done;
 	float dot, front, back, frac, smallestfrac;
+    bool result;
 
 #ifdef DBG_VERT
     Sys_Printf( "Brush_MoveVertex: %p vertex: %g %g %g delta: %g %g %g end: %g %g %g snap: %s\n", b, vertex[0], vertex[1], vertex[2], delta[0], delta[1], delta[2], end[0], end[1], end[2], bSnap ? "true" : "false" );
 #endif
-
-    Sys_Printf( "Brush_MoveVertex: %p vertex: %g %g %g delta: %g %g %g end: %g %g %g snap: %s\n", b, vertex[0], vertex[1], vertex[2], delta[0], delta[1], delta[2], end[0], end[1], end[2], bSnap ? "true" : "false" );
 
     result = true;
 	//
@@ -1152,6 +1151,12 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 		for ( i = 0; i < 3; i++ )
             end[i] = floor( end[i] / g_qeglobals.d_gridsize + 0.5 ) * g_qeglobals.d_gridsize;
 	}
+
+    if( areWeOutOfBounds( end ) ) {
+        Sys_Printf( "Out of bounds, move cancelled!\n" );
+        return false;
+    }
+
 	//
 	VectorCopy( end, mid );
     //if the start and end are the same
@@ -1318,7 +1323,7 @@ int Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool 
 					}
 				}
 			}
-			//now we've got the plane to check agains
+            //now we've got the plane to check against
 			front = DotProduct( start, plane.normal ) - plane.dist;
 			back = DotProduct( end, plane.normal ) - plane.dist;
 			//if the whole move is at one side of the plane
@@ -3363,47 +3368,72 @@ void Brush_DrawXY( brush_t *b, int nViewType ){
 
 }
 
+bool performBrushMove( brush_t *b, const vec3_t move, bool bSnap, bool applyChanges ) {
+    int i;
+    face_t *f;
+
+    for ( f = b->brush_faces ; f ; f = f->next )
+        for ( i = 0 ; i < 3 ; i++ ) {
+            if( applyChanges ) {
+                VectorAdd( f->planepts[i], move, f->planepts[i] );
+            } else {
+                vec3_t test;
+                VectorAdd( f->planepts[i], move, test );
+                if ( areWeOutOfBounds( test ) ) {
+                    return false;
+                }
+            }
+        }
+
+    if ( applyChanges ) {
+        if( g_PrefsDlg.m_bTextureLock && !b->owner->eclass->fixedsize ) {
+            for ( f = b->brush_faces ; f ; f = f->next )
+            {
+                vec3_t vTemp;
+                VectorCopy( move, vTemp );
+                Face_MoveTexture( f, vTemp );
+            }
+        }
+
+
+        Brush_Build( b, bSnap,true,false,false ); // don't filter
+    }
+
+
+    if ( b->patchBrush ) {
+        //Patch_Move(b->nPatchID, move);
+        if( !Patch_Move( b->pPatch, move, applyChanges ) ) {
+            return false;
+        }
+    }
+
+    if( applyChanges ) {
+        // PGM - keep the origin vector up to date on fixed size entities.
+        if ( b->owner->eclass->fixedsize ) {
+            char text[64];
+            VectorAdd( b->owner->origin, move, b->owner->origin );
+            sprintf( text, "%i %i %i",
+                     (int)b->owner->origin[0], (int)b->owner->origin[1], (int)b->owner->origin[2] );
+            SetKeyValue( b->owner, "origin", text );
+            //VectorAdd(b->maxs, b->mins, b->owner->origin);
+            //VectorScale(b->owner->origin, 0.5, b->owner->origin);
+        }
+    }
+    return true;
+}
+
 /*
    ============
    Brush_Move
    ============
- */
+*/
 void Brush_Move( brush_t *b, const vec3_t move, bool bSnap ){
-	int i;
-	face_t *f;
-
-	for ( f = b->brush_faces ; f ; f = f->next )
-		for ( i = 0 ; i < 3 ; i++ )
-			VectorAdd( f->planepts[i], move, f->planepts[i] );
-
-	if ( g_PrefsDlg.m_bTextureLock && !b->owner->eclass->fixedsize ) {
-		for ( f = b->brush_faces ; f ; f = f->next )
-		{
-			vec3_t vTemp;
-			VectorCopy( move, vTemp );
-			Face_MoveTexture( f, vTemp );
-		}
-	}
-
-	Brush_Build( b, bSnap,true,false,false ); // don't filter
-
-
-	if ( b->patchBrush ) {
-		//Patch_Move(b->nPatchID, move);
-		Patch_Move( b->pPatch, move );
-	}
-
-
-	// PGM - keep the origin vector up to date on fixed size entities.
-	if ( b->owner->eclass->fixedsize ) {
-		char text[64];
-		VectorAdd( b->owner->origin, move, b->owner->origin );
-		sprintf( text, "%i %i %i",
-				 (int)b->owner->origin[0], (int)b->owner->origin[1], (int)b->owner->origin[2] );
-		SetKeyValue( b->owner, "origin", text );
-		//VectorAdd(b->maxs, b->mins, b->owner->origin);
-		//VectorScale(b->owner->origin, 0.5, b->owner->origin);
-	}
+    if( performBrushMove( b, move, bSnap, false ) ) {
+        performBrushMove( b, move, bSnap, true );
+    } else {
+        Sys_Printf( "Out of bounds! Move cancelled.\n" );
+        return;
+    }
 }
 
 

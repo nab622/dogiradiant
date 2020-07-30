@@ -490,11 +490,20 @@ void Select_Deselect( bool bDeselectFaces ){
 void Select_Move( vec3_t delta, bool bSnap ){
 	brush_t *b;
 
-	// actually move the selected brushes
-	for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next )
-		Brush_Move( b, delta, bSnap );
+    // NAB622: Check to make sure the move is within the grid
+    for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next ) {
+        if( !performBrushMove( b, delta, bSnap, false ) ) {
+            Sys_Printf( "Out of bounds! Move cancelled.\n" );
+            return;
+        }
+    }
 
-	vec3_t vMin, vMax;
+    // Actually move the selected brushes
+    for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next ) {
+        performBrushMove( b, delta, bSnap, true );
+    }
+
+    vec3_t vMin, vMax;
 	Select_GetBounds( vMin, vMax );
 	CString strStatus;
 	strStatus.Format( "Origin X:: %.1f  Y:: %.1f  Z:: %.1f", vMin[0], vMax[1], vMax[2] );
@@ -520,7 +529,7 @@ void Select_NudgePoint( vec3_t delta, qboolean bSnap ){
 		qboolean success = true;
 		for ( b = selected_brushes.next; b != &selected_brushes; b = b->next )
 		{
-			success &= (qboolean)Brush_MoveVertex( b, g_qeglobals.d_move_points[0], delta, end, bSnap );
+            success = (qboolean)Brush_MoveVertex( b, g_qeglobals.d_move_points[0], delta, end, bSnap );
 		}
 		if ( success ) {
 			VectorCopy( end, g_qeglobals.d_move_points[0] );
@@ -545,8 +554,13 @@ void Select_Clone( void ){
 	g_pParentWnd->Copy();
 	Select_Deselect();
 	g_pParentWnd->Paste();
-	g_pParentWnd->NudgeSelection( 2, g_qeglobals.d_gridsize );
+/*
+// NAB622: Disabling this because I don't see the point.
+// Always hated it because it risked misaligning things on the 3rd axis
+
+    g_pParentWnd->NudgeSelection( 2, g_qeglobals.d_gridsize );
 	g_pParentWnd->NudgeSelection( 3, g_qeglobals.d_gridsize );
+*/
 	Undo_Start( "clone" );
 	Undo_EndBrushList( &selected_brushes );
 	Undo_End();
@@ -673,8 +687,8 @@ void Select_GetBounds( vec3_t mins, vec3_t maxs ){
 
 	for ( i = 0 ; i < 3 ; i++ )
 	{
-		mins[i] = 99999;
-		maxs[i] = -99999;
+        mins[i] = MIN_MAP_SIZE;
+        maxs[i] = MAX_MAP_SIZE;
 	}
 
 	for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next )
@@ -841,13 +855,12 @@ bool performTransform( bool bSnap, bool bRotation, int nAxis, float fDeg, bool a
                             f->planepts[i][j] = DotProduct( temp, select_matrix[j] ) + select_origin[j];
                         }
                     }
-                }
 
-                if ( select_fliporder ) {
-                    // NAB622: It shouldn't be possible for this to go out-of-bounds...
-                    VectorCopy( f->planepts[0], temp );
-                    VectorCopy( f->planepts[2], f->planepts[0] );
-                    VectorCopy( temp, f->planepts[2] );
+                    if ( select_fliporder ) {
+                        VectorCopy( f->planepts[0], temp );
+                        VectorCopy( f->planepts[2], f->planepts[0] );
+                        VectorCopy( temp, f->planepts[2] );
+                    }
                 }
             }
             if( applyTransform ) {
@@ -1104,8 +1117,8 @@ void Select_FlipAxis( int axis ){
 	select_matrix[axis][axis] = -1;
 	select_fliporder = true;
 
+    // NAB622: Make sure the transform is possible before modifying any textures!
     if( performTransform( true, false, 0, 0, false ) ) {
-        // NAB622: Make sure the transform is possible before modifying any textures!
 
         // texture locking
         if ( g_PrefsDlg.m_bRotateLock ) {

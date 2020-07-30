@@ -978,7 +978,7 @@ bool XYWnd::SetRotateMode( bool bMode ){
 	else
 	{
 		if ( bMode ) {
-			Sys_Printf( "Need a brush selected to turn on Mouse Rotation mode\n" );
+            Sys_Printf( "Need a brush selected to turn on Mouse Rotation mode\n" );
 		}
 		g_bRotateMode = false;
 	}
@@ -987,8 +987,8 @@ bool XYWnd::SetRotateMode( bool bMode ){
 }
 
 void XYWnd::SetScaleMode( bool bMode ){
-	g_bScaleMode = bMode;
-	RedrawWindow();
+    g_bScaleMode = bMode;
+    RedrawWindow();
 }
 
 rectangle_t rectangle_from_area_xy(){

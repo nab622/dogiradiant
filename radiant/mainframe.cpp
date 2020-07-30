@@ -135,7 +135,8 @@ SCommandInfo g_Commands[] =
 	{"ShowHidden", GDK_KEY_H, 0x01, ID_VIEW_HIDESHOW_SHOWHIDDEN, "menu_view_hideshow_showhidden"},
 	{"BendMode", GDK_KEY_B, 0x00, ID_PATCH_BEND, "menu_patch_bend"},
 	{"FitTexture", GDK_KEY_B, 0x01, IDC_BTN_FACEFIT, "menu_idc_btn_facefit"},
-	{"ViewTextures", GDK_KEY_T, 0, ID_VIEW_TEXTURE, "menu_view_texture"},
+// NAB622: I have no idea what this is
+    //	{"ViewTextures", GDK_KEY_T, 0, ID_VIEW_TEXTURE, "menu_view_texture"},
 	{"ThickenPatch", GDK_KEY_T, 0x04, ID_CURVE_THICKEN, "menu_curve_thicken"},
 	{"MakeOverlayPatch", GDK_KEY_Y, 0, ID_CURVE_OVERLAY_SET, "menu_curve_overlay_set"},
 	{"ClearPatchOverlays", GDK_KEY_L, 0x04, ID_CURVE_OVERLAY_CLEAR, "menu_curve_overlay_clear"},
@@ -228,8 +229,9 @@ SCommandInfo g_Commands[] =
 	{"ClipSelected", GDK_KEY_Return, 0x00, ID_CLIP_SELECTED, "menu_clip_selected"},
 	{"SplitSelected", GDK_KEY_Return, 0x01, ID_SPLIT_SELECTED, "menu_split_selected"},
 	{"FlipClip", GDK_KEY_Return, 0x04, ID_FLIP_CLIP, "menu_flip_clip"},
-	{"MouseRotate", GDK_KEY_R, 0x00, ID_SELECT_MOUSEROTATE, "menu_select_mouserotate"},
-	{"Copy", GDK_KEY_C, 0x04, ID_EDIT_COPYBRUSH, "menu_edit_copybrush"},
+    {"MouseRotate", GDK_KEY_R, 0x00, ID_SELECT_MOUSEROTATE, "menu_select_mouserotate"},
+    {"MouseScale", GDK_KEY_T, 0x00, ID_SELECT_MOUSESCALE, "menu_select_mousescale"},
+    {"Copy", GDK_KEY_C, 0x04, ID_EDIT_COPYBRUSH, "menu_edit_copybrush"},
 	{"Paste", GDK_KEY_V, 0x04, ID_EDIT_PASTEBRUSH, "menu_edit_pastebrush"},
 	{"PasteToCamera", GDK_KEY_V, RAD_ALT, ID_EDIT_PASTEBRUSHTOCAMERA, "menu_edit_pastebrushtocamera"},
 	{"Undo", GDK_KEY_Z, 0x04, ID_EDIT_UNDO, "menu_edit_undo"},
@@ -691,7 +693,7 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 		  case ID_VIEW_CAMERATOGGLE: g_pParentWnd->ToggleCamera(); break;
 		  case ID_VIEW_CAMERAUPDATE: g_pParentWnd->OnViewCameraupdate(); break;
 		  case ID_SELECT_MOUSEROTATE: g_pParentWnd->OnSelectMouserotate(); break;
-		  case ID_SELECT_MOUSESCALE: g_pParentWnd->OnSelectMousescale(); break;
+          case ID_SELECT_MOUSESCALE: g_pParentWnd->OnSelectMousescale(); break;
 		  case ID_SCALELOCKX: g_pParentWnd->OnScalelockx(); break;
 		  case ID_SCALELOCKY: g_pParentWnd->OnScalelocky(); break;
 		  case ID_SCALELOCKZ: g_pParentWnd->OnScalelockz(); break;
@@ -1757,8 +1759,9 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 	create_menu_item_with_mnemonic( menu, "ToggleGrid", G_CALLBACK( HandleCommand ), ID_GRID_TOGGLE );
 	create_menu_item_with_mnemonic( menu, "ToggleCrosshairs", G_CALLBACK( HandleCommand ), ID_VIEW_CROSSHAIR );
 	create_menu_item_with_mnemonic( menu, "ToggleRealtime", G_CALLBACK( HandleCommand ), ID_VIEW_CAMERAUPDATE );
-	create_menu_item_with_mnemonic( menu, "MouseRotate", G_CALLBACK( HandleCommand ), ID_SELECT_MOUSEROTATE );
-	create_menu_item_with_mnemonic( menu, "TexRotateClock", G_CALLBACK( HandleCommand ), ID_SELECTION_TEXTURE_ROTATECLOCK );
+    create_menu_item_with_mnemonic( menu, "MouseRotate", G_CALLBACK( HandleCommand ), ID_SELECT_MOUSEROTATE );
+    create_menu_item_with_mnemonic( menu, "MouseScale", G_CALLBACK( HandleCommand ), ID_SELECT_MOUSESCALE );
+    create_menu_item_with_mnemonic( menu, "TexRotateClock", G_CALLBACK( HandleCommand ), ID_SELECTION_TEXTURE_ROTATECLOCK );
 	create_menu_item_with_mnemonic( menu, "TexRotateCounter", G_CALLBACK( HandleCommand ), ID_SELECTION_TEXTURE_ROTATECOUNTER );
 	create_menu_item_with_mnemonic( menu, "TexScaleUp", G_CALLBACK( HandleCommand ), ID_SELECTION_TEXTURE_SCALEUP );
 	create_menu_item_with_mnemonic( menu, "TexScaleDown", G_CALLBACK( HandleCommand ), ID_SELECTION_TEXTURE_SCALEDOWN );
@@ -1911,7 +1914,7 @@ void MainFrame::create_main_toolbar( GtkWidget *window, GtkWidget *vbox ){
     g_object_set_data( G_OBJECT( window ), "ttb_select_mouserotate", w );
 
     w = toolbar_append_element( GTK_TOOLBAR( toolbar ), TOOLBAR_CHILD_TOGGLEBUTTON, NULL,
-                                    "", _( "Free scaling" ), "", new_image_icon("select_mousescale.png"),
+                                    "", _( "Free scaling (T)" ), "", new_image_icon("select_mousescale.png"),
                                     G_CALLBACK( HandleCommand ), GINT_TO_POINTER( ID_SELECT_MOUSESCALE ) );
     g_object_set_data( G_OBJECT( window ), "ttb_select_mousescale", w );
     w = toolbar_append_element( GTK_TOOLBAR( toolbar ), TOOLBAR_CHILD_TOGGLEBUTTON, NULL,
@@ -7116,8 +7119,8 @@ void MainFrame::OnSelectMousescale(){
 			OnViewClipper();
 		}
 		if ( ActiveXY()->RotateMode() ) {
-			// SetRotateMode(false) always works
-			ActiveXY()->SetRotateMode( false );
+            // SetRotateMode(false) always works
+            ActiveXY()->SetRotateMode( false );
 			gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON( item ), FALSE );
 		}
 		if ( ActiveXY()->ScaleMode() ) {
@@ -7615,7 +7618,7 @@ void MainFrame::OnSelectionTextureScaleup(){
     Sys_Printf( "Scaling texture\n" );
     Undo_AddBrushList( &selected_brushes );
 
-    Select_ScaleTexture( 0, g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] * 10 );
+    Select_ScaleTexture( 0, g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] * 200 );
 
     Undo_EndBrushList( &selected_brushes );
     Undo_End();
@@ -7626,7 +7629,7 @@ void MainFrame::OnSelectionTextureScaledown(){
     Sys_Printf( "Scaling texture\n" );
     Undo_AddBrushList( &selected_brushes );
 
-    Select_ScaleTexture( 0, -g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] * 10 );
+    Select_ScaleTexture( 0, -g_qeglobals.d_savedinfo.m_SIIncrement.scale[1] * 200 );
 
     Undo_EndBrushList( &selected_brushes );
     Undo_End();
@@ -7637,7 +7640,7 @@ void MainFrame::OnSelectionTextureScaleLeft(){
     Sys_Printf( "Scaling texture\n" );
     Undo_AddBrushList( &selected_brushes );
 
-    Select_ScaleTexture( -g_qeglobals.d_savedinfo.m_SIIncrement.scale[0] * 10, 0 );
+    Select_ScaleTexture( -g_qeglobals.d_savedinfo.m_SIIncrement.scale[0] * 200, 0 );
 
     Undo_EndBrushList( &selected_brushes );
     Undo_End();
@@ -7648,7 +7651,7 @@ void MainFrame::OnSelectionTextureScaleRight(){
     Sys_Printf( "Scaling texture\n" );
     Undo_AddBrushList( &selected_brushes );
 
-    Select_ScaleTexture( g_qeglobals.d_savedinfo.m_SIIncrement.scale[0] * 10, 0 );
+    Select_ScaleTexture( g_qeglobals.d_savedinfo.m_SIIncrement.scale[0] * 200, 0 );
 
     Undo_EndBrushList( &selected_brushes );
     Undo_End();
@@ -7659,7 +7662,7 @@ void MainFrame::OnSelectionTextureShiftleft(){
     Sys_Printf( "Shifting texture\n" );
     Undo_AddBrushList( &selected_brushes );
 
-    Select_ShiftTexture( (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[0] * 10, 0 );
+    Select_ShiftTexture( (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[0] * 2.5, 0 );
 
     Undo_EndBrushList( &selected_brushes );
     Undo_End();
@@ -7670,7 +7673,7 @@ void MainFrame::OnSelectionTextureShiftright(){
     Sys_Printf( "Shifting texture\n" );
     Undo_AddBrushList( &selected_brushes );
 
-    Select_ShiftTexture( (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[0] * 10, 0 );
+    Select_ShiftTexture( (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[0] * 2.5, 0 );
 
     Undo_EndBrushList( &selected_brushes );
     Undo_End();
@@ -7681,7 +7684,7 @@ void MainFrame::OnSelectionTextureShiftup(){
     Sys_Printf( "Shifting texture\n" );
     Undo_AddBrushList( &selected_brushes );
 
-    Select_ShiftTexture( 0, (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] * 10 );
+    Select_ShiftTexture( 0, (int)g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] * 2.5 );
 
     Undo_EndBrushList( &selected_brushes );
     Undo_End();
@@ -7692,7 +7695,7 @@ void MainFrame::OnSelectionTextureShiftdown(){
     Sys_Printf( "Shifting texture\n" );
     Undo_AddBrushList( &selected_brushes );
 
-    Select_ShiftTexture( 0, (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] * 10 );
+    Select_ShiftTexture( 0, (int)-g_qeglobals.d_savedinfo.m_SIIncrement.shift[1] * 2.5 );
 
     Undo_EndBrushList( &selected_brushes );
     Undo_End();

@@ -396,7 +396,7 @@ brush_t* Patch_GenericMesh( int nWidth, int nHeight, int nOrientation = 2, bool 
 //void Patch_ReadFile (char *name);
 //void Patch_WriteFile (char *name);
 void Patch_BuildPoints( brush_t *b );
-void Patch_Move( patchMesh_t *p, const vec3_t vMove, bool bRebuild = false );
+bool Patch_Move( patchMesh_t *p, const vec3_t vMove, bool applyChanges, bool bRebuild = false );
 //++timo had to add a default value for bSnap (see Patch_ApplyMatrix call from Select_ApplyMatrix in select.cpp)
 void Patch_ApplyMatrix( patchMesh_t *p, const vec3_t vOrigin, const vec3_t vMatrix[3], bool bSnap = false );
 void Patch_EditPatch();

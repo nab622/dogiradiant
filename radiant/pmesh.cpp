@@ -3622,23 +3622,35 @@ void Patch_BuildPoints( brush_t *b ){
    Patch_Move
    ==================
  */
-void Patch_Move( patchMesh_t *pm, const vec3_t vMove, bool bRebuild ){
+bool Patch_Move( patchMesh_t *pm, const vec3_t vMove, bool applyChanges, bool bRebuild ){
 	pm->bDirty = true;
 	for ( int w = 0; w < pm->width; w++ )
 	{
 		for ( int h = 0; h < pm->height; h++ )
 		{
-			VectorAdd( pm->ctrl[w][h].xyz, vMove, pm->ctrl[w][h].xyz );
+            if( applyChanges ) {
+                VectorAdd( pm->ctrl[w][h].xyz, vMove, pm->ctrl[w][h].xyz );
+            } else {
+                vec3_t test;
+                VectorAdd( pm->ctrl[w][h].xyz, vMove, test );
+                if( areWeOutOfBounds( test ) ) {
+                    return false;
+                }
+            }
 		}
 	}
-	// bRebuild is never true
-	if ( bRebuild ) {
-		vec3_t vMin, vMax;
-		Patch_CalcBounds( pm, vMin, vMax );
-		//Brush_RebuildBrush(patchMeshes[n].pSymbiot, vMin, vMax);
-	}
-	UpdatePatchInspector();
 
+    if( applyChanges ) {
+        // bRebuild is never true
+        if ( bRebuild ) {
+            vec3_t vMin, vMax;
+            Patch_CalcBounds( pm, vMin, vMax );
+            //Brush_RebuildBrush(patchMeshes[n].pSymbiot, vMin, vMax);
+        }
+
+        UpdatePatchInspector();
+    }
+    return true;
 }
 
 /*
@@ -3873,7 +3885,7 @@ bool Patch_DragScale( patchMesh_t *p, vec3_t vAmt, vec3_t vMove ){
 	for ( i = 0; i < 3; i++ )
 	{
 		if ( vTemp[i] == 0 && vMove[i] != 0 ) {
-			//Patch_Move(n, vMove, true);
+            //Patch_Move(n, vMove, true, true);
 			return false;
 		}
 	}
@@ -3914,7 +3926,7 @@ bool Patch_DragScale( patchMesh_t *p, vec3_t vAmt, vec3_t vMove ){
 		}
 	}
 
-	Patch_Move( p, vTemp );
+    Patch_Move( p, vTemp, true );
 	return true;
 }
 

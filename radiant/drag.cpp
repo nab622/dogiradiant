@@ -584,15 +584,15 @@ void MoveSelection( vec3_t move ){
 		vec3_t v;
 		v[0] = v[1] = v[2] = 1.0f;
 		if ( move[1] > 0 ) {
-			v[0] = 1.1f;
-			v[1] = 1.1f;
-			v[2] = 1.1f;
+            v[0] = 1.1f;
+            v[1] = 1.1f;
+            v[2] = 1.1f;
 		}
 		else
 		if ( move[1] < 0 ) {
-			v[0] = 0.9f;
-			v[1] = 0.9f;
-			v[2] = 0.9f;
+            v[0] = 0.9f;
+            v[1] = 0.9f;
+            v[2] = 0.9f;
 		}
 
 		Select_Scale( ( g_nScaleHow & SCALE_X ) ? 1.0f : v[0],
@@ -606,6 +606,7 @@ void MoveSelection( vec3_t move ){
 
 	vec3_t vDistance;
 	VectorSubtract( pressdelta, vPressStart, vDistance );
+
 	strStatus.Format( "Distance x: %.1f  y: %.1f  z: %.1f", vDistance[0], vDistance[1], vDistance[2] );
 	g_pParentWnd->SetStatusText( 3, strStatus );
 
@@ -648,28 +649,42 @@ void MoveSelection( vec3_t move ){
                               return;
                             }
 
-  			    success = true;
+                            success = true;
                             int brush_count = 0;
                             for ( int i = 0; i < g_qeglobals.d_num_move_points; i++ ) {
-    			      for ( b = selected_brushes.next; b != &selected_brushes; b = b->next ) {
-                success &= Brush_MoveVertex( b, g_qeglobals.d_move_points[i], move, ends[i], true );
-                                if ( !success ) {
-                                  Sys_Printf( "Brush_MoveVertex brush %d vertex %d failed\n", brush_count, i );
-                                  return;
+                                for ( b = selected_brushes.next; b != &selected_brushes; b = b->next ) {
+                                    success = Brush_MoveVertex( b, g_qeglobals.d_move_points[i], move, ends[i], true );
+                                    if ( !success ) {
+                                        Sys_Printf( "Brush_MoveVertex brush %d vertex %d failed\n", brush_count, i );
+                                        return;
+                                    }
+                                    brush_count++;
                                 }
-                                brush_count++;
-                              }
-			    }
-                            for ( int i = 0; i < g_qeglobals.d_num_move_points; i++ ) {
-          		      VectorCopy( ends[i], g_qeglobals.d_move_points[i] );
                             }
+                    for ( int i = 0; i < g_qeglobals.d_num_move_points; i++ ) {
+                        VectorCopy( ends[i], g_qeglobals.d_move_points[i] );
+                    }
 			}
 			return;
 		}
 
         //all other selection types
-		for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ )
-			VectorAdd( g_qeglobals.d_move_points[i], move, g_qeglobals.d_move_points[i] );
+
+        // NAB622: Side stretch
+        // Test first
+        vec3_t test;
+        for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ ) {
+            VectorAdd( g_qeglobals.d_move_points[i], move, test );
+            if ( areWeOutOfBounds( test ) ) {
+                Sys_Printf( "Grid limit exceeded, operation cancelled\n" );
+                return;
+            }
+        }
+
+        // Then perform the operation
+        for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ ) {
+            VectorAdd( g_qeglobals.d_move_points[i], move, g_qeglobals.d_move_points[i] );
+        }
 
         bool outsideGridBoundaries = false;
         bool draggedBackwards = false;
@@ -678,12 +693,15 @@ void MoveSelection( vec3_t move ){
 		for ( b = selected_brushes.next; b != &selected_brushes; b = b->next )
 		{
 			bool bMoved = false;
-			for ( face_t *f = b->brush_faces; !bMoved && f != NULL; f = f->next )
-				for ( int p = 0; !bMoved && p < 3; p++ )
-					for ( i = 0 ; !bMoved && i < g_qeglobals.d_num_move_points ; i++ )
-						if ( f->planepts[p] == g_qeglobals.d_move_points[i] ) {
+            for ( face_t *f = b->brush_faces; !bMoved && f != NULL; f = f->next ) {
+                for ( int p = 0; !bMoved && p < 3; p++ ) {
+                    for ( i = 0 ; !bMoved && i < g_qeglobals.d_num_move_points ; i++ ) {
+                        if ( f->planepts[p] == g_qeglobals.d_move_points[i] ) {
 							bMoved = true;
 						}
+                    }
+                }
+            }
 			if ( !bMoved ) {
 				continue;
 			}
@@ -691,21 +709,23 @@ void MoveSelection( vec3_t move ){
 			VectorCopy( b->maxs, vTemp );
 			VectorSubtract( vTemp, b->mins, vTemp );
 			Brush_Build( b,true,true,false,false ); // don't filter
-			for ( i = 0 ; i < 3 ; i++ )
-			{
-                if ( b->maxs[i] > g_MaxWorldCoord || b->mins[i] < g_MinWorldCoord ) {
-                    outsideGridBoundaries = true;
-                    break;
+
+            if ( areWeOutOfBounds( b->maxs ) ) {
+                outsideGridBoundaries = true;
+                break;
+            } else {
+                for ( i = 0 ; i < 3 ; i++ )
+                {
+                    if ( b->mins[i] > b->maxs[i] ) {
+                        draggedBackwards = true;
+                        break;
+                    }
+                    if ( b->maxs[i] - b->mins[i] > g_MaxBrushSize ) {
+                        maxBrushSize = true;
+                        break;
+                    }
                 }
-                if ( b->mins[i] > b->maxs[i] ) {
-                    draggedBackwards = true;
-                    break;
-                }
-                if ( b->maxs[i] - b->mins[i] > g_MaxBrushSize ) {
-                    maxBrushSize = true;
-                    break;
-                }
-			}
+            }
 			if ( i != 3 ) {
 				break;
 			}
@@ -714,7 +734,7 @@ void MoveSelection( vec3_t move ){
 				VectorSubtract( vTemp2, b->mins, vTemp2 );
 				VectorSubtract( vTemp2, vTemp, vTemp2 );
 				//if (!Patch_DragScale(b->nPatchID, vTemp2, move))
-                if ( !areWeOutOfBounds( b->maxs ) || !areWeOutOfBounds( b->mins ) ) {
+                if ( areWeOutOfBounds( b->maxs ) || areWeOutOfBounds( b->mins ) ) {
                     outsideGridBoundaries = true;
                 }
 				if ( !Patch_DragScale( b->pPatch, vTemp2, move ) ) {
