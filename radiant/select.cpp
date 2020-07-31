@@ -1685,6 +1685,9 @@ void Select_ShiftTexture( int x, int y ) {
     brush_t     *b;
 	face_t      *f;
 
+    // NAB622: This multiplier is used to fine-tune the operation to feel more natural
+    float       multiplier = getGridValueForTextureChanges() * 100;
+
     int nFaceCount = g_ptrSelectedFaces.GetSize();
 
     if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
@@ -1700,8 +1703,8 @@ void Select_ShiftTexture( int x, int y ) {
 			}
 			else
 			{
-                f->texdef.shift[0] += x * getGridValueForTextureChanges() * 100;
-                f->texdef.shift[1] += y * getGridValueForTextureChanges() * 100;
+                f->texdef.shift[0] += x * multiplier;
+                f->texdef.shift[1] += y * multiplier;
 
                 // NAB622: Make sure these are within range of the resolution...no point exceeding it
                 f->texdef.shift[0] = calculateRotatingValueBeneathMax( f->texdef.shift[0], f->d_texture->width );
@@ -1711,7 +1714,7 @@ void Select_ShiftTexture( int x, int y ) {
 		Brush_Build( b,true,true,false,false ); // don't filter
 		if ( b->patchBrush ) {
             // NAB622: FIXME: Add code for patches' texdefs to be clamped as well
-            Patch_ShiftTexture( b->pPatch, x * getGridValueForTextureChanges() * 100, y * getGridValueForTextureChanges() * 100 );
+            Patch_ShiftTexture( b->pPatch, -(x * multiplier), y * multiplier );
 		}
 	}
 
@@ -1725,8 +1728,8 @@ void Select_ShiftTexture( int x, int y ) {
 			}
 			else
 			{
-                selFace->texdef.shift[0] += x * getGridValueForTextureChanges() * 100;
-                selFace->texdef.shift[1] += y * getGridValueForTextureChanges() * 100;
+                selFace->texdef.shift[0] += x * multiplier;
+                selFace->texdef.shift[1] += y * multiplier;
 
                 // NAB622: Make sure these are within range of the resolution...no point exceeding it
                 selFace->texdef.shift[0] = calculateRotatingValueBeneathMax( selFace->texdef.shift[0], selFace->d_texture->width );
@@ -1736,13 +1739,19 @@ void Select_ShiftTexture( int x, int y ) {
 		}
 	}
 
-    Sys_UpdateWindows( W_CAMERA | W_SURFACE );
+    Sys_UpdateWindows( W_CAMERA | W_SURFACE | W_PATCH );
 }
 
 //  setting float as input
 void Select_ScaleTexture( float x, float y ) {
 	brush_t     *b;
     face_t      *f;
+
+    // NAB622: This multiplier is used to fine-tune the operation to feel more natural
+    float       multiplier = getGridValueForTextureChanges() / 20;
+    // NAB622: Patches need their own multiplier
+    float       patchMultiplier = getGridValueForTextureChanges() / 4;
+
 
 	int nFaceCount = g_ptrSelectedFaces.GetSize();
 
@@ -1765,8 +1774,8 @@ void Select_ScaleTexture( float x, float y ) {
 				// compute fake shift scale rot
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
 				// update
-                scale[0] += static_cast<float>( x ) * getGridValueForTextureChanges() / 20;
-                scale[1] += static_cast<float>( y ) * getGridValueForTextureChanges() / 20;
+                scale[0] += static_cast<float>( x ) * multiplier;
+                scale[1] += static_cast<float>( y ) * multiplier;
 				// compute new normalized texture matrix
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				// apply to face texture matrix
@@ -1774,13 +1783,13 @@ void Select_ScaleTexture( float x, float y ) {
             }
 			else
 			{
-                f->texdef.scale[0] += x * getGridValueForTextureChanges() / 20;
-                f->texdef.scale[1] += y * getGridValueForTextureChanges() / 20;
+                f->texdef.scale[0] += x * multiplier;
+                f->texdef.scale[1] += y * multiplier;
             }
 		}
 		Brush_Build( b,true,true,false,false ); // don't filter
 		if ( b->patchBrush ) {
-			Patch_ScaleTexture( b->pPatch, x, y );
+            Patch_ScaleTexture( b->pPatch, 1 + -( x * patchMultiplier ), 1 + -( y * patchMultiplier ), false );
 		}
 	}
 
@@ -1796,28 +1805,32 @@ void Select_ScaleTexture( float x, float y ) {
 				brushprimit_texdef_t bp;
 				ConvertTexMatWithQTexture( &selFace->brushprimit_texdef, selFace->d_texture, &bp, NULL );
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
-                scale[0] += static_cast<float>( x ) * getGridValueForTextureChanges() / 20;
-                scale[1] += static_cast<float>( y ) * getGridValueForTextureChanges() / 20;
+                scale[0] += static_cast<float>( x ) * multiplier;
+                scale[1] += static_cast<float>( y ) * multiplier;
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				ConvertTexMatWithQTexture( &bp, NULL, &selFace->brushprimit_texdef, selFace->d_texture );
             }
 			else
 			{
-                selFace->texdef.scale[0] += x * getGridValueForTextureChanges() / 20;
-                selFace->texdef.scale[1] += y * getGridValueForTextureChanges() / 20;
+                selFace->texdef.scale[0] += x * multiplier;
+                selFace->texdef.scale[1] += y * multiplier;
             }
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}
 	}
 
-    Sys_UpdateWindows( W_CAMERA | W_SURFACE );
+    Sys_UpdateWindows( W_CAMERA | W_SURFACE | W_PATCH );
 }
 
 void Select_RotateTexture( int amt ){
     brush_t     *b;
 	face_t      *f;
 
-	int nFaceCount = g_ptrSelectedFaces.GetSize();
+    // NAB622: This multiplier is used to fine-tune the operation to feel more natural
+    float       multiplier = getGridValueForTextureChanges() * 10;
+
+
+    int nFaceCount = g_ptrSelectedFaces.GetSize();
 
     if ( selected_brushes.next == &selected_brushes && nFaceCount == 0 ) {
 		return;
@@ -1838,7 +1851,7 @@ void Select_RotateTexture( int amt ){
 				// compute fake shift scale rot
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
 				// update
-                rotate += amt * getGridValueForTextureChanges() * 10;
+                rotate += amt * multiplier;
                 rotate = calculateRotatingValueBeneathMax( rotate, 360 );
                 // NAB622: FIXME: This needs to include calculateRotatingValueBeneathMax somehow
 				// compute new normalized texture matrix
@@ -1848,7 +1861,7 @@ void Select_RotateTexture( int amt ){
 			}
 			else
 			{
-                f->texdef.rotate += amt * getGridValueForTextureChanges() * 10;
+                f->texdef.rotate += amt * multiplier;
                 //If the rotation is out of reasonable bounds, push it back. Rotation cannot go beyond the range of 0-360, so anything else is pointless, even negative values
                 f->texdef.rotate = static_cast<float>( calculateRotatingValueBeneathMax( f->texdef.rotate, 360 ) );
 			}
@@ -1857,7 +1870,7 @@ void Select_RotateTexture( int amt ){
 		if ( b->patchBrush ) {
 			//Patch_RotateTexture(b->nPatchID, amt);
             // NAB622: FIXME: Patches need added to this
-            Patch_RotateTexture( b->pPatch, amt * ( getGridValueForTextureChanges() * 10 ) );
+            Patch_RotateTexture( b->pPatch, amt * multiplier );
 		}
 	}
 
@@ -1873,21 +1886,21 @@ void Select_RotateTexture( int amt ){
 				brushprimit_texdef_t bp;
 				ConvertTexMatWithQTexture( &selFace->brushprimit_texdef, selFace->d_texture, &bp, NULL );
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
-                rotate += amt * ( getGridValueForTextureChanges() * 10 );
+                rotate += amt * multiplier;
                 rotate = calculateRotatingValueBeneathMax( rotate, 360 );
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				ConvertTexMatWithQTexture( &bp, NULL, &selFace->brushprimit_texdef, selFace->d_texture );
 			}
 			else
 			{
-                selFace->texdef.rotate += amt * getGridValueForTextureChanges() * 10;
+                selFace->texdef.rotate += amt * multiplier;
                 selFace->texdef.rotate = static_cast<float>( calculateRotatingValueBeneathMax( selFace->texdef.rotate, 360 ) );
 			}
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}
 	}
 
-    Sys_UpdateWindows( W_CAMERA | W_SURFACE );
+    Sys_UpdateWindows( W_CAMERA | W_SURFACE | W_PATCH );
 }
 
 // TTimo modified to handle shader architecture:
@@ -2053,7 +2066,7 @@ void Select_Reselect(){
 }
 
 
-void Select_FitTexture( int nHeight, int nWidth ){
+void Select_FitTexture( float nHeight, float nWidth ){
 	brush_t     *b;
 
 	int nFaceCount = g_ptrSelectedFaces.GetSize();

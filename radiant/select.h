@@ -63,7 +63,7 @@ void Select_MakeStructural( void );
 void Select_MakeDetail( void );
 void Select_AllOfType();
 void Select_Reselect();
-void Select_FitTexture( int nHeight = 1, int nWidth = 1 );
+void Select_FitTexture( float nHeight = 1.0, float nWidth = 1.0 );
 
 void Select_SelectGroup( entity_t* group );
 

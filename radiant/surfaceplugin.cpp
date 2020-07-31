@@ -237,8 +237,8 @@ void SI_SetTexdef_FaceList( texdef_to_face_t* texdef_face_list, bool b_SetUndoPo
 	Sys_UpdateWindows( W_ALL );
 }
 
-void SI_FaceList_FitTexture( texdef_to_face_t* si_texdef_face_list, int nHeight, int nWidth ){
-	texdef_to_face_t* temp_texdef_face_list;
+void SI_FaceList_FitTexture( texdef_to_face_t* si_texdef_face_list, float nHeight, float nWidth ){
+    texdef_to_face_t* temp_texdef_face_list;
 	brushprimit_texdef_t bp;
 
 	if ( !si_texdef_face_list ) {

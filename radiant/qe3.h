@@ -560,7 +560,7 @@ void ShiftTextureRelative_BrushPrimit( face_t *f, float x, float y );
 void RotateFaceTexture_BrushPrimit( face_t *f, int nAxis, float fDeg, vec3_t vOrigin );
 // used in CCamWnd::ShiftTexture_BrushPrimit
 void ComputeBest2DVector( vec3_t v, vec3_t X, vec3_t Y, int &x, int &y );
-void Face_FitTexture_BrushPrimit( face_t *face, vec3_t minx, vec3_t maxs, int nHeight, int nWidth );
+void Face_FitTexture_BrushPrimit( face_t *face, vec3_t minx, vec3_t maxs, float nHeight, float nWidth );
 // lock textures on a random transformation
 void ApplyMatrix_BrushPrimit( face_t * f, vec3_t matrix[3], vec3_t origin );
 // low level functions .. put in mathlib?

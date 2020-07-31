@@ -4750,23 +4750,23 @@ void Patch_RotateTexture( patchMesh_t *p, float fAngle ){
    ==================
  */
 void Patch_ScaleTexture( patchMesh_t *p, float fx, float fy, bool bFixup ){
-	// FIXME:
+    // FIXME:
 	// this hack turns scales into 1.1 or 0.9
-	if ( bFixup ) {
+    if ( bFixup ) {
 		fx = ( fx == 0 ) ? 1.0 : ( fx > 0 ) ? 0.9 : 1.10;
 		fy = ( fy == 0 ) ? 1.0 : ( fy > 0 ) ? 0.9 : 1.10;
 	}
 	else
 	{
-		if ( fx == 0 ) {
+        if ( fx == 0 ) {
 			fx = 1.0;
 		}
 		if ( fy == 0 ) {
 			fy = 1.0;
 		}
-	}
+    }
 
-	for ( int w = 0; w < p->width; w++ )
+    for ( int w = 0; w < p->width; w++ )
 	{
 		for ( int h = 0; h < p->height; h++ )
 		{
@@ -4774,8 +4774,8 @@ void Patch_ScaleTexture( patchMesh_t *p, float fx, float fy, bool bFixup ){
 				continue;
 			}
 
-			p->ctrl[w][h].st[0] *= fx;
-			p->ctrl[w][h].st[1] *= fy;
+            p->ctrl[w][h].st[0] *= fx;
+            p->ctrl[w][h].st[1] *= fy;
 		}
 	}
 	if ( g_qeglobals.d_select_mode == sel_curvepoint ) {

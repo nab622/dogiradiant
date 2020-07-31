@@ -79,8 +79,8 @@ void        Face_Draw( face_t *face );
 void Face_TextureVectors( face_t * f, float STfromXYZ[2][4] );
 void        SetFaceTexdef( face_t *f, texdef_t *texdef, brushprimit_texdef_t *brushprimit_texdef, bool bFitScale = false, IPluginTexdef* pPlugTexdef = NULL );
 
-void Face_FitTexture( face_t * face, int nHeight, int nWidth );
-void Brush_FitTexture( brush_t *b, int nHeight, int nWidth );
+void Face_FitTexture( face_t * face, float nHeight, float nWidth );
+void Brush_FitTexture( brush_t *b, float nHeight, float nWidth );
 //void Brush_SetEpair(brush_t *b, const char *pKey, const char *pValue);
 //const char* Brush_GetKeyValue(brush_t *b, const char *pKey);
 brush_t *Brush_Alloc();

@@ -3639,7 +3639,7 @@ void Brush_MakeSidedSphere( int sides ){
 	Sys_UpdateWindows( W_ALL );
 }
 
-void Face_FitTexture( face_t * face, int nHeight, int nWidth ){
+void Face_FitTexture( face_t * face, float nHeight, float nWidth ){
 	winding_t *w;
 	vec3_t mins,maxs;
 	int i;
@@ -3652,14 +3652,17 @@ void Face_FitTexture( face_t * face, int nHeight, int nWidth ){
 	vec3_t coords[4];
 	texdef_t  *td;
 
-	if ( nHeight < 1 ) {
+/*
+// NAB622: Since decimals are allowed now, this is pointless
+    if ( nHeight < 1 ) {
 		nHeight = 1;
 	}
 	if ( nWidth < 1 ) {
 		nWidth = 1;
 	}
+*/
 
-	ClearBounds( mins, maxs );
+    ClearBounds( mins, maxs );
 
 	w = face->face_winding;
 	if ( !w ) {
@@ -3703,7 +3706,7 @@ void Face_FitTexture( face_t * face, int nHeight, int nWidth ){
 		coords[3][1] = max_t;
 		min_s = min_t = 99999;
 		max_s = max_t = -99999;
-		for ( i = 0; i < 4; i++ )
+        for ( i = 0; i < 4; i++ )
 		{
 			s = cosv * coords[i][0] - sinv * coords[i][1];
 			t = sinv * coords[i][0] + cosv * coords[i][1];
@@ -3730,36 +3733,34 @@ void Face_FitTexture( face_t * face, int nHeight, int nWidth ){
 				}
 			}
 		}
-		rot_width =  ( max_s - min_s );
+        rot_width =  ( max_s - min_s );
 		rot_height = ( max_t - min_t );
-		td->scale[0] = -( rot_width / ( (float)( face->d_texture->width * nWidth ) ) );
-		td->scale[1] = -( rot_height / ( (float)( face->d_texture->height * nHeight ) ) );
+        td->scale[0] = -( rot_width / ( face->d_texture->width * nWidth ) );
+        td->scale[1] = -( rot_height / ( face->d_texture->height * nHeight ) );
 
 		td->shift[0] = min_s / td->scale[0];
-		temp = (int)( td->shift[0] / ( face->d_texture->width * nWidth ) );
-		temp = ( temp + 1 ) * face->d_texture->width * nWidth;
-		td->shift[0] = (int)( temp - td->shift[0] ) % ( face->d_texture->width * nWidth );
+        temp = floor( ( td->shift[0] / ( face->d_texture->width * nWidth ) ) );
+        temp = temp * face->d_texture->width * nWidth;
+        td->shift[0] = fmod( ( temp - td->shift[0] ), ( face->d_texture->width * nWidth ) );
+        // NAB622: This next line aligns decimal fit operations with the corner of the brush, rather than the center, which is kinda useless
+        td->shift[0] -= ( fmod( nWidth, 1 ) * face->d_texture->width );
 
 		td->shift[1] = min_t / td->scale[1];
-		temp = (int)( td->shift[1] / ( face->d_texture->height * nHeight ) );
-		temp = ( temp + 1 ) * ( face->d_texture->height * nHeight );
-		td->shift[1] = (int)( temp - td->shift[1] ) % ( face->d_texture->height * nHeight );
-
-		td->shift[1] = min_t / td->scale[1];
-		temp = (int)( td->shift[1] / ( face->d_texture->height * nHeight ) );
-		temp = ( temp + 1 ) * ( face->d_texture->height * nHeight );
-		td->shift[1] = (int)( temp - td->shift[1] ) % ( face->d_texture->height * nHeight );
+        temp = floor( ( td->shift[1] / ( face->d_texture->height * nHeight ) ) );
+        temp = temp * ( face->d_texture->height * nHeight );
+        td->shift[1] = fmod( ( temp - td->shift[1] ), ( face->d_texture->height * nHeight ) );
+        // NAB622: This next line aligns decimal fit operations with the corner of the brush, rather than the center, which is kinda useless
+        td->shift[1] -= ( fmod( nHeight, 1 ) * face->d_texture->height );
 
 
         // NAB622: Clamp the shift and rotate values
-        // Don't bother doing it in the mess above...it's kinda broken anyhow
         td->shift[0] = calculateRotatingValueBeneathMax( td->shift[0], face->d_texture->width );
         td->shift[1] = calculateRotatingValueBeneathMax( td->shift[1], face->d_texture->height );
         td->rotate = calculateRotatingValueBeneathMax( td->rotate, 360 );
     }
 }
 
-void Brush_FitTexture( brush_t *b, int nHeight, int nWidth ){
+void Brush_FitTexture( brush_t *b, float nHeight, float nWidth ){
 	face_t *face;
 
 	for ( face = b->brush_faces ; face ; face = face->next )

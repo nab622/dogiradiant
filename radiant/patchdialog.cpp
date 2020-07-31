@@ -30,6 +30,7 @@
 #include "patchdialog.h"
 #include <glib/gi18n.h>
 
+
 PatchDialog g_PatchDialog;
 // is the patch inspector currently displayed/active?
 bool l_bIsActive = false;
@@ -56,8 +57,8 @@ static void OnApply( GtkWidget *widget, gpointer data ){
 			}
 			if ( g_PatchDialog.m_strName.Find( ' ' ) >= 0 ) {
 				Sys_FPrintf( SYS_WRN, "WARNING: spaces in shader names are not allowed, dropping '%s'\n", g_PatchDialog.m_strName.GetBuffer() );
-				g_PatchDialog.m_strName = SHADER_NOT_FOUND;
-			}
+                g_PatchDialog.m_strName = SHADER_NOT_FOUND;
+            }
 			g_PatchDialog.m_Patch->pShader = QERApp_Shader_ForName( g_PatchDialog.m_strName );
 			g_PatchDialog.m_Patch->d_texture = g_PatchDialog.m_Patch->pShader->getTexture();
 			g_PatchDialog.m_Patch->ctrl[c][r].xyz[0] = g_PatchDialog.m_fX;
@@ -268,7 +269,7 @@ PatchDialog::PatchDialog (){
 }
 
 void PatchDialog::InitDefaultIncrement( texdef_t *tex ){
-	tex->SetName( SHADER_NOT_FOUND );
+    tex->SetName( SHADER_NOT_FOUND );
 	tex->scale[0] = 0.5f;
 	tex->scale[1] = 0.5f;
 	tex->rotate = 45;
@@ -284,7 +285,7 @@ void PatchDialog::HideDlg(){
 
 void PatchDialog::ShowDlg(){
 	l_bIsActive = true;
-	Dialog::ShowDlg();
+    Dialog::ShowDlg();
 }
 
 void PatchDialog::BuildDialog(){
@@ -299,7 +300,7 @@ void PatchDialog::BuildDialog(){
 
 	load_window_pos( dlg, g_PrefsDlg.mWindowInfo.posPatchWnd );
 
-	gtk_window_set_title( GTK_WINDOW( dlg ), _( "Patch Properties" ) );
+    gtk_window_set_title( GTK_WINDOW( dlg ), _( "Patch Inspector" ) );
 	g_signal_connect( G_OBJECT( dlg ), "delete-event", G_CALLBACK( OnDone ), NULL );
 	// catch 'Esc' and 'Enter'
 	g_signal_connect( G_OBJECT( dlg ), "key-press-event", G_CALLBACK( OnDialogKey ), NULL );
@@ -365,7 +366,7 @@ void PatchDialog::BuildDialog(){
 	}
 	g_list_free( cells );
 
-	combo = gtk_combo_box_text_new();
+    combo = gtk_combo_box_text_new();
 	gtk_table_attach( GTK_TABLE( table ), combo, 1, 2, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -411,23 +412,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_set_tooltip_text( label, _( "Z-Axis" ) );
 	gtk_widget_show( label );
 
-	label = gtk_label_new( _( "S:" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 3, 4,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_set_tooltip_text( label, _( "S-coordinates correspond to the \"x\" coordinates on the texture itself" ) );
-	gtk_widget_show( label );
-
-	label = gtk_label_new( _( "T:" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 4, 5,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_set_tooltip_text( label, _( "T-coordinates correspond to the \"y\" coordinates on the texture itself. The measurements are in game units." ) );
-	gtk_widget_show( label );
-
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 0, 1,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -438,7 +423,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	AddDialogData( spin, &m_fX, DLG_SPIN_FLOAT );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -449,7 +434,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	AddDialogData( spin, &m_fY, DLG_SPIN_FLOAT );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 2, 3,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -460,7 +445,23 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	AddDialogData( spin, &m_fZ, DLG_SPIN_FLOAT );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+    label = gtk_label_new( _( "S:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 3, 4,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+    gtk_widget_set_tooltip_text( label, _( "S-coordinates correspond to the \"x\" coordinates on the texture itself" ) );
+    gtk_widget_show( label );
+
+    label = gtk_label_new( _( "T:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 4, 5,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+    gtk_widget_set_tooltip_text( label, _( "T-coordinates correspond to the \"y\" coordinates on the texture itself. The measurements are in game units." ) );
+    gtk_widget_show( label );
+
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 3, 4,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -731,25 +732,33 @@ void PatchDialog::GetPatchInfo(){
 		m_bListenChanged = false;
 
 #if GTK_CHECK_VERSION( 3, 0, 0 )
-		gtk_combo_box_text_remove_all( GTK_COMBO_BOX_TEXT( m_pRowCombo ) );
+        gtk_combo_box_text_remove_all( GTK_COMBO_BOX_TEXT( m_pRowCombo ) );
+        gtk_combo_box_text_remove_all( GTK_COMBO_BOX_TEXT( m_pColCombo ) );
 #else
-		store = GTK_LIST_STORE( gtk_combo_box_get_model( GTK_COMBO_BOX( m_pRowCombo ) ) );
-		gtk_list_store_clear( store );
+        store = GTK_LIST_STORE( gtk_combo_box_get_model( GTK_COMBO_BOX( m_pRowCombo ) ) );
+        gtk_list_store_clear( store );
+        store = GTK_LIST_STORE( gtk_combo_box_get_model( GTK_COMBO_BOX( m_pColCombo ) ) );
+        gtk_list_store_clear( store );
 #endif
 
-		for ( i = 0; i < m_Patch->height; i++ )
+        if( m_nRow > m_Patch->height || m_nCol > m_Patch->width ) {
+            m_nRow = 0;
+            m_nCol = 0;
+        }
+
+        for ( i = 0; i < m_Patch->height; i++ )
 		{
 			g_snprintf( buffer, sizeof( buffer ), "%i", i );
 			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( m_pRowCombo ), buffer );
 		}
-		gtk_combo_box_set_active( GTK_COMBO_BOX( GTK_COMBO_BOX_TEXT( m_pRowCombo ) ), 0 );
+        gtk_combo_box_set_active( GTK_COMBO_BOX( GTK_COMBO_BOX_TEXT( m_pRowCombo ) ), m_nRow );
 
 		for ( i = 0; i < m_Patch->width; i++ )
 		{
 			g_snprintf( buffer, sizeof( buffer ), "%i", i );
 			gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( m_pColCombo ), buffer );
 		}
-		gtk_combo_box_set_active( GTK_COMBO_BOX( GTK_COMBO_BOX_TEXT( m_pColCombo ) ), 0 );
+        gtk_combo_box_set_active( GTK_COMBO_BOX( GTK_COMBO_BOX_TEXT( m_pColCombo ) ), m_nCol );
 
 		m_bListenChanged = true;
 
@@ -758,7 +767,6 @@ void PatchDialog::GetPatchInfo(){
 		Sys_FPrintf( SYS_WRN, "WARNING: No patch selected.\n" );
 	}
 	// fill in our internal structs
-	m_nRow = 0; m_nCol = 0;
 	UpdateRowColInfo();
 	// now update the dialog box
 	UpdateData( false );

@@ -223,7 +223,9 @@ void CamWnd::OnMButtonUp( guint32 nFlags, int pointx, int pointy ){
 }
 
 void CamWnd::OnRButtonDown( guint32 nFlags, int pointx, int pointy ){
-    if( nFlags & MK_CONTROL || nFlags & MK_SHIFT || Sys_AltDown() ) {
+// NAB622: Only start the manual alignment if something is selected
+    if( selected_brushes.next != &selected_brushes &&
+            ( nFlags & MK_CONTROL || nFlags & MK_SHIFT || Sys_AltDown() ) ) {
         Undo_Start( "Manual texture alignment" );
         Sys_Printf("Manually aligning texture\n");
         Undo_AddBrushList( &selected_brushes );

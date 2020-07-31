@@ -1131,6 +1131,13 @@ void WINAPI Texture_ShowInuse( void ){
 		}
 	}
 
+/*
+    // NAB622: Keep the active texture displayed! Don't want to unload it!
+    if ( !strcmpi( g_qeglobals.d_texturewin.texdef.GetName(), pCurrentShader->getName() ) ) {
+
+    }
+*/
+
 	// we are no longer showing everything
 	g_bShowAllShaders = false;
 	// put some information in the texture window title?
@@ -1440,7 +1447,6 @@ void ViewShader( const char *pFile, const char *pName ){
 
 	DoTextEditor( fullName, nOffset );
 }
-
 /*
    ==============
    SelectTexture

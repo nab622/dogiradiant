@@ -321,7 +321,7 @@ void ComputeBest2DVector( vec3_t v, vec3_t X, vec3_t Y, int &x, int &y ){
 // can be improved .. bug #107311
 // mins and maxs are the face bounding box
 //++timo fixme: we use the face info, mins and maxs are irrelevant
-void Face_FitTexture_BrushPrimit( face_t *f, vec3_t mins, vec3_t maxs, int nHeight, int nWidth ){
+void Face_FitTexture_BrushPrimit( face_t *f, vec3_t mins, vec3_t maxs, float nHeight, float nWidth ){
 	vec3_t BBoxSTMin, BBoxSTMax;
 	winding_t *w;
 	int i,j;

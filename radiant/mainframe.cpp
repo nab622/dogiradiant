@@ -270,7 +270,7 @@ SCommandInfo g_Commands[] =
 	{"RegionSetSelection", GDK_KEY_R, 0x05, ID_REGION_SETSELECTION, "menu_region_setselection"},
 	{"ShowInUse", GDK_KEY_U, 0, ID_TEXTURES_SHOWINUSE, "menu_textures_showinuse"},
 	{"InvertSelection", GDK_KEY_I, 0, ID_SELECTION_INVERT, "menu_selection_invert"},
-	{"Sleep", GDK_KEY_P, 0x05, ID_FILE_SLEEP, "menu_file_sleep"},
+//	{"Sleep", GDK_KEY_P, 0x05, ID_FILE_SLEEP, "menu_file_sleep"},       // NAB622: Disabled. Useless
 	{"SimplePatchMesh", GDK_KEY_P, 0x01, ID_CURVE_SIMPLEPATCHMESH, "menu_simplepatchmesh"},
 	{"FilterWorldBrushes", '1', RAD_ALT, ID_FILTER_WORLD, "menu_filter_world"},
 	{"FilterWorldBrushes", GDK_KEY_1, RAD_ALT, ID_FILTER_WORLD, "menu_filter_world"},
@@ -4217,7 +4217,7 @@ void MainFrame::UpdateWindows( int nBits ){
     }
 
 /*
-    //NAB622 FIXME: The entity window needs updated too, but I'm not yet sure what all needs imported for that
+    //NAB622 FIXME: The entity window needs updated too, but I'm not yet sure what all needs done for that
     if ( nBits & W_ENTITY ) {
         if ( g_pGroupDlg->m_pWidget ) {
             UpdateEntitySel( brush->owner->eclass );
