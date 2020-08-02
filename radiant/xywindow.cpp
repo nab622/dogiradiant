@@ -413,7 +413,7 @@ void CreateEntityFromName( const char* name, const vec3_t origin ){
 
 	Select_Deselect();
 
-	// tweaking: when right clic dropping a light entity, ask for light value in a custom dialog box
+    // tweaking: when right click dropping a light entity, ask for light value in a custom dialog box
 	// see SF bug 105383
 
 	if ( g_pGameDescription->mGameFile == "hl.game" ) {
@@ -1230,7 +1230,7 @@ void XYWnd::OnTimer(){
     m_vOrigin[nDim1] = clampCameraBoundaries(m_vOrigin[nDim1]);
     m_vOrigin[nDim2] = clampCameraBoundaries(m_vOrigin[nDim2]);
 
-    Sys_UpdateWindows( W_XY | W_CAMERA );
+    Sys_UpdateWindows( W_XY | W_CAMERA | W_ENTITY | W_SURFACE );
 	m_ptDragX += m_ptDragAdjX;
 	m_ptDragY += m_ptDragAdjY;
 	m_ptDragTotalX += m_ptDragAdjX;

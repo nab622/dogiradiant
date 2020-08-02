@@ -3652,15 +3652,12 @@ void Face_FitTexture( face_t * face, float nHeight, float nWidth ){
 	vec3_t coords[4];
 	texdef_t  *td;
 
-/*
-// NAB622: Since decimals are allowed now, this is pointless
-    if ( nHeight < 1 ) {
+    if ( nHeight == 0 ) {
 		nHeight = 1;
 	}
-	if ( nWidth < 1 ) {
+    if ( nWidth == 0 ) {
 		nWidth = 1;
 	}
-*/
 
     ClearBounds( mins, maxs );
 
@@ -3743,14 +3740,14 @@ void Face_FitTexture( face_t * face, float nHeight, float nWidth ){
         temp = temp * face->d_texture->width * nWidth;
         td->shift[0] = fmod( ( temp - td->shift[0] ), ( face->d_texture->width * nWidth ) );
         // NAB622: This next line aligns decimal fit operations with the corner of the brush, rather than the center, which is kinda useless
-        td->shift[0] -= ( fmod( nWidth, 1 ) * face->d_texture->width );
+        td->shift[0] += ( fmod( nWidth, 1 ) * face->d_texture->width );
 
 		td->shift[1] = min_t / td->scale[1];
         temp = floor( ( td->shift[1] / ( face->d_texture->height * nHeight ) ) );
         temp = temp * ( face->d_texture->height * nHeight );
         td->shift[1] = fmod( ( temp - td->shift[1] ), ( face->d_texture->height * nHeight ) );
         // NAB622: This next line aligns decimal fit operations with the corner of the brush, rather than the center, which is kinda useless
-        td->shift[1] -= ( fmod( nHeight, 1 ) * face->d_texture->height );
+        td->shift[1] += ( fmod( nHeight, 1 ) * face->d_texture->height );
 
 
         // NAB622: Clamp the shift and rotate values

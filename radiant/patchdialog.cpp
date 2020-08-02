@@ -31,6 +31,37 @@
 #include <glib/gi18n.h>
 
 
+// NAB622: Made these into defines for easier access later
+#define MAX_FIT_VALUE 512.0
+#define MAX_SHIFT_VALUE 32768.0         //This is clamped to the texture resolution during editing, but allowing larger numbers is a good idea
+#define MAX_SCALE_VALUE 8192.0
+#define MAX_ROTATE_VALUE 16384.0        //This value is clamped to 360 during editing, but allowing the user to type in larger numbers is a good idea
+
+#define DEFAULT_SHIFT_INCREMENT_VALUE 1.0
+#define DEFAULT_SCALE_INCREMENT_VALUE 0.1
+#define DEFAULT_ROTATE_INCREMENT_VALUE 22.5
+
+// NAB622: Not sure how to get this from the prefs - so just define it here for now.
+// Everything that needs to reference the default scale value below already references
+// this value, so changing this value to the value from the prefs will do the job in the future
+#define DEFAULT_SCALE_VALUE 0.2
+
+
+//Add the widgets
+GtkWidget *vbox, *vbox2, *hbox, *hbox2, *frame, *table, *label;
+GtkWidget *button, *entry, *spin, *combo, *row_label, *col_label;
+GtkWidget *patchFitTable, *patchFittingFrame, *patch_fit_width_spinbutton, *patch_fit_height_spinbutton, *patch_fit_button, *patch_swap_button, *eventbox;
+GtkAdjustment *patch_fit_width_spinbutton_adj, *patch_fit_height_spinbutton_adj;
+GtkAdjustment *adj;
+GList *lst, *cells;
+GtkSizeGroup *size_group;
+GtkWidget *cap_button, *set_button, *nat_button, *fit_button;
+
+//This is the value for the fit buttons
+float patchFitWidth = 1.0;
+float patchFitHeight = 1.0;
+
+
 PatchDialog g_PatchDialog;
 // is the patch inspector currently displayed/active?
 bool l_bIsActive = false;
@@ -263,7 +294,7 @@ PatchDialog::PatchDialog (){
 	m_fY = 0.0f;
 	m_fZ = 0.0f;
 	m_nCol = 0;
-	m_nRow = 0;
+    m_nRow = 0;
 	m_Patch = NULL;
 	m_bListenChanged = true;
 }
@@ -289,16 +320,10 @@ void PatchDialog::ShowDlg(){
 }
 
 void PatchDialog::BuildDialog(){
-	GtkWidget *dlg, *vbox, *vbox2, *hbox, *hbox2, *frame, *table, *label;
-	GtkWidget *button, *entry, *spin, *combo, *row_label, *col_label;
-	GtkAdjustment *adj;
-	GList *lst, *cells;
-	GtkSizeGroup *size_group;
-	GtkWidget *cap_button, *set_button, *nat_button, *fit_button;
+    GtkWidget *dlg;
+    dlg = m_pWidget;
 
-	dlg = m_pWidget;
-
-	load_window_pos( dlg, g_PrefsDlg.mWindowInfo.posPatchWnd );
+    load_window_pos( dlg, g_PrefsDlg.mWindowInfo.posPatchWnd );
 
     gtk_window_set_title( GTK_WINDOW( dlg ), _( "Patch Inspector" ) );
 	g_signal_connect( G_OBJECT( dlg ), "delete-event", G_CALLBACK( OnDone ), NULL );
@@ -648,7 +673,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ),  l_pPIIncrement->rotate );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -1000, 1000, 1, 1, 0 ) ); // NOTE: Arnout - this really should be 360 but can't change it anymore as it could break existing maps
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_ROTATE_VALUE, MAX_ROTATE_VALUE, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "rotate_adj", adj );
 
@@ -666,30 +691,109 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( hbox2 );
 
 	cap_button = button = gtk_button_new_with_label( _( "CAP" ) );
-	gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
-	gtk_widget_show( button );
+    gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
+    gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnBtnPatchdetails ), NULL );
 
-	set_button = button = gtk_button_new_with_label( _( "Set..." ) );
+    patchFittingFrame = gtk_frame_new( _( "Texture Fitting" ) );
+    gtk_box_pack_start( GTK_BOX( hbox2 ), patchFittingFrame, TRUE, TRUE, 0 );
+    gtk_widget_show( patchFittingFrame );
+
+    patchFitTable = gtk_table_new( 2, 4, FALSE );
+    gtk_container_set_border_width( GTK_CONTAINER( patchFitTable ), 5 );
+    gtk_table_set_col_spacings( GTK_TABLE( patchFitTable ), 2 );
+    gtk_container_add( GTK_CONTAINER( patchFittingFrame ), patchFitTable );
+    gtk_widget_show( patchFitTable );
+
+    label = gtk_label_new( _( "Width" ) );
+    gtk_table_attach( GTK_TABLE( patchFitTable ), label, 1, 2, 0, 1,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+    gtk_widget_show( label );
+
+    label = gtk_label_new( _( "Height" ) );
+    gtk_table_attach( GTK_TABLE( patchFitTable ), label, 3, 4, 0, 1,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+    gtk_widget_show( label );
+
+    patch_fit_width_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( patchFitWidth, -MAX_FIT_VALUE, MAX_FIT_VALUE, 1, 10, 0 ) );
+    patch_fit_width_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_fit_width_spinbutton_adj ), 1, 3 );
+    gtk_widget_set_tooltip_text( patch_fit_width_spinbutton, _( "This is how many times the texture will tile horizontally when fit" ) );
+    gtk_table_attach( GTK_TABLE( patchFitTable ), patch_fit_width_spinbutton, 1, 2, 1, 2,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), TRUE );
+    gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), GTK_UPDATE_IF_VALID );
+    gtk_entry_set_alignment( GTK_ENTRY( patch_fit_width_spinbutton ), 1.0 ); //right
+    gtk_widget_show( patch_fit_width_spinbutton );
+    g_signal_connect( (gpointer) patch_fit_width_spinbutton, "value-changed", G_CALLBACK( on_patch_fit_width_spinbutton_value_changed ), NULL );
+
+    patch_fit_height_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( patchFitHeight, -MAX_FIT_VALUE, MAX_FIT_VALUE, 1, 10, 0 ) );
+    patch_fit_height_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_fit_height_spinbutton_adj ), 1, 3 );
+    gtk_widget_set_tooltip_text( patch_fit_height_spinbutton, _( "This is how many times the texture will tile vertically when fit" ) );
+    gtk_table_attach( GTK_TABLE( patchFitTable ), patch_fit_height_spinbutton, 3, 4, 1, 2,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_FILL ), 3, 0 );
+    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), TRUE );
+    gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), GTK_UPDATE_IF_VALID );
+    gtk_entry_set_alignment( GTK_ENTRY( patch_fit_height_spinbutton ), 1.0 ); //right
+    gtk_widget_show( patch_fit_height_spinbutton );
+    g_signal_connect( (gpointer) patch_fit_height_spinbutton, "value-changed", G_CALLBACK( on_patch_fit_height_spinbutton_value_changed ), NULL );
+
+
+    eventbox = gtk_event_box_new();
+    gtk_table_attach( GTK_TABLE( patchFitTable ), eventbox, 0, 1, 1, 2,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_FILL ), 4, 0 );
+    gtk_widget_show( eventbox );
+
+    patch_fit_button = gtk_button_new_with_mnemonic( _( "Fit Texture" ) );
+    gtk_widget_set_tooltip_text( patch_fit_button, _( "This will fit the texture on the selected patch(es), according to the specified width and height" ) );
+    gtk_container_add( GTK_CONTAINER( eventbox ), patch_fit_button );
+    gtk_widget_show( patch_fit_button );
+    g_signal_connect( (gpointer) patch_fit_button, "clicked", G_CALLBACK( on_patch_fit_button_clicked ), NULL );
+
+    eventbox = gtk_event_box_new();
+    gtk_table_attach( GTK_TABLE( patchFitTable ), eventbox, 2, 3, 1, 2,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_FILL ), 4, 0 );
+    gtk_widget_show( eventbox );
+
+    patch_swap_button = gtk_button_new_with_mnemonic( _( "Swap" ) );
+    gtk_widget_set_tooltip_text( patch_swap_button, _( "This will swap the width and height values" ) );
+    gtk_container_add( GTK_CONTAINER( eventbox ), patch_swap_button );
+    gtk_widget_show( patch_swap_button );
+    g_signal_connect( (gpointer) patch_swap_button, "clicked", G_CALLBACK( on_patch_swap_button_clicked ), NULL );
+
+/*
+// NAB622: This has been replaced by the method from the surface inspector
+    set_button = button = gtk_button_new_with_label( _( "Set..." ) );
 	gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnBtnPatchreset ), NULL );
+*/
 
 	nat_button = button = gtk_button_new_with_label( _( "Natural" ) );
 	gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnBtnPatchnatural ), NULL );
 
-	fit_button = button = gtk_button_new_with_label( _( "Fit" ) );
+/*
+// NAB622: This has been replaced by the method from the surface inspector
+    fit_button = button = gtk_button_new_with_label( _( "Fit" ) );
 	gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnBtnPatchfit ), NULL );
+*/
 
 	size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
-	gtk_size_group_add_widget( size_group, cap_button );
-	gtk_size_group_add_widget( size_group, set_button );
+    gtk_size_group_add_widget( size_group, cap_button );
+//	gtk_size_group_add_widget( size_group, set_button );
 	gtk_size_group_add_widget( size_group, nat_button );
-	gtk_size_group_add_widget( size_group, fit_button );
+//	gtk_size_group_add_widget( size_group, fit_button );
 	g_object_unref( size_group );
 
 	hbox = gtk_hbox_new( FALSE, 5 );
@@ -790,3 +894,41 @@ void PatchDialog::UpdateRowColInfo(){
 		}
 	}
 }
+
+
+// Fit Texture
+void on_patch_fit_width_spinbutton_value_changed( GtkWidget *widget, gpointer data ){
+    float temp = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ) );
+    if( temp == 0 ) {
+        patchFitWidth = -patchFitWidth;
+    } else {
+        patchFitWidth = temp;
+    }
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), patchFitWidth );
+}
+
+void on_patch_fit_height_spinbutton_value_changed( GtkWidget *widget, gpointer data ){
+    float temp = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ) );
+    if( temp == 0 ) {
+        patchFitHeight = -patchFitHeight;
+    } else {
+        patchFitHeight = temp;
+    }
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), patchFitHeight );
+}
+
+void on_patch_fit_button_clicked( GtkWidget *widget, gpointer data ){
+    Patch_ResetTexturing( patchFitWidth, patchFitHeight );
+    Sys_UpdateWindows( W_ALL );
+}
+
+void on_patch_swap_button_clicked( GtkWidget *widget, gpointer data ){
+    patchFitHeight = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ) );
+    patchFitWidth = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ) );
+
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), patchFitWidth );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), patchFitHeight );
+
+    Sys_UpdateWindows( W_SURFACE );
+}
+
