@@ -32,19 +32,14 @@
 
 
 // NAB622: Made these into defines for easier access later
-#define MAX_FIT_VALUE 512.0
-#define MAX_SHIFT_VALUE 32768.0         //This is clamped to the texture resolution during editing, but allowing larger numbers is a good idea
-#define MAX_SCALE_VALUE 8192.0
-#define MAX_ROTATE_VALUE 16384.0        //This value is clamped to 360 during editing, but allowing the user to type in larger numbers is a good idea
+#define MAX_FIT_VALUE 999.999
+#define MAX_SHIFT_INCREMENT FLT_MAX
+#define MAX_SCALE_INCREMENT FLT_MAX
+#define MAX_ROTATE_INCREMENT 360.0
 
 #define DEFAULT_SHIFT_INCREMENT_VALUE 1.0
 #define DEFAULT_SCALE_INCREMENT_VALUE 0.1
 #define DEFAULT_ROTATE_INCREMENT_VALUE 22.5
-
-// NAB622: Not sure how to get this from the prefs - so just define it here for now.
-// Everything that needs to reference the default scale value below already references
-// this value, so changing this value to the value from the prefs will do the job in the future
-#define DEFAULT_SCALE_VALUE 0.2
 
 
 //Add the widgets
@@ -52,6 +47,12 @@ GtkWidget *vbox, *vbox2, *hbox, *hbox2, *frame, *table, *label;
 GtkWidget *button, *entry, *spin, *combo, *row_label, *col_label;
 GtkWidget *patchFitTable, *patchFittingFrame, *patch_fit_width_spinbutton, *patch_fit_height_spinbutton, *patch_fit_button, *patch_swap_button, *eventbox;
 GtkAdjustment *patch_fit_width_spinbutton_adj, *patch_fit_height_spinbutton_adj;
+GtkWidget *patchTextureFrame, *patchTextureFrameTable;
+GtkWidget *patchHorizontalFlipButton, *patchVerticalFlipButton, *patchHorizontalMirrorButton, *patchVerticalMirrorButton;
+GtkWidget *patchFlippingFrame, *patchFlipTable, *specialFrame, *specialTable, *functionLayoutTable;
+GtkWidget *patch_texture_combo, *patch_texture_combo_entry;
+GtkWidget *rowColumnDropdownTable, *nodeCoordinatesTable, *textureCoordinatesTable;
+GtkWidget *patchTextureWidthLabel, *patchTextureHeightLabel;
 GtkAdjustment *adj;
 GList *lst, *cells;
 GtkSizeGroup *size_group;
@@ -323,6 +324,8 @@ void PatchDialog::BuildDialog(){
     GtkWidget *dlg;
     dlg = m_pWidget;
 
+    char tempTooltip[256];
+
     load_window_pos( dlg, g_PrefsDlg.mWindowInfo.posPatchWnd );
 
     gtk_window_set_title( GTK_WINDOW( dlg ), _( "Patch Inspector" ) );
@@ -341,7 +344,62 @@ void PatchDialog::BuildDialog(){
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox, TRUE, TRUE, 0 );
 	gtk_widget_show( hbox );
 
-	frame = gtk_frame_new( _( "Details" ) );
+    patchTextureFrame = gtk_frame_new( _( "Texture" ) );
+    gtk_box_pack_start( GTK_BOX( hbox ), patchTextureFrame, FALSE, TRUE, 0 );
+    gtk_widget_show( patchTextureFrame );
+
+    patchTextureFrameTable = gtk_table_new( 2, 3, FALSE );
+    gtk_table_set_col_spacings( GTK_TABLE( patchTextureFrameTable ), 2 );
+    gtk_table_set_row_spacings( GTK_TABLE( patchTextureFrameTable ), 2 );
+    gtk_container_add( GTK_CONTAINER( patchTextureFrame ), patchTextureFrameTable );
+    gtk_widget_show( patchTextureFrameTable );
+
+        patch_texture_combo = gtk_combo_box_text_new_with_entry();
+        gtk_widget_set_tooltip_text( patch_texture_combo, _( "To change the texture, select a new one in the texture window, middle-click one in the 3D view, or type a new one here and press ENTER" ) );
+        gtk_table_attach( GTK_TABLE( patchTextureFrameTable ), patch_texture_combo, 0, 2, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( patch_texture_combo );
+
+                patch_texture_combo_entry = gtk_bin_get_child( GTK_BIN( patch_texture_combo ) );
+                gtk_entry_set_max_length( GTK_ENTRY( patch_texture_combo_entry ), 128 );
+                gtk_widget_show( patch_texture_combo_entry );
+
+            label = gtk_label_new( _( "Width:" ) );
+            gtk_widget_set_tooltip_text( label, _( "This is the width of the texture in pixels" ) );
+            gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+            gtk_table_attach( GTK_TABLE( patchTextureFrameTable ), label, 0, 1, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( label );
+
+            patchTextureWidthLabel = gtk_label_new( _( " " ) );
+            gtk_widget_modify_font(patchTextureWidthLabel, pango_font_description_from_string("monospace bold 12"));
+            gtk_widget_set_tooltip_text( patchTextureWidthLabel, _( "This is the width of the texture in pixels" ) );
+            gtk_misc_set_alignment( GTK_MISC( patchTextureWidthLabel ), 0.5, 0 );
+            gtk_table_attach( GTK_TABLE( patchTextureFrameTable ), patchTextureWidthLabel, 0, 1, 2, 3,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( patchTextureWidthLabel );
+
+            label = gtk_label_new( _( "Height:" ) );
+            gtk_widget_set_tooltip_text( label, _( "This is the height of the texture in pixels" ) );
+            gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+            gtk_table_attach( GTK_TABLE( patchTextureFrameTable ), label, 1, 2, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( label );
+
+            patchTextureHeightLabel = gtk_label_new( _( " " ) );
+            gtk_widget_set_tooltip_text( patchTextureHeightLabel, _( "This is the height of the texture in pixels" ) );
+            gtk_widget_modify_font(patchTextureHeightLabel, pango_font_description_from_string("monospace bold 12"));
+            gtk_misc_set_alignment( GTK_MISC( patchTextureHeightLabel ), 0.5, 0 );
+            gtk_table_attach( GTK_TABLE( patchTextureFrameTable ), patchTextureHeightLabel, 1, 2, 2, 3,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( patchTextureHeightLabel );
+
+    frame = gtk_frame_new( _( "Texturing" ) );
 	gtk_box_pack_start( GTK_BOX( hbox ), frame, TRUE, TRUE, 0 );
 	gtk_widget_show( frame );
 
@@ -349,178 +407,6 @@ void PatchDialog::BuildDialog(){
 	gtk_container_add( GTK_CONTAINER( frame ), vbox2 );
 	gtk_container_set_border_width( GTK_CONTAINER( vbox2 ), 5 );
 	gtk_widget_show( vbox2 );
-
-	table = gtk_table_new( 2, 2, FALSE );
-	gtk_box_pack_start( GTK_BOX( vbox2 ), table, TRUE, TRUE, 0 );
-	gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
-	gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
-	gtk_widget_show( table );
-
-	row_label = label = gtk_label_new( _( "Row:" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_show( label );
-
-	col_label = label = gtk_label_new( _( "Column:" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 0, 1,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_show( label );
-
-	size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
-	gtk_size_group_add_widget( size_group, row_label );
-	gtk_size_group_add_widget( size_group, col_label );
-	g_object_unref( size_group );
-
-	combo = gtk_combo_box_text_new();
-	gtk_table_attach( GTK_TABLE( table ), combo, 0, 1, 1, 2,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_widget_show( combo );
-	g_signal_connect( G_OBJECT( GTK_COMBO_BOX( combo ) ), "changed",
-						G_CALLBACK( OnSelchangeComboColRow ), this );
-	AddDialogData( combo, &m_nRow, DLG_COMBO_BOX_INT );
-	m_pRowCombo = combo;
-	cells = gtk_cell_layout_get_cells( GTK_CELL_LAYOUT( combo ) );
-	for( lst = cells; lst != NULL; lst = g_list_next( lst ) )
-	{
-		g_object_set( G_OBJECT( lst->data ), "xalign", 1.0, (char*)NULL );
-	}
-	g_list_free( cells );
-
-    combo = gtk_combo_box_text_new();
-	gtk_table_attach( GTK_TABLE( table ), combo, 1, 2, 1, 2,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_widget_show( combo );
-	g_signal_connect( G_OBJECT( GTK_COMBO_BOX( combo ) ), "changed",
-						G_CALLBACK( OnSelchangeComboColRow ), this );
-	AddDialogData( combo, &m_nCol, DLG_COMBO_BOX_INT );
-	m_pColCombo = combo;
-	cells = gtk_cell_layout_get_cells( GTK_CELL_LAYOUT( combo ) );
-	for( lst = cells; lst != NULL; lst = g_list_next( lst ) )
-	{
-		g_object_set( G_OBJECT( lst->data ), "xalign", 1.0, (char*)NULL );
-	}
-	g_list_free( cells );
-
-	table = gtk_table_new( 5, 2, FALSE );
-	gtk_box_pack_start( GTK_BOX( vbox2 ), table, TRUE, TRUE, 0 );
-	gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
-	gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
-	gtk_widget_show( table );
-
-	label = gtk_label_new( _( "X:" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_set_tooltip_text( label, _( "X-Axis" ) );
-	gtk_widget_show( label );
-
-	label = gtk_label_new( _( "Y:" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 1, 2,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_set_tooltip_text( label, _( "Y-Axis" ) );
-	gtk_widget_show( label );
-
-	label = gtk_label_new( _( "Z:" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 2, 3,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_set_tooltip_text( label, _( "Z-Axis" ) );
-	gtk_widget_show( label );
-
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
-	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 0, 1,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-	gtk_widget_show( spin );
-	AddDialogData( spin, &m_fX, DLG_SPIN_FLOAT );
-
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
-	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 1, 2,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-	gtk_widget_show( spin );
-	AddDialogData( spin, &m_fY, DLG_SPIN_FLOAT );
-
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
-	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 2, 3,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-	gtk_widget_show( spin );
-	AddDialogData( spin, &m_fZ, DLG_SPIN_FLOAT );
-
-    label = gtk_label_new( _( "S:" ) );
-    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 3, 4,
-                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                      (GtkAttachOptions) ( 0 ), 0, 0 );
-    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-    gtk_widget_set_tooltip_text( label, _( "S-coordinates correspond to the \"x\" coordinates on the texture itself" ) );
-    gtk_widget_show( label );
-
-    label = gtk_label_new( _( "T:" ) );
-    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 4, 5,
-                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                      (GtkAttachOptions) ( 0 ), 0, 0 );
-    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-    gtk_widget_set_tooltip_text( label, _( "T-coordinates correspond to the \"y\" coordinates on the texture itself. The measurements are in game units." ) );
-    gtk_widget_show( label );
-
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
-	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 3, 4,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-	gtk_widget_show( spin );
-	AddDialogData( spin, &m_fS, DLG_SPIN_FLOAT );
-
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
-	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 4, 5,
-					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-	gtk_widget_show( spin );
-	AddDialogData( spin, &m_fT, DLG_SPIN_FLOAT );
-
-	frame = gtk_frame_new( _( "Texturing" ) );
-	gtk_box_pack_start( GTK_BOX( hbox ), frame, TRUE, TRUE, 0 );
-	gtk_widget_show( frame );
-
-	vbox2 = gtk_vbox_new( FALSE, 5 );
-	gtk_container_add( GTK_CONTAINER( frame ), vbox2 );
-	gtk_container_set_border_width( GTK_CONTAINER( vbox2 ), 5 );
-	gtk_widget_show( vbox2 );
-
-	label = gtk_label_new( _( "Name:" ) );
-	gtk_box_pack_start( GTK_BOX( vbox2 ), label, TRUE, TRUE, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_show( label );
 
 	entry = gtk_entry_new();
 //  gtk_entry_set_editable (GTK_ENTRY (entry), false);
@@ -569,11 +455,11 @@ void PatchDialog::BuildDialog(){
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 0, 1,
-					  (GtkAttachOptions) ( GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
@@ -583,7 +469,7 @@ void PatchDialog::BuildDialog(){
 	// so we need to have at least one initialisation somewhere
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->shift[0] );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -8192, 8192, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "hshift_adj", adj );
 
@@ -595,17 +481,17 @@ void PatchDialog::BuildDialog(){
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 1, 2,
-					  (GtkAttachOptions) ( GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->shift[1] );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -8192, 8192, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "vshift_adj", adj );
 
@@ -617,18 +503,18 @@ void PatchDialog::BuildDialog(){
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 2, 3,
-					  (GtkAttachOptions) ( GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->scale[0] );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -1000, 1000, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "hscale_adj", adj );
 
@@ -640,17 +526,17 @@ void PatchDialog::BuildDialog(){
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 3, 4,
-					  (GtkAttachOptions) ( GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->scale[1] );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -1000, 1000, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "vscale_adj", adj );
 
@@ -662,10 +548,10 @@ void PatchDialog::BuildDialog(){
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -360, 360, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_ROTATE_INCREMENT, MAX_ROTATE_INCREMENT, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 4, 5,
-					  (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
@@ -673,7 +559,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ),  l_pPIIncrement->rotate );
 
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_ROTATE_VALUE, MAX_ROTATE_VALUE, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_ROTATE_INCREMENT, MAX_ROTATE_INCREMENT, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "rotate_adj", adj );
 
@@ -685,118 +571,399 @@ void PatchDialog::BuildDialog(){
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
 
-	hbox2 = gtk_hbox_new( FALSE, 5 );
-	gtk_box_set_homogeneous( GTK_BOX( hbox2 ), TRUE );
-	gtk_box_pack_start( GTK_BOX( vbox2 ), hbox2, TRUE, FALSE, 0 );
-	gtk_widget_show( hbox2 );
+    functionLayoutTable = gtk_table_new( 3, 1, FALSE );
+    gtk_box_pack_start( GTK_BOX( hbox ), functionLayoutTable, TRUE, TRUE, 0 );
+    gtk_table_set_row_spacings( GTK_TABLE( functionLayoutTable ), 5 );
+    gtk_table_set_col_spacings( GTK_TABLE( functionLayoutTable ), 5 );
+    gtk_widget_show( functionLayoutTable );
 
-	cap_button = button = gtk_button_new_with_label( _( "CAP" ) );
-    gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
-    gtk_widget_show( button );
-	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnBtnPatchdetails ), NULL );
+    specialFrame = gtk_frame_new( _( "Special" ) );
+    gtk_table_attach( GTK_TABLE( functionLayoutTable ), specialFrame, 0, 1, 0, 1,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
+    gtk_widget_show( specialFrame );
+
+        specialTable = gtk_table_new( 2, 1, FALSE );
+        gtk_container_set_border_width( GTK_CONTAINER( specialTable ), 5 );
+        gtk_table_set_col_spacings( GTK_TABLE( specialTable ), 2 );
+        gtk_container_add( GTK_CONTAINER( specialFrame ), specialTable );
+        gtk_widget_show( specialTable );
+
+            eventbox = gtk_event_box_new();
+            gtk_table_attach( GTK_TABLE( specialTable ), eventbox, 0, 1, 0, 1,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_widget_show( eventbox );
+
+            cap_button = gtk_button_new_with_mnemonic( _( "Cap" ) );
+            gtk_widget_set_tooltip_text( cap_button, _( "This will distribute the texture equally across the mesh based on the distance between nodes" ) );
+            gtk_container_add( GTK_CONTAINER( eventbox ), cap_button );
+            gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
+            gtk_widget_show( cap_button );
+            g_signal_connect( G_OBJECT( cap_button ), "clicked", G_CALLBACK( OnBtnPatchdetails ), NULL );
+
+            eventbox = gtk_event_box_new();
+            gtk_table_attach( GTK_TABLE( specialTable ), eventbox, 1, 2, 0, 1,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_widget_show( eventbox );
+
+            nat_button = gtk_button_new_with_mnemonic( _( "Natural" ) );
+            gtk_widget_set_tooltip_text( nat_button, _( "This will stretch the texture equally across each node in the mesh" ) );
+            gtk_container_add( GTK_CONTAINER( eventbox ), nat_button );
+            gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
+            gtk_widget_show( nat_button );
+            g_signal_connect( G_OBJECT( nat_button ), "clicked", G_CALLBACK( OnBtnPatchnatural ), NULL );
+
+            size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
+            gtk_size_group_add_widget( size_group, cap_button );
+            gtk_size_group_add_widget( size_group, nat_button );
+            g_object_unref( size_group );
+
+    patchFlippingFrame = gtk_frame_new( _( "Flip & Mirror" ) );
+    gtk_table_attach( GTK_TABLE( functionLayoutTable ), patchFlippingFrame, 0, 1, 1, 2,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
+    gtk_widget_show( patchFlippingFrame );
+
+        patchFlipTable = gtk_table_new( 2, 2, FALSE );
+        gtk_container_set_border_width( GTK_CONTAINER( patchFlipTable ), 5 );
+        gtk_table_set_col_spacings( GTK_TABLE( patchFlipTable ), 2 );
+        gtk_container_add( GTK_CONTAINER( patchFlippingFrame ), patchFlipTable );
+        gtk_widget_show( patchFlipTable );
+
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( patchFlipTable ), eventbox, 0, 1, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_widget_show( eventbox );
+
+        patchHorizontalFlipButton = gtk_button_new_with_mnemonic( _( "Flip Horizontal" ) );
+        gtk_widget_set_tooltip_text( patchHorizontalFlipButton, _( "This will flip the texture and positioning across it's width" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), patchHorizontalFlipButton );
+        gtk_container_set_border_width( GTK_CONTAINER( patchHorizontalFlipButton ), 4 );
+        gtk_widget_show( patchHorizontalFlipButton );
+        g_signal_connect( (gpointer) patchHorizontalFlipButton, "clicked", G_CALLBACK( on_patch_flip_horizontal_button_clicked ), NULL );
+
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( patchFlipTable ), eventbox, 1, 2, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_widget_show( eventbox );
+
+        patchVerticalFlipButton = gtk_button_new_with_mnemonic( _( "Flip Vertical" ) );
+        gtk_widget_set_tooltip_text( patchVerticalFlipButton, _( "This will flip the texture and positioning across it's height" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), patchVerticalFlipButton );
+        gtk_container_set_border_width( GTK_CONTAINER( patchVerticalFlipButton ), 4 );
+        gtk_widget_show( patchVerticalFlipButton );
+        g_signal_connect( (gpointer) patchVerticalFlipButton, "clicked", G_CALLBACK( on_patch_flip_vertical_button_clicked ), NULL );
+
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( patchFlipTable ), eventbox, 0, 1, 1, 2,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_widget_show( eventbox );
+
+        patchHorizontalMirrorButton = gtk_button_new_with_mnemonic( _( "Mirror Horizontal" ) );
+        gtk_widget_set_tooltip_text( patchHorizontalMirrorButton, _( "This will mirror the texture across it's width, without changing the positioning" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), patchHorizontalMirrorButton );
+        gtk_container_set_border_width( GTK_CONTAINER( patchHorizontalMirrorButton ), 4 );
+        gtk_widget_show( patchHorizontalMirrorButton );
+        g_signal_connect( (gpointer) patchHorizontalMirrorButton, "clicked", G_CALLBACK( on_patch_mirror_horizontal_button_clicked ), NULL );
+
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( patchFlipTable ), eventbox, 1, 2, 1, 2,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_widget_show( eventbox );
+
+        patchVerticalMirrorButton = gtk_button_new_with_mnemonic( _( "Mirror Vertical" ) );
+        gtk_widget_set_tooltip_text( patchVerticalMirrorButton, _( "This will mirror the texture across it's height, without changing the positioning" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), patchVerticalMirrorButton );
+        gtk_container_set_border_width( GTK_CONTAINER( patchVerticalMirrorButton ), 4 );
+        gtk_widget_show( patchVerticalMirrorButton );
+        g_signal_connect( (gpointer) patchVerticalMirrorButton, "clicked", G_CALLBACK( on_patch_mirror_vertical_button_clicked ), NULL );
+
+            size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
+            gtk_size_group_add_widget( size_group, patchVerticalFlipButton );
+            gtk_size_group_add_widget( size_group, patchHorizontalFlipButton );
+            gtk_size_group_add_widget( size_group, patchVerticalMirrorButton );
+            gtk_size_group_add_widget( size_group, patchHorizontalMirrorButton );
+            g_object_unref( size_group );
 
     patchFittingFrame = gtk_frame_new( _( "Texture Fitting" ) );
-    gtk_box_pack_start( GTK_BOX( hbox2 ), patchFittingFrame, TRUE, TRUE, 0 );
+    gtk_table_attach( GTK_TABLE( functionLayoutTable ), patchFittingFrame, 0, 1, 2, 3,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
     gtk_widget_show( patchFittingFrame );
 
-    patchFitTable = gtk_table_new( 2, 4, FALSE );
-    gtk_container_set_border_width( GTK_CONTAINER( patchFitTable ), 5 );
-    gtk_table_set_col_spacings( GTK_TABLE( patchFitTable ), 2 );
-    gtk_container_add( GTK_CONTAINER( patchFittingFrame ), patchFitTable );
-    gtk_widget_show( patchFitTable );
+        patchFitTable = gtk_table_new( 2, 4, FALSE );
+        gtk_container_set_border_width( GTK_CONTAINER( patchFitTable ), 5 );
+        gtk_table_set_col_spacings( GTK_TABLE( patchFitTable ), 2 );
+        gtk_container_add( GTK_CONTAINER( patchFittingFrame ), patchFitTable );
+        gtk_widget_show( patchFitTable );
 
-    label = gtk_label_new( _( "Width" ) );
-    gtk_table_attach( GTK_TABLE( patchFitTable ), label, 1, 2, 0, 1,
-                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                      (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-    gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
-    gtk_widget_show( label );
+        label = gtk_label_new( _( "Width" ) );
+        gtk_table_attach( GTK_TABLE( patchFitTable ), label, 1, 2, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+        gtk_widget_show( label );
 
-    label = gtk_label_new( _( "Height" ) );
-    gtk_table_attach( GTK_TABLE( patchFitTable ), label, 3, 4, 0, 1,
-                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                      (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-    gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
-    gtk_widget_show( label );
+        label = gtk_label_new( _( "Height" ) );
+        gtk_table_attach( GTK_TABLE( patchFitTable ), label, 3, 4, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+        gtk_widget_show( label );
 
-    patch_fit_width_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( patchFitWidth, -MAX_FIT_VALUE, MAX_FIT_VALUE, 1, 10, 0 ) );
-    patch_fit_width_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_fit_width_spinbutton_adj ), 1, 3 );
-    gtk_widget_set_tooltip_text( patch_fit_width_spinbutton, _( "This is how many times the texture will tile horizontally when fit" ) );
-    gtk_table_attach( GTK_TABLE( patchFitTable ), patch_fit_width_spinbutton, 1, 2, 1, 2,
-                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                      (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), TRUE );
-    gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), GTK_UPDATE_IF_VALID );
-    gtk_entry_set_alignment( GTK_ENTRY( patch_fit_width_spinbutton ), 1.0 ); //right
-    gtk_widget_show( patch_fit_width_spinbutton );
-    g_signal_connect( (gpointer) patch_fit_width_spinbutton, "value-changed", G_CALLBACK( on_patch_fit_width_spinbutton_value_changed ), NULL );
+        patch_fit_width_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( patchFitWidth, -MAX_FIT_VALUE, MAX_FIT_VALUE, 1, 10, 0 ) );
+        patch_fit_width_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_fit_width_spinbutton_adj ), 1, 3 );
+        sprintf( tempTooltip, "This is how many times the texture will tile horizontally when fit. Valid values are %.3f through %.3f, decimals are accepted", -MAX_FIT_VALUE, MAX_FIT_VALUE );
+        gtk_widget_set_tooltip_text( patch_fit_width_spinbutton, _( tempTooltip ) );
+        gtk_table_attach( GTK_TABLE( patchFitTable ), patch_fit_width_spinbutton, 1, 2, 1, 2,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), TRUE );
+        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), GTK_UPDATE_IF_VALID );
+        gtk_entry_set_alignment( GTK_ENTRY( patch_fit_width_spinbutton ), 1.0 ); //right
+        gtk_widget_show( patch_fit_width_spinbutton );
+        g_signal_connect( (gpointer) patch_fit_width_spinbutton, "value-changed", G_CALLBACK( on_patch_fit_width_spinbutton_value_changed ), NULL );
 
-    patch_fit_height_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( patchFitHeight, -MAX_FIT_VALUE, MAX_FIT_VALUE, 1, 10, 0 ) );
-    patch_fit_height_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_fit_height_spinbutton_adj ), 1, 3 );
-    gtk_widget_set_tooltip_text( patch_fit_height_spinbutton, _( "This is how many times the texture will tile vertically when fit" ) );
-    gtk_table_attach( GTK_TABLE( patchFitTable ), patch_fit_height_spinbutton, 3, 4, 1, 2,
-                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                      (GtkAttachOptions) ( GTK_FILL ), 3, 0 );
-    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), TRUE );
-    gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), GTK_UPDATE_IF_VALID );
-    gtk_entry_set_alignment( GTK_ENTRY( patch_fit_height_spinbutton ), 1.0 ); //right
-    gtk_widget_show( patch_fit_height_spinbutton );
-    g_signal_connect( (gpointer) patch_fit_height_spinbutton, "value-changed", G_CALLBACK( on_patch_fit_height_spinbutton_value_changed ), NULL );
+        patch_fit_height_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( patchFitHeight, -MAX_FIT_VALUE, MAX_FIT_VALUE, 1, 10, 0 ) );
+        patch_fit_height_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_fit_height_spinbutton_adj ), 1, 3 );
+        sprintf( tempTooltip, "This is how many times the texture will tile vertically when fit. Valid values are %.3f through %.3f, decimals are accepted", -MAX_FIT_VALUE, MAX_FIT_VALUE );
+        gtk_widget_set_tooltip_text( patch_fit_height_spinbutton, _( tempTooltip ) );
+        gtk_table_attach( GTK_TABLE( patchFitTable ), patch_fit_height_spinbutton, 3, 4, 1, 2,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 3, 0 );
+        gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), TRUE );
+        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), GTK_UPDATE_IF_VALID );
+        gtk_entry_set_alignment( GTK_ENTRY( patch_fit_height_spinbutton ), 1.0 ); //right
+        gtk_widget_show( patch_fit_height_spinbutton );
+        g_signal_connect( (gpointer) patch_fit_height_spinbutton, "value-changed", G_CALLBACK( on_patch_fit_height_spinbutton_value_changed ), NULL );
 
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( patchFitTable ), eventbox, 0, 1, 1, 2,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 4, 0 );
+        gtk_widget_show( eventbox );
 
-    eventbox = gtk_event_box_new();
-    gtk_table_attach( GTK_TABLE( patchFitTable ), eventbox, 0, 1, 1, 2,
-                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                      (GtkAttachOptions) ( GTK_FILL ), 4, 0 );
-    gtk_widget_show( eventbox );
+        patch_fit_button = gtk_button_new_with_mnemonic( _( "Fit Texture" ) );
+        gtk_widget_set_tooltip_text( patch_fit_button, _( "This will fit the texture on the selected patch(es), according to the specified width and height" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), patch_fit_button );
+        gtk_widget_show( patch_fit_button );
+        g_signal_connect( (gpointer) patch_fit_button, "clicked", G_CALLBACK( on_patch_fit_button_clicked ), NULL );
 
-    patch_fit_button = gtk_button_new_with_mnemonic( _( "Fit Texture" ) );
-    gtk_widget_set_tooltip_text( patch_fit_button, _( "This will fit the texture on the selected patch(es), according to the specified width and height" ) );
-    gtk_container_add( GTK_CONTAINER( eventbox ), patch_fit_button );
-    gtk_widget_show( patch_fit_button );
-    g_signal_connect( (gpointer) patch_fit_button, "clicked", G_CALLBACK( on_patch_fit_button_clicked ), NULL );
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( patchFitTable ), eventbox, 2, 3, 1, 2,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 4, 0 );
+        gtk_widget_show( eventbox );
 
-    eventbox = gtk_event_box_new();
-    gtk_table_attach( GTK_TABLE( patchFitTable ), eventbox, 2, 3, 1, 2,
-                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                      (GtkAttachOptions) ( GTK_FILL ), 4, 0 );
-    gtk_widget_show( eventbox );
+        patch_swap_button = gtk_button_new_with_mnemonic( _( "Swap" ) );
+        gtk_widget_set_tooltip_text( patch_swap_button, _( "This will swap the width and height values" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), patch_swap_button );
+        gtk_widget_show( patch_swap_button );
+        g_signal_connect( (gpointer) patch_swap_button, "clicked", G_CALLBACK( on_patch_swap_button_clicked ), NULL );
 
-    patch_swap_button = gtk_button_new_with_mnemonic( _( "Swap" ) );
-    gtk_widget_set_tooltip_text( patch_swap_button, _( "This will swap the width and height values" ) );
-    gtk_container_add( GTK_CONTAINER( eventbox ), patch_swap_button );
-    gtk_widget_show( patch_swap_button );
-    g_signal_connect( (gpointer) patch_swap_button, "clicked", G_CALLBACK( on_patch_swap_button_clicked ), NULL );
+        frame = gtk_frame_new( _( "Nodes" ) );
+        gtk_box_pack_start( GTK_BOX( hbox ), frame, TRUE, TRUE, 0 );
+        gtk_widget_show( frame );
+
+            vbox2 = gtk_vbox_new( FALSE, 5 );
+            gtk_container_add( GTK_CONTAINER( frame ), vbox2 );
+            gtk_container_set_border_width( GTK_CONTAINER( vbox2 ), 5 );
+            gtk_widget_show( vbox2 );
+
+                rowColumnDropdownTable = gtk_table_new( 2, 2, FALSE );
+                gtk_box_pack_start( GTK_BOX( vbox2 ), rowColumnDropdownTable, TRUE, TRUE, 0 );
+                gtk_table_set_row_spacings( GTK_TABLE( rowColumnDropdownTable ), 5 );
+                gtk_table_set_col_spacings( GTK_TABLE( rowColumnDropdownTable ), 5 );
+                gtk_widget_show( rowColumnDropdownTable );
+
+                    row_label = label = gtk_label_new( _( "Row:" ) );
+                    gtk_table_attach( GTK_TABLE( rowColumnDropdownTable ), label, 0, 1, 0, 1,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_widget_set_tooltip_text( label, _( "These dropdown boxes choose a node to edit" ) );
+                    gtk_widget_show( label );
+
+                    col_label = label = gtk_label_new( _( "Column:" ) );
+                    gtk_table_attach( GTK_TABLE( rowColumnDropdownTable ), label, 1, 2, 0, 1,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_widget_set_tooltip_text( label, _( "These dropdown boxes choose a node to edit" ) );
+                    gtk_widget_show( label );
+
+                    size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
+                    gtk_size_group_add_widget( size_group, row_label );
+                    gtk_size_group_add_widget( size_group, col_label );
+                    g_object_unref( size_group );
+
+                    combo = gtk_combo_box_text_new();
+                    gtk_table_attach( GTK_TABLE( rowColumnDropdownTable ), combo, 0, 1, 1, 2,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_widget_show( combo );
+                    g_signal_connect( G_OBJECT( GTK_COMBO_BOX( combo ) ), "changed",
+                                        G_CALLBACK( OnSelchangeComboColRow ), this );
+                    AddDialogData( combo, &m_nRow, DLG_COMBO_BOX_INT );
+                    m_pRowCombo = combo;
+                    cells = gtk_cell_layout_get_cells( GTK_CELL_LAYOUT( combo ) );
+                    for( lst = cells; lst != NULL; lst = g_list_next( lst ) )
+                    {
+                        g_object_set( G_OBJECT( lst->data ), "xalign", 1.0, (char*)NULL );
+                    }
+                    g_list_free( cells );
+
+                    combo = gtk_combo_box_text_new();
+                    gtk_table_attach( GTK_TABLE( rowColumnDropdownTable ), combo, 1, 2, 1, 2,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_widget_show( combo );
+                    g_signal_connect( G_OBJECT( GTK_COMBO_BOX( combo ) ), "changed",
+                                        G_CALLBACK( OnSelchangeComboColRow ), this );
+                    AddDialogData( combo, &m_nCol, DLG_COMBO_BOX_INT );
+                    m_pColCombo = combo;
+                    cells = gtk_cell_layout_get_cells( GTK_CELL_LAYOUT( combo ) );
+                    for( lst = cells; lst != NULL; lst = g_list_next( lst ) )
+                    {
+                        g_object_set( G_OBJECT( lst->data ), "xalign", 1.0, (char*)NULL );
+                    }
+                    g_list_free( cells );
+
+            nodeCoordinatesTable = gtk_table_new( 4, 3, FALSE );
+            gtk_box_pack_start( GTK_BOX( vbox2 ), nodeCoordinatesTable, TRUE, TRUE, 0 );
+            gtk_table_set_row_spacings( GTK_TABLE( nodeCoordinatesTable ), 5 );
+            gtk_table_set_col_spacings( GTK_TABLE( nodeCoordinatesTable ), 5 );
+            gtk_widget_show( nodeCoordinatesTable );
+
+                label = gtk_label_new( _( "Grid Coordinates:" ) );
+                gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), label, 0, 3, 0, 1,
+                                  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                  (GtkAttachOptions) ( 0 ), 0, 0 );
+                gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 1.0 );
+                gtk_widget_show( label );
+
+                    label = gtk_label_new( _( "X:" ) );
+                    gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), label, 0, 1, 1, 2,
+                                      (GtkAttachOptions) ( 0 ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_widget_set_tooltip_text( label, _( "This is the location of the specified node on the grid's X axis" ) );
+                    gtk_widget_show( label );
+
+                    label = gtk_label_new( _( "Y:" ) );
+                    gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), label, 0, 1, 2, 3,
+                                      (GtkAttachOptions) ( 0 ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_widget_set_tooltip_text( label, _( "This is the location of the specified node on the grid's Y axis" ) );
+                    gtk_widget_show( label );
+
+                    label = gtk_label_new( _( "Z:" ) );
+                    gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), label, 0, 1, 3, 4,
+                                      (GtkAttachOptions) ( 0 ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_widget_set_tooltip_text( label, _( "This is the location of the specified node on the grid's Z axis" ) );
+                    gtk_widget_show( label );
+
+                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
+                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                    gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 1, 2,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
+                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
+                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
+                    gtk_widget_set_tooltip_text( spin, _( "This is the location of the specified node on the grid's X axis" ) );
+                    gtk_widget_show( spin );
+                    AddDialogData( spin, &m_fX, DLG_SPIN_FLOAT );
+
+                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
+                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                    gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 2, 3,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
+                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
+                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
+                    gtk_widget_set_tooltip_text( spin, _( "This is the location of the specified node on the grid's Y axis" ) );
+                    gtk_widget_show( spin );
+                    AddDialogData( spin, &m_fY, DLG_SPIN_FLOAT );
+
+                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
+                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                    gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 3, 4,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
+                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
+                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
+                    gtk_widget_set_tooltip_text( spin, _( "This is the location of the specified node on the grid's Y axis" ) );
+                    gtk_widget_show( spin );
+                    AddDialogData( spin, &m_fZ, DLG_SPIN_FLOAT );
+
+            textureCoordinatesTable = gtk_table_new( 3, 2, FALSE );
+            gtk_box_pack_start( GTK_BOX( vbox2 ), textureCoordinatesTable, TRUE, TRUE, 0 );
+            gtk_table_set_row_spacings( GTK_TABLE( textureCoordinatesTable ), 5 );
+            gtk_table_set_col_spacings( GTK_TABLE( textureCoordinatesTable ), 5 );
+            gtk_widget_show( textureCoordinatesTable );
+
+                label = gtk_label_new( _( "Texture Coordinates:" ) );
+                gtk_table_attach( GTK_TABLE( textureCoordinatesTable ), label, 0, 3, 0, 1,
+                                  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                  (GtkAttachOptions) ( 0 ), 0, 0 );
+                gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 1.0 );
+                gtk_widget_show( label );
+
+                label = gtk_label_new( _( "U:" ) );
+                gtk_table_attach( GTK_TABLE( textureCoordinatesTable ), label, 0, 1, 1, 2,
+                                  (GtkAttachOptions) ( 0 ),
+                                  (GtkAttachOptions) ( 0 ), 0, 0 );
+                gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                gtk_widget_set_tooltip_text( label, _( "This is the horizontal coordinate of the texture at the specified node. This value is normalized, so 0 and 1 refer to opposite edges of the texture" ) );
+                gtk_widget_show( label );
+
+                label = gtk_label_new( _( "V:" ) );
+                gtk_table_attach( GTK_TABLE( textureCoordinatesTable ), label, 0, 1, 2, 3,
+                                  (GtkAttachOptions) ( 0 ),
+                                  (GtkAttachOptions) ( 0 ), 0, 0 );
+                gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                gtk_widget_set_tooltip_text( label, _( "This is the vertical coordinate of the texture at the specified node. This value is normalized, so 0 and 1 refer to opposite edges of the texture" ) );
+                gtk_widget_show( label );
+
+                adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+                spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                gtk_table_attach( GTK_TABLE( textureCoordinatesTable ), spin, 1, 2, 1, 2,
+                                  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                  (GtkAttachOptions) ( 0 ), 0, 0 );
+                gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
+                gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
+                gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
+                gtk_widget_set_tooltip_text( spin, _( "This is the horizontal coordinate of the texture at the specified node. This value is normalized, so 0 and 1 refer to opposite edges of the texture" ) );
+                gtk_widget_show( spin );
+                AddDialogData( spin, &m_fS, DLG_SPIN_FLOAT );
+
+                adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
+                spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                gtk_table_attach( GTK_TABLE( textureCoordinatesTable ), spin, 1, 2, 2, 3,
+                                  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                  (GtkAttachOptions) ( 0 ), 0, 0 );
+                gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
+                gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
+                gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
+                gtk_widget_set_tooltip_text( spin, _( "This is the vertical coordinate of the texture at the specified node. This value is normalized, so 0 and 1 refer to opposite edges of the texture" ) );
+                gtk_widget_show( spin );
+                AddDialogData( spin, &m_fT, DLG_SPIN_FLOAT );
 
 /*
-// NAB622: This has been replaced by the method from the surface inspector
-    set_button = button = gtk_button_new_with_label( _( "Set..." ) );
-	gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
-	gtk_widget_show( button );
-	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnBtnPatchreset ), NULL );
-*/
-
-	nat_button = button = gtk_button_new_with_label( _( "Natural" ) );
-	gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
-	gtk_widget_show( button );
-	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnBtnPatchnatural ), NULL );
-
-/*
-// NAB622: This has been replaced by the method from the surface inspector
-    fit_button = button = gtk_button_new_with_label( _( "Fit" ) );
-	gtk_box_pack_end( GTK_BOX( hbox2 ), button, TRUE, FALSE, 0 );
-	gtk_widget_show( button );
-	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnBtnPatchfit ), NULL );
-*/
-
-	size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
-    gtk_size_group_add_widget( size_group, cap_button );
-//	gtk_size_group_add_widget( size_group, set_button );
-	gtk_size_group_add_widget( size_group, nat_button );
-//	gtk_size_group_add_widget( size_group, fit_button );
-	g_object_unref( size_group );
-
-	hbox = gtk_hbox_new( FALSE, 5 );
+// NAB622: We don't need these buttons. The surface inspector doesn't have them either.
+    hbox = gtk_hbox_new( FALSE, 5 );
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox, TRUE, FALSE, 0 );
 	gtk_widget_show( hbox );
 
@@ -805,10 +972,12 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnDone ), NULL );
 
-	button = gtk_button_new_with_label( _( "Apply" ) );
+    button = gtk_button_new_with_label( _( "Apply" ) );
 	gtk_box_pack_end( GTK_BOX( hbox ), button, FALSE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnApply ), NULL );
+*/
+
 }
 
 // sync the dialog our internal data structures
@@ -898,21 +1067,17 @@ void PatchDialog::UpdateRowColInfo(){
 
 // Fit Texture
 void on_patch_fit_width_spinbutton_value_changed( GtkWidget *widget, gpointer data ){
-    float temp = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ) );
-    if( temp == 0 ) {
-        patchFitWidth = -patchFitWidth;
-    } else {
-        patchFitWidth = temp;
+    patchFitWidth = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ) );
+    if( patchFitWidth == 0 ) {
+        patchFitWidth = 1;
     }
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), patchFitWidth );
 }
 
 void on_patch_fit_height_spinbutton_value_changed( GtkWidget *widget, gpointer data ){
-    float temp = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ) );
-    if( temp == 0 ) {
-        patchFitHeight = -patchFitHeight;
-    } else {
-        patchFitHeight = temp;
+    patchFitHeight = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ) );
+    if( patchFitHeight == 0 ) {
+        patchFitHeight = 1;
     }
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), patchFitHeight );
 }
@@ -932,3 +1097,91 @@ void on_patch_swap_button_clicked( GtkWidget *widget, gpointer data ){
     Sys_UpdateWindows( W_SURFACE );
 }
 
+void on_patch_flip_horizontal_button_clicked( GtkWidget *widget, gpointer data ){
+    float temp;
+    int g;
+    for ( brush_t* pb = selected_brushes.next ; pb != &selected_brushes ; pb = pb->next )
+    {
+        if ( pb->patchBrush ) {
+            patchMesh_t *p = pb->pPatch;
+            p->bDirty = true;
+            for ( int i = 0 ; i < ( p->width - 1 ) / 2 ; i++ )
+            {
+                //g is the opposite coordinate to the one we are modifying
+                g = p->width - 1 - i;
+                for ( int j = 0 ; j < p->height ; j++ )
+                {
+                    temp = p->ctrl[i][j].st[0];
+                    p->ctrl[i][j].st[0] = p->ctrl[g][j].st[0];
+                    p->ctrl[g][j].st[0] = temp;
+                }
+            }
+        }
+    }
+
+    Sys_UpdateWindows( W_PATCH | W_CAMERA );
+}
+
+void on_patch_flip_vertical_button_clicked( GtkWidget *widget, gpointer data ){
+    float temp;
+    int g;
+    for ( brush_t* pb = selected_brushes.next ; pb != &selected_brushes ; pb = pb->next )
+    {
+        if ( pb->patchBrush ) {
+            patchMesh_t *p = pb->pPatch;
+            p->bDirty = true;
+            for ( int i = 0 ; i < p->width ; i++ )
+            {
+                for ( int j = 0 ; j < ( p->height - 1 ) / 2 ; j++ )
+                {
+                    //g is the opposite coordinate to the one we are modifying
+                    g = p->height - 1 - j;
+                    temp = p->ctrl[i][j].st[1];
+                    p->ctrl[i][j].st[1] = p->ctrl[i][g].st[1];
+                    p->ctrl[i][g].st[1] = temp;
+                }
+            }
+        }
+    }
+
+    Sys_UpdateWindows( W_PATCH | W_CAMERA );
+}
+
+void on_patch_mirror_horizontal_button_clicked( GtkWidget *widget, gpointer data ){
+    float temp;
+    for ( brush_t* pb = selected_brushes.next ; pb != &selected_brushes ; pb = pb->next )
+    {
+        if ( pb->patchBrush ) {
+            patchMesh_t *p = pb->pPatch;
+            p->bDirty = true;
+            for ( int i = 0 ; i < p->width ; i++ )
+            {
+                for ( int j = 0 ; j < p->height ; j++ )
+                {
+                    p->ctrl[i][j].st[0] *= -1;
+                }
+            }
+        }
+    }
+
+    Sys_UpdateWindows( W_PATCH | W_CAMERA );
+}
+
+void on_patch_mirror_vertical_button_clicked( GtkWidget *widget, gpointer data ){
+    for ( brush_t* pb = selected_brushes.next ; pb != &selected_brushes ; pb = pb->next )
+    {
+        if ( pb->patchBrush ) {
+            patchMesh_t *p = pb->pPatch;
+            p->bDirty = true;
+            for ( int i = 0 ; i < p->width ; i++ )
+            {
+                for ( int j = 0 ; j < p->height ; j++ )
+                {
+                    p->ctrl[i][j].st[1] *= -1;
+                }
+            }
+        }
+    }
+
+    Sys_UpdateWindows( W_PATCH | W_CAMERA );
+}

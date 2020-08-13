@@ -375,7 +375,7 @@ typedef struct {
 
 typedef struct {
 	vec3_t xyz;
-	float st[2];
+    float st[2];
 	float lightmap[2];
 	vec3_t normal;
 } drawVert_t;

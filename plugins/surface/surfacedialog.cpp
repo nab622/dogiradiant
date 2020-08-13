@@ -41,14 +41,18 @@
 #include "gtkr_vector.h"
 
 // NAB622: Made these into defines for easier access later
-#define MAX_FIT_VALUE 512.0
-#define MAX_SHIFT_VALUE 32768.0         //This is clamped to the texture resolution during editing, but allowing larger numbers is a good idea
+#define MAX_FIT_VALUE 999.999
+#define MAX_SHIFT_VALUE 131072.0         //This is clamped to the texture resolution during editing, but allowing larger numbers is a good idea
 #define MAX_SCALE_VALUE 8192.0
-#define MAX_ROTATE_VALUE 16384.0        //This value is clamped to 360 during editing, but allowing the user to type in larger numbers is a good idea
+#define MAX_ROTATE_VALUE 8192.0        //This value is clamped to 360 during editing, but allowing the user to type in larger numbers is a good idea
 
 #define DEFAULT_SHIFT_INCREMENT_VALUE 1.0
 #define DEFAULT_SCALE_INCREMENT_VALUE 0.1
 #define DEFAULT_ROTATE_INCREMENT_VALUE 22.5
+
+// NAB622: This is the maximum number of items in the 'texture' combo box at the top of the surface inspector.
+// I did not make this define, I just moved it here for easy access. Original value was 15
+#define MAX_NUM_LIST_ITEMS 64
 
 // NAB622: Not sure how to get this from the prefs - so just define it here for now.
 // Everything that needs to reference the default scale value below already references
@@ -139,6 +143,7 @@ GtkWidget *GetDlgWidget( const char* name )
 GtkWidget *spin_width;
 GtkWidget *spin_height;
 
+GtkSizeGroup *flip_size_group;
 
 GtkWidget *texture_combo;
 GtkWidget *texture_combo_entry;
@@ -180,6 +185,9 @@ GtkWidget *reset_rotate_button;
 //GtkWidget *reset_button;
 GtkWidget *horizontalflip_button;
 GtkWidget *verticalflip_button;
+GtkWidget *horizontalMirrorButton;
+GtkWidget *verticalMirrorButton;
+
 
 // Callbacks
 gboolean on_texture_combo_entry_key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer user_data );
@@ -209,13 +217,29 @@ static void on_reset_scale_button_clicked( GtkButton *button, gpointer user_data
 static void on_reset_increments_button_clicked( GtkButton *button, gpointer user_data );
 static void on_horizontal_flip_button_clicked( GtkButton *button, gpointer user_data );
 static void on_vertical_flip_button_clicked( GtkButton *button, gpointer user_data );
-static void on_ments_button_clicked();
+static void on_mirror_horizontal_button_clicked( GtkButton *button, gpointer user_data );
+static void on_mirror_vertical_button_clicked( GtkButton *button, gpointer user_data );
 
 
 float calculateRotatingValueBeneathMax( float input, int max ) {
     float output = fmod( input, max );
     if( output < 0 ) output += max;
     return output;
+}
+
+int getDecimalPrecision( float input ) {
+    //Figure out how many decimal places are in the input number
+    int test = (int)input;
+    int i = 0;
+    int maxPrecision = 10;
+
+    while ( test != input && i <= maxPrecision ) {
+        i++;
+        input *= 10;
+        test = (int) input;
+    }
+
+    return i;
 }
 
 
@@ -236,6 +260,10 @@ void IsFaceConflicting(){
     int texWidth = 0;
     int texHeight = 0;
 
+    // NAB622: These must always be reset or they may retain old values by mistake
+    gtk_label_set_text( GTK_LABEL( textureWidthLabel ), " " );
+    gtk_label_set_text( GTK_LABEL( textureHeightLabel ), " " );
+
     if ( texdef_face_list_empty() ) {
 		gtk_entry_set_text( GTK_ENTRY( hshift_value_spinbutton ), "" );
 		gtk_entry_set_text( GTK_ENTRY( vshift_value_spinbutton ), "" );
@@ -243,12 +271,28 @@ void IsFaceConflicting(){
 		gtk_entry_set_text( GTK_ENTRY( vscale_value_spinbutton ), "" );
 		gtk_entry_set_text( GTK_ENTRY( rotate_value_spinbutton ), "" );
         gtk_entry_set_text( GTK_ENTRY( texture_combo_entry ), "" );
-        gtk_label_set_text( GTK_LABEL( textureWidthLabel ), " " );
-        gtk_label_set_text( GTK_LABEL( textureHeightLabel ), " " );
         return;
 	}
 
-	tmp_texdef = &get_texdef_face_list()->texdef;
+    g_bListenChanged = FALSE;
+
+    tmp_texdef = &get_texdef_face_list()->texdef;
+
+    strcpy( texture_name, tmp_texdef->GetName() );
+
+    texdef_SI_values.shift[0] = tmp_texdef->shift[0];
+    texdef_SI_values.shift[1] = tmp_texdef->shift[1];
+    texdef_SI_values.scale[0] = tmp_texdef->scale[0];
+    texdef_SI_values.scale[1] = tmp_texdef->scale[1];
+    texdef_SI_values.rotate = tmp_texdef->rotate;
+    texdef_SI_values.SetName( texture_name );
+
+    is_HShift_conflicting = FALSE;
+    is_VShift_conflicting = FALSE;
+    is_HScale_conflicting = FALSE;
+    is_VScale_conflicting = FALSE;
+    is_Rotate_conflicting = FALSE;
+    is_TextureName_conflicting = FALSE;
 
     // NAB622: Before we do anything else, NORMALIZE ALL shift & rotate values! There's no reason for them to be beyond their maximums!
     if ( !texdef_face_list_empty() ) {
@@ -264,24 +308,6 @@ void IsFaceConflicting(){
             tmp_texdef->rotate = calculateRotatingValueBeneathMax( tmp_texdef->rotate, 360 );
         }
     }
-
-    g_bListenChanged = FALSE;
-
-    strcpy( texture_name, tmp_texdef->GetName() );
-
-	texdef_SI_values.shift[0] = tmp_texdef->shift[0];
-	texdef_SI_values.shift[1] = tmp_texdef->shift[1];
-	texdef_SI_values.scale[0] = tmp_texdef->scale[0];
-	texdef_SI_values.scale[1] = tmp_texdef->scale[1];
-    texdef_SI_values.rotate = tmp_texdef->rotate;
-	texdef_SI_values.SetName( texture_name );
-
-	is_HShift_conflicting = FALSE;
-	is_VShift_conflicting = FALSE;
-	is_HScale_conflicting = FALSE;
-	is_VScale_conflicting = FALSE;
-	is_Rotate_conflicting = FALSE;
-	is_TextureName_conflicting = FALSE;
 
 
     if ( texdef_face_list_size() > 1 ) {
@@ -346,22 +372,19 @@ void IsFaceConflicting(){
 		gtk_spin_button_set_value( GTK_SPIN_BUTTON( rotate_value_spinbutton ), texdef_SI_values.rotate );
 	}
 
-    if ( is_TextureName_conflicting ) {
-        gtk_label_set_text( GTK_LABEL( textureWidthLabel ), " " );
-        gtk_label_set_text( GTK_LABEL( textureHeightLabel ), " " );
-    } else {
-        char texWidthString[20];
-        char texHeightString[20];
+    if( !is_TextureName_conflicting ) {
+        char texWidthString[10];
+        char texHeightString[10];
+
         sprintf( texWidthString, "%i", texWidth );
         sprintf( texHeightString, "%i", texHeight );
         gtk_label_set_text( GTK_LABEL( textureWidthLabel ), texWidthString );
         gtk_label_set_text( GTK_LABEL( textureHeightLabel ), texHeightString );
     }
 
-	g_bListenChanged = TRUE;
+    g_bListenChanged = TRUE;
 }
 
-#define MAX_NUM_LIST_ITEMS 15
 static void PopulateTextureComboList(){
 	texdef_t* tmp_texdef;
 	texdef_to_face_t* temp_texdef_face_list;
@@ -381,7 +404,7 @@ static void PopulateTextureComboList(){
 	gtk_list_store_clear( store );
 #endif
 
-	if ( texdef_face_list_empty() ) {
+    if ( texdef_face_list_empty() ) {
 		items = g_list_append( items, (gpointer) blank );
 		// For Texture Entry, activate only on entry change
 		strcpy( old_texture_entry, blank );
@@ -721,38 +744,26 @@ void FitAll(){
 
 GtkWidget* create_SurfaceInspector( void ){
 
-	GtkWidget *label;
+    char tempTooltip[256];
+
+    GtkWidget *label;
     GtkWidget *hseparator;
-    GtkWidget *vseparator;
     GtkWidget *eventbox;
 
 	GtkWidget *viewport8;
-	GtkWidget *viewport9;
-    GtkWidget *viewport2;
-    GtkWidget *viewport3;
-    GtkWidget *viewport4;
-    GtkWidget *viewport7;
-	GtkWidget *viewport5;
-    GtkWidget *viewport6;
 
     GtkWidget *textureFrame;
+    GtkWidget *textureFrameTable;
     GtkWidget *coordinatesFrame;
     GtkWidget *flippingFrame;
     GtkWidget *fittingFrame;
-    GtkWidget *textureFrameTable;
 
     GtkWidget *table1;
-	GtkWidget *table4;
 	GtkWidget *table5;
     GtkWidget *flipTable;
     GtkWidget *axialTable;
-    GtkWidget *resolutionTable;
 
 	GtkWidget *vbox7;
-
-	GtkWidget *hbox1;
-
-	GtkWidget *hbuttonbox1;
 
 	SurfaceInspector = gtk_window_new( GTK_WINDOW_TOPLEVEL );
 	gtk_window_set_transient_for( GTK_WINDOW( SurfaceInspector ), GTK_WINDOW( g_pMainWidget ) );
@@ -969,8 +980,28 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( eventbox );
 
     reset_scale_button = gtk_button_new_with_mnemonic( _( "Reset Scale" ) );
+    // NAB622: For cleanliness sake, let's remove the trailing zeroes
     char scale_tooltip_value[128];
-    sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %f", (float) DEFAULT_SCALE_VALUE );
+        switch( getDecimalPrecision( DEFAULT_SCALE_VALUE ) ) {
+            case 0:
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %i", (int) DEFAULT_SCALE_VALUE );
+                break;
+            case 1:
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.1f", (float) DEFAULT_SCALE_VALUE );
+                break;
+            case 2:
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.2f", (float) DEFAULT_SCALE_VALUE );
+                break;
+            case 3:
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.3f", (float) DEFAULT_SCALE_VALUE );
+                break;
+            case 4:
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.4f", (float) DEFAULT_SCALE_VALUE );
+                break;
+            default:
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.5f", (float) DEFAULT_SCALE_VALUE );
+        }
+
     gtk_widget_set_tooltip_text( reset_scale_button, _( scale_tooltip_value ) );
     gtk_container_add( GTK_CONTAINER( eventbox ), reset_scale_button );
     gtk_container_set_border_width( GTK_CONTAINER( reset_scale_button ), 4 );
@@ -987,11 +1018,11 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_container_add( GTK_CONTAINER( eventbox ), reset_increment_button );
     gtk_widget_show( reset_increment_button );
 
-        flippingFrame = gtk_frame_new( _( "Texture Flipping" ) );
-        gtk_box_pack_start( GTK_BOX( vbox7 ), flippingFrame, FALSE, TRUE, 0 );
-        gtk_widget_show( flippingFrame );
+    flippingFrame = gtk_frame_new( _( "Flip & Mirror" ) );
+    gtk_box_pack_start( GTK_BOX( vbox7 ), flippingFrame, FALSE, TRUE, 0 );
+    gtk_widget_show( flippingFrame );
 
-        flipTable = gtk_table_new( 2, 1, FALSE );
+        flipTable = gtk_table_new( 2, 2, FALSE );
         gtk_container_set_border_width( GTK_CONTAINER( flipTable ), 5 );
         gtk_table_set_col_spacings( GTK_TABLE( flipTable ), 2 );
         gtk_container_add( GTK_CONTAINER( flippingFrame ), flipTable );
@@ -1004,7 +1035,7 @@ GtkWidget* create_SurfaceInspector( void ){
             gtk_widget_show( eventbox );
 
             horizontalflip_button = gtk_button_new_with_mnemonic( _( "Flip Horizontal" ) );
-            gtk_widget_set_tooltip_text( horizontalflip_button, _( "This will invert the horizontal shift and scale values, flipping the texture" ) );
+            gtk_widget_set_tooltip_text( horizontalflip_button, _( "This will flip the texture and positioning across it's width" ) );
             gtk_container_add( GTK_CONTAINER( eventbox ), horizontalflip_button );
             gtk_container_set_border_width( GTK_CONTAINER( horizontalflip_button ), 4 );
             gtk_widget_show( horizontalflip_button );
@@ -1016,10 +1047,43 @@ GtkWidget* create_SurfaceInspector( void ){
             gtk_widget_show( eventbox );
 
             verticalflip_button = gtk_button_new_with_mnemonic( _( "Flip Vertical" ) );
-            gtk_widget_set_tooltip_text( verticalflip_button, _( "This will invert the vertical shift and scale values, flipping the texture" ) );
+            gtk_widget_set_tooltip_text( verticalflip_button, _( "This will flip the texture and positioning across it's height" ) );
             gtk_container_add( GTK_CONTAINER( eventbox ), verticalflip_button );
             gtk_container_set_border_width( GTK_CONTAINER( verticalflip_button ), 4 );
             gtk_widget_show( verticalflip_button );
+
+            eventbox = gtk_event_box_new();
+            gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 0, 1, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_widget_show( eventbox );
+
+            horizontalMirrorButton = gtk_button_new_with_mnemonic( _( "Mirror Horizontal" ) );
+            gtk_widget_set_tooltip_text( horizontalMirrorButton, _( "This will mirror the texture across it's width, without changing the positioning" ) );
+            gtk_container_add( GTK_CONTAINER( eventbox ), horizontalMirrorButton );
+            gtk_container_set_border_width( GTK_CONTAINER( horizontalMirrorButton ), 4 );
+            gtk_widget_show( horizontalMirrorButton );
+            g_signal_connect( (gpointer) horizontalMirrorButton, "clicked", G_CALLBACK( on_mirror_horizontal_button_clicked ), NULL );
+
+            eventbox = gtk_event_box_new();
+            gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 1, 2, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_widget_show( eventbox );
+
+            verticalMirrorButton = gtk_button_new_with_mnemonic( _( "Mirror Vertical" ) );
+            gtk_widget_set_tooltip_text( verticalMirrorButton, _( "This will mirror the texture across it's height, without changing the positioning" ) );
+            gtk_container_add( GTK_CONTAINER( eventbox ), verticalMirrorButton );
+            gtk_container_set_border_width( GTK_CONTAINER( verticalMirrorButton ), 4 );
+            gtk_widget_show( verticalMirrorButton );
+            g_signal_connect( (gpointer) verticalMirrorButton, "clicked", G_CALLBACK( on_mirror_vertical_button_clicked ), NULL );
+
+            flip_size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
+            gtk_size_group_add_widget( flip_size_group, horizontalflip_button );
+            gtk_size_group_add_widget( flip_size_group, verticalflip_button );
+            gtk_size_group_add_widget( flip_size_group, horizontalMirrorButton );
+            gtk_size_group_add_widget( flip_size_group, verticalMirrorButton );
+            g_object_unref( flip_size_group );
 
     eventbox = gtk_event_box_new();
     gtk_table_attach( GTK_TABLE( table1 ), eventbox, 1, 2, 2, 3,
@@ -1236,7 +1300,8 @@ GtkWidget* create_SurfaceInspector( void ){
 
     fit_width_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( m_nWidth, -MAX_FIT_VALUE, MAX_FIT_VALUE, 1, 10, 0 ) );
     fit_width_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( fit_width_spinbutton_adj ), 1, 3 );
-    gtk_widget_set_tooltip_text( fit_width_spinbutton, _( "This is how many times the texture will tile horizontally when fit" ) );
+    sprintf( tempTooltip, "This is how many times the texture will tile horizontally when fit. Valid values are %.3f through %.3f, decimals are accepted", -MAX_FIT_VALUE, MAX_FIT_VALUE );
+    gtk_widget_set_tooltip_text( fit_width_spinbutton, _( tempTooltip ) );
     gtk_table_attach( GTK_TABLE( table5 ), fit_width_spinbutton, 1, 2, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
@@ -1247,7 +1312,8 @@ GtkWidget* create_SurfaceInspector( void ){
 
     fit_height_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( m_nHeight, -MAX_FIT_VALUE, MAX_FIT_VALUE, 1, 10, 0 ) );
     fit_height_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( fit_height_spinbutton_adj ), 1, 3 );
-    gtk_widget_set_tooltip_text( fit_height_spinbutton, _( "This is how many times the texture will tile vertically when fit" ) );
+    sprintf( tempTooltip, "This is how many times the texture will tile vertically when fit. Valid values are %.3f through %.3f, decimals are accepted", -MAX_FIT_VALUE, MAX_FIT_VALUE );
+    gtk_widget_set_tooltip_text( fit_height_spinbutton, _( tempTooltip ) );
     gtk_table_attach( GTK_TABLE( table5 ), fit_height_spinbutton, 3, 4, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( GTK_FILL ), 3, 0 );
@@ -1393,7 +1459,7 @@ void on_texture_combo_entry_activate( GtkEntry *entry, gpointer user_data ){
 	texdef_to_face_t* temp_texdef_face_list;
 	char text[128] = { 0 };
 
-	if ( !texdef_face_list_empty() && g_bListenChanged ) {
+    if ( !texdef_face_list_empty() && g_bListenChanged ) {
 		// activate only on entry change
 		strcpy( text, gtk_entry_get_text( entry ) );
 		if ( strcmp( old_texture_entry, text ) ) {
@@ -1621,21 +1687,17 @@ static void on_rotate_step_spinbutton_value_changed( GtkSpinButton *spinbutton, 
 
 // Fit Texture
 static void on_fit_width_spinbutton_value_changed( GtkSpinButton *spinbutton, gpointer user_data ){
-    float temp = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( fit_width_spinbutton ) );
-    if( temp == 0 ) {
-        m_nWidth = -m_nWidth;
-    } else {
-        m_nWidth = temp;
+    m_nWidth = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( fit_width_spinbutton ) );
+    if( m_nWidth == 0 ) {
+        m_nWidth = 1;
     }
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( fit_width_spinbutton ), m_nWidth );
 }
 
 static void on_fit_height_spinbutton_value_changed( GtkSpinButton *spinbutton, gpointer user_data ){
-    float temp = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( fit_height_spinbutton ) );
-    if( temp == 0 ) {
-        m_nHeight = -m_nHeight;
-    } else {
-        m_nHeight = temp;
+    m_nHeight = gtk_spin_button_get_value_as_float( GTK_SPIN_BUTTON( fit_height_spinbutton ) );
+    if( m_nHeight == 0 ) {
+        m_nHeight = 1;
     }
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( fit_height_spinbutton ), m_nHeight );
 }
@@ -1671,7 +1733,7 @@ static void on_reset_shift_button_clicked( GtkButton *button, gpointer user_data
     }
 
     if ( !texdef_face_list_empty() ) {
-        SetTexdef_FaceList( get_texdef_face_list(), FALSE, TRUE );
+        SetTexdef_FaceList( get_texdef_face_list(), TRUE, FALSE );
     }
     Sys_UpdateWindows( W_ALL );
 }
@@ -1689,13 +1751,14 @@ static void on_reset_rotate_button_clicked( GtkButton *button, gpointer user_dat
     }
 
     if ( !texdef_face_list_empty() ) {
-        SetTexdef_FaceList( get_texdef_face_list(), FALSE, TRUE );
+        SetTexdef_FaceList( get_texdef_face_list(), TRUE, FALSE );
     }
     Sys_UpdateWindows( W_ALL );
 }
 
 static void on_axial_button_clicked( GtkButton *button, gpointer user_data ){
-    // NAB622: Axial button is just the shift and rotate set to 0. Just reset both of those.
+    // NAB622: Axial button is the shift and rotate set to 0, and the scale set to 0.5.
+    // This means that on every axis, a texture will be exactly 2 pixels per grid unit
     texdef_t* tmp_texdef;
     texdef_to_face_t* temp_texdef_face_list;
 
@@ -1710,14 +1773,10 @@ static void on_axial_button_clicked( GtkButton *button, gpointer user_data ){
             tmp_texdef->rotate = 0;
         }
     }
-
     if ( !texdef_face_list_empty() ) {
-        SetTexdef_FaceList( get_texdef_face_list(), FALSE, TRUE );
+        SetTexdef_FaceList( get_texdef_face_list(), TRUE, FALSE );
     }
     Sys_UpdateWindows( W_ALL );
-
-    on_reset_shift_button_clicked( button, user_data );
-    on_reset_rotate_button_clicked( button, user_data );
 }
 
 static void on_reset_scale_button_clicked( GtkButton *button, gpointer user_data ){
@@ -1734,7 +1793,7 @@ static void on_reset_scale_button_clicked( GtkButton *button, gpointer user_data
     }
 
     if ( !texdef_face_list_empty() ) {
-        SetTexdef_FaceList( get_texdef_face_list(), FALSE, TRUE );
+        SetTexdef_FaceList( get_texdef_face_list(), TRUE, FALSE );
     }
     Sys_UpdateWindows( W_ALL );
 }
@@ -1748,8 +1807,8 @@ static void on_horizontal_flip_button_clicked( GtkButton *button, gpointer user_
         for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
         {
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
-            tmp_texdef->shift[0] = -tmp_texdef->shift[0];
-            tmp_texdef->scale[0] = -tmp_texdef->scale[0];
+            tmp_texdef->shift[0] = tmp_texdef->shift[0] + temp_texdef_face_list->face->d_texture->width / 2;
+            tmp_texdef->scale[0] *= -1;
             tmp_texdef->shift[0] = calculateRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
         }
         GetTexMods();
@@ -1765,8 +1824,42 @@ static void on_vertical_flip_button_clicked( GtkButton *button, gpointer user_da
         for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
         {
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
-            tmp_texdef->shift[1] = -tmp_texdef->shift[1];
-            tmp_texdef->scale[1] = -tmp_texdef->scale[1];
+            tmp_texdef->shift[1] = tmp_texdef->shift[1] + temp_texdef_face_list->face->d_texture->height / 2;
+            tmp_texdef->scale[1] *= -1;
+            tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
+        }
+        GetTexMods();
+    }
+}
+
+static void on_mirror_horizontal_button_clicked( GtkButton *button, gpointer user_data ) {
+    texdef_t* tmp_texdef;
+    texdef_t* tmp_orig_texdef;
+    texdef_to_face_t* temp_texdef_face_list;
+
+    if ( !texdef_face_list_empty() && g_bListenChanged ) {
+        for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
+        {
+            tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
+            tmp_texdef->shift[0] *= -1;
+            tmp_texdef->scale[0] *= -1;
+            tmp_texdef->shift[0] = calculateRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
+        }
+        GetTexMods();
+    }
+}
+
+static void on_mirror_vertical_button_clicked( GtkButton *button, gpointer user_data ) {
+    texdef_t* tmp_texdef;
+    texdef_t* tmp_orig_texdef;
+    texdef_to_face_t* temp_texdef_face_list;
+
+    if ( !texdef_face_list_empty() && g_bListenChanged ) {
+        for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
+        {
+            tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
+            tmp_texdef->shift[1] *= -1;
+            tmp_texdef->scale[1] *= -1;
             tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
         }
         GetTexMods();

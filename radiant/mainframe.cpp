@@ -102,10 +102,6 @@ GtkAccelGroup* global_accel;
 
 void Select_Ungroup();
 
-// NAB622: This value is essentially the maximum zoom-in distance on the grid. The numeric value specified here corresponds
-// to the number of pixels the grid can render per block before it stops zooming in, at the smallest precision available
-#define MAX_GRID_ZOOM_BLOCKSIZE (90 / MIN_GRID_PRECISION)
-
 // command mapping stuff
 //
 // m_strCommand is the command string

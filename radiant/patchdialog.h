@@ -24,10 +24,16 @@
 
 #include "dialog.h"
 
+
 void on_patch_fit_width_spinbutton_value_changed( GtkWidget *widget, gpointer data );
 void on_patch_fit_height_spinbutton_value_changed( GtkWidget *widget, gpointer data );
 void on_patch_fit_button_clicked( GtkWidget *widget, gpointer data );
 void on_patch_swap_button_clicked( GtkWidget *widget, gpointer data );
+void on_patch_flip_horizontal_button_clicked( GtkWidget *widget, gpointer data );
+void on_patch_flip_vertical_button_clicked( GtkWidget *widget, gpointer data );
+void on_patch_mirror_horizontal_button_clicked( GtkWidget *widget, gpointer data );
+void on_patch_mirror_vertical_button_clicked( GtkWidget *widget, gpointer data );
+
 
 class PatchDialog : public Dialog
 {
