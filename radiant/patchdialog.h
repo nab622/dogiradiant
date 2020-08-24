@@ -34,6 +34,10 @@ void on_patch_flip_vertical_button_clicked( GtkWidget *widget, gpointer data );
 void on_patch_mirror_horizontal_button_clicked( GtkWidget *widget, gpointer data );
 void on_patch_mirror_vertical_button_clicked( GtkWidget *widget, gpointer data );
 
+void toggle_node_lock();
+void unlockNodeInputs();
+void lockNodeInputs();
+
 
 class PatchDialog : public Dialog
 {

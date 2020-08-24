@@ -269,3 +269,7 @@ GtkWindow* SI_GetMainWindow( void ){
 void SI_SetWinPos_from_Prefs( GtkWidget *win ){
 	load_window_pos( win, g_PrefsDlg.mWindowInfo.posSurfaceWnd );
 }
+
+float SI_GetDefaultScaleValue(){
+    return g_PrefsDlg.m_fDefTextureScale;
+}

@@ -57,27 +57,6 @@ struct SKeyInfo
 	unsigned int m_nVKKey;
 };
 
-// NAB622: Grid precisions down to 0.03125 have been added and they work - however, they're too precise to guarantee accuracy in a compiled map.
-// This define will limit the minimum grid setting. Changing this define prevents smaller numbers from appearing in the menu, and will not
-// allow the user to switch to a lower setting than that with the keyboard.
-// Valid values here are 1, 0.5, 0.25, 0.125, 0.0625 and 0.03125. Anything else will have no effect or cause bugs.
-// Do not change this setting lightly, as Radiant now uses it as an epsilon when calculating vertex locations to fix a "Snap to grid" bug!
-#define MIN_GRID_PRECISION 0.125
-
-// NAB622: This value is the maximum zoom-in distance on the grid. The numeric value specified here corresponds to the maximum
-// number of pixels the grid can render per block before it stops zooming in, at the smallest precision available
-#define MAX_GRID_ZOOM_PIXELS 90
-
-// NAB622: Calculate the actual zoom value needed, based on the values given previously
-#define MAX_GRID_ZOOM_BLOCKSIZE (MAX_GRID_ZOOM_PIXELS / MIN_GRID_PRECISION)
-
-// NAB622: This is the maximum distance the grid can go on any axis, both positive and negative
-// This is a define now because the camera controls are attached to it, amongst other things
-#define MAX_MAP_SIZE 65536
-
-
-// NAB622: Don't touch this
-#define MIN_MAP_SIZE -MAX_MAP_SIZE
 
 #define ID_FILE_NEW 0xE100
 #define ID_FILE_OPEN 0xE101

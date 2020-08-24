@@ -1675,12 +1675,6 @@ float getGridValueForTextureChanges() {
     return CLAMP( g_qeglobals.d_gridsize, 1, 128 ) / 10000;
 }
 
-float calculateRotatingValueBeneathMax( float input, int max ) {
-    float output = fmod( input, max );
-    if( output < 0 ) output += max;
-    return output;
-}
-
 void Select_ShiftTexture( int x, int y ) {
     brush_t     *b;
 	face_t      *f;

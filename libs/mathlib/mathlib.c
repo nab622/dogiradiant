@@ -778,3 +778,4 @@ vec_accu_t VectorNormalizeAccu( const vec3_accu_t in, vec3_accu_t out ){
 
 	return length;
 }
+

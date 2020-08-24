@@ -2295,8 +2295,9 @@ bool CSynapseClientRadiant::RequestAPI( APIDescriptor_t *pAPI ){
 		pSurfDialogTable->m_pfnQeglobalsGetGridSize = &QERApp_QeglobalsGetGridSize;
 		pSurfDialogTable->m_pfnFaceList_FitTexture = &SI_FaceList_FitTexture;
 		pSurfDialogTable->m_pfnGetMainWindow = &SI_GetMainWindow;
-		pSurfDialogTable->m_pfnSetWinPos_From_Prefs = &SI_SetWinPos_from_Prefs;
-		pSurfDialogTable->m_pfnGetSelectedFaceCountfromBrushes = &SI_GetSelectedFaceCountfromBrushes;
+        pSurfDialogTable->m_pfnSetWinPos_From_Prefs = &SI_SetWinPos_from_Prefs;
+        pSurfDialogTable->m_pfnGetDefaultScaleValue = &SI_GetDefaultScaleValue;
+        pSurfDialogTable->m_pfnGetSelectedFaceCountfromBrushes = &SI_GetSelectedFaceCountfromBrushes;
 		pSurfDialogTable->m_pfnGetSelFacesTexdef = &SI_GetSelFacesTexdef;
 		pSurfDialogTable->m_pfnSetTexdef_FaceList = &SI_SetTexdef_FaceList;
 

@@ -91,6 +91,7 @@ extern _QERAppDataTable g_AppDataTable;
 #define GetSelFacesTexdef g_AppSurfaceTable.m_pfnGetSelFacesTexdef
 #define SetTexdef_FaceList g_AppSurfaceTable.m_pfnSetTexdef_FaceList
 #define SetWinPos_from_Prefs g_AppSurfaceTable.m_pfnSetWinPos_From_Prefs
+#define GetDefaultScaleValue g_AppSurfaceTable.m_pfnGetDefaultScaleValue
 
 #define Texturewin g_AppShadersTable.m_pfnQeglobalsTexturewin
 

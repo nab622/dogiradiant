@@ -27,5 +27,6 @@ void SI_SetTexdef_FaceList( texdef_to_face_t* texdef_face_list, bool b_SetUndoPo
 void SI_FaceList_FitTexture( texdef_to_face_t* si_texdef_face_list, float nHeight, float nWidth );
 GtkWindow* SI_GetMainWindow( void );
 void SI_SetWinPos_from_Prefs( GtkWidget *win );
+float SI_GetDefaultScaleValue();
 
 #endif // _SURFACEPLUGIN_H

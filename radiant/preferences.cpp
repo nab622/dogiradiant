@@ -2478,7 +2478,9 @@ void PrefsDlg::BuildDialog(){
 	gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
 	gtk_widget_show( table );
 
-	// label
+/*
+// NAB622: I think the surface inspector can do this just fine on it's own...
+    // label
     label = gtk_label_new( _( "Default rotation step (Surface inspector only):" ) );
 	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
 					  (GtkAttachOptions) ( 0 ),
@@ -2494,6 +2496,7 @@ void PrefsDlg::BuildDialog(){
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_widget_show( spin );
 	AddDialogData( spin, &m_nRotation, DLG_SPIN_INT );
+*/
 
 	// Add the page to the notebook
 	page_index = gtk_notebook_append_page( GTK_NOTEBOOK( notebook ), pageframe, preflabel );
@@ -2680,7 +2683,7 @@ void PrefsDlg::BuildDialog(){
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
 
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 0.5, 0, 65535, 0.1, 1, 0 ) ), 1, 6 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 0.5, 0, 65535, 0.1, 1, 0 ) ), 1, TEXTURE_SCALE_PRECISION );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 0, 1,

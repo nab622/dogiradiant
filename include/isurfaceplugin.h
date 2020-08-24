@@ -120,6 +120,7 @@ typedef float ( *PFN_QEGLOBALSGETGRIDSIZE )();
 typedef void ( *PFN_FACELIST_FITTEXTURE )( texdef_to_face_t* texdef_face_list, float nHeight, float nWidth );
 typedef GtkWindow* ( *PFN_GETMAINWINDOW )();
 typedef void ( *PFN_SETWINPOS_FROM_PREFS )( GtkWidget *win );
+typedef float ( *PFN_GET_DEFAULT_SCALE_FROM_PREFS )( );
 typedef int ( *PFN_GETSELECTEDFACECOUNT_BRUSH )();
 typedef void ( *PFN_GETSELFACESTEXDEF )( texdef_to_face_t * );
 typedef void ( *PFN_SETTEXDEF_FACELIST )( texdef_to_face_t* texdef_face_list, bool b_SetUndoPoint, bool bFit_to_Scale );
@@ -129,7 +130,7 @@ typedef void ( *PFN_SETACTIVEINRADIANT )();
 struct _QERAppSurfaceTable
 {
 	int m_nSize;
-	PFN_PATCHESSELECTED m_pfnOnlyPatchesSelected;
+    PFN_PATCHESSELECTED m_pfnOnlyPatchesSelected;
 	PFN_PATCHESSELECTED m_pfnAnyPatchesSelected;
 	PFN_GETSELECTEDPATCH m_pfnGetSelectedPatch;
 	PFN_GETTWOSELECTEDPATCH m_pfnGetTwoSelectedPatch;
@@ -151,8 +152,9 @@ struct _QERAppSurfaceTable
 	PFN_QEGLOBALSGETGRIDSIZE m_pfnQeglobalsGetGridSize;
 	PFN_FACELIST_FITTEXTURE m_pfnFaceList_FitTexture;
 	PFN_GETMAINWINDOW m_pfnGetMainWindow;
-	PFN_SETWINPOS_FROM_PREFS m_pfnSetWinPos_From_Prefs;
-	PFN_GETSELECTEDFACECOUNT_BRUSH m_pfnGetSelectedFaceCountfromBrushes;
+    PFN_SETWINPOS_FROM_PREFS m_pfnSetWinPos_From_Prefs;
+    PFN_GET_DEFAULT_SCALE_FROM_PREFS m_pfnGetDefaultScaleValue;
+    PFN_GETSELECTEDFACECOUNT_BRUSH m_pfnGetSelectedFaceCountfromBrushes;
 	PFN_GETSELFACESTEXDEF m_pfnGetSelFacesTexdef;
 	PFN_SETTEXDEF_FACELIST m_pfnSetTexdef_FaceList;
 };

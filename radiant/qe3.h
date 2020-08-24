@@ -89,6 +89,8 @@ void CheckWatchit( char *msg );
 #include "mathlib.h"
 #include "parse.h"
 
+#include "globalDefines.h"
+
 #include "qedefs.h"
 #include "qfiles.h"
 #include "textures.h"
@@ -823,7 +825,6 @@ extern bool g_bPathMode;
 extern void RunScript( char* pBuffer );
 extern bool ExtractPath_and_Filename( const char* pPath, CString& strPath, CString& strFilename );
 extern void Select_Scale( float x, float y, float z );
-extern float calculateRotatingValueBeneathMax( float input, int max );
 extern void Select_RotateTexture( int amt );
 extern void Select_ScaleTexture( float x, float y );
 extern void Select_ShiftTexture( int x, int y );
@@ -897,7 +898,6 @@ int GetUniqueTargetId( int iHint );
 
 // xywindow.cpp
 void CreateEntityFromName( const char* name, const vec3_t origin );
-int getDecimalPrecision( float input );
 
 
 

@@ -2330,21 +2330,6 @@ void XYWnd::XY_ToGridPoint( int x, int y, vec3_t point ){
    ==============
  */
 
-int getDecimalPrecision( float input ) {
-    //Figure out how many decimal places are in the input number
-    int test = (int)input;
-    int i = 0;
-    int maxPrecision = 6;
-
-    while ( test != input && i <= maxPrecision ) {
-        i++;
-        input *= 10;
-        test = (int) input;
-    }
-
-    return i;
-}
-
 void XYWnd::XY_DrawGrid(){
 	float x, y, xb, xe, yb, ye;
 	float w, h;

@@ -34,33 +34,16 @@
 
 #include "surfdlg_plugin.h"
 
+#include "globalDefines.h"
+
 #ifdef _DEBUG
 //  #define DBG_SI 1
 #endif
 
 #include "gtkr_vector.h"
 
-// NAB622: Made these into defines for easier access later
-#define MAX_FIT_VALUE 999.999
-#define MAX_SHIFT_VALUE 131072.0         //This is clamped to the texture resolution during editing, but allowing larger numbers is a good idea
-#define MAX_SCALE_VALUE 8192.0
-#define MAX_ROTATE_VALUE 8192.0        //This value is clamped to 360 during editing, but allowing the user to type in larger numbers is a good idea
 
-#define DEFAULT_SHIFT_INCREMENT_VALUE 1.0
-#define DEFAULT_SCALE_INCREMENT_VALUE 0.1
-#define DEFAULT_ROTATE_INCREMENT_VALUE 22.5
-
-// NAB622: This is the maximum number of items in the 'texture' combo box at the top of the surface inspector.
-// I did not make this define, I just moved it here for easy access. Original value was 15
-#define MAX_NUM_LIST_ITEMS 64
-
-// NAB622: Not sure how to get this from the prefs - so just define it here for now.
-// Everything that needs to reference the default scale value below already references
-// this value, so changing this value to the value from the prefs will do the job in the future
-#define DEFAULT_SCALE_VALUE 0.2
-
-
-// NAB622: These need defined up here
+// NAB622: These need declared up here
 GtkWidget *textureWidthLabel;
 GtkWidget *textureHeightLabel;
 
@@ -143,7 +126,7 @@ GtkWidget *GetDlgWidget( const char* name )
 GtkWidget *spin_width;
 GtkWidget *spin_height;
 
-GtkSizeGroup *flip_size_group;
+GtkSizeGroup *axial_size_group, *flip_size_group;
 
 GtkWidget *texture_combo;
 GtkWidget *texture_combo_entry;
@@ -179,6 +162,7 @@ GtkWidget *fit_height_spinbutton;
 GtkWidget *fit_button;
 GtkWidget *swap_button;
 GtkWidget *axial_button;
+GtkWidget *axial_grid_button;
 GtkWidget *reset_shift_button;
 GtkWidget *reset_scale_button;
 GtkWidget *reset_rotate_button;
@@ -211,6 +195,7 @@ static void on_fit_button_clicked( GtkButton *button, gpointer user_data );
 static void on_swap_button_clicked( GtkButton *button, gpointer user_data );
 
 static void on_axial_button_clicked( GtkButton *button, gpointer user_data );
+static void on_axial_grid_button_clicked( GtkButton *button, gpointer user_data );
 static void on_reset_shift_button_clicked( GtkButton *button, gpointer user_data );
 static void on_reset_rotate_button_clicked( GtkButton *button, gpointer user_data );
 static void on_reset_scale_button_clicked( GtkButton *button, gpointer user_data );
@@ -220,27 +205,6 @@ static void on_vertical_flip_button_clicked( GtkButton *button, gpointer user_da
 static void on_mirror_horizontal_button_clicked( GtkButton *button, gpointer user_data );
 static void on_mirror_vertical_button_clicked( GtkButton *button, gpointer user_data );
 
-
-float calculateRotatingValueBeneathMax( float input, int max ) {
-    float output = fmod( input, max );
-    if( output < 0 ) output += max;
-    return output;
-}
-
-int getDecimalPrecision( float input ) {
-    //Figure out how many decimal places are in the input number
-    int test = (int)input;
-    int i = 0;
-    int maxPrecision = 10;
-
-    while ( test != input && i <= maxPrecision ) {
-        i++;
-        input *= 10;
-        test = (int) input;
-    }
-
-    return i;
-}
 
 
 /*
@@ -427,7 +391,7 @@ static void PopulateTextureComboList(){
 				num_of_list_items++;
 			}
 			// Make sure the combo list isn't too long
-			if ( num_of_list_items >= MAX_NUM_LIST_ITEMS ) {
+            if ( num_of_list_items >= MAX_NUM_TEXTURE_LIST_ITEMS ) {
 				break;
 			}
 		}
@@ -507,10 +471,10 @@ void DoSnapTToGrid( float hscale, float vscale ){
 	l_pIncrement = Get_SI_Inc();
 
 	if ( hscale == 0.0f ) {
-        hscale = DEFAULT_SCALE_VALUE;
+        hscale = GetDefaultScaleValue();
 	}
 	if ( vscale == 0.0f ) {
-        vscale = DEFAULT_SCALE_VALUE;
+        vscale = GetDefaultScaleValue();
 	}
 #ifdef _DEBUG
 	Sys_Printf( "DoSnapTToGrid: hscale %g vscale %g\n", hscale, vscale );
@@ -596,7 +560,7 @@ void HideDlg() {
 
 void CancelDlg() {
   //NAB622: There is no cancel button on the surface inspector any more.
-  //If you want to enable this again, remove the next line and un-comment the goodies below
+  //If you want to enable this again, remove the next line and un-comment the code block below that
   Sys_Printf( "WARNING: Cancel function called on surface inspector. Closing...\n" );
 
 /*
@@ -623,8 +587,8 @@ void InitDefaultIncrement( texdef_t *tex ){
     tex->SetName( "system/caulk" );
     tex->shift[0] = 0;
     tex->shift[1] = 0;
-    tex->scale[0] = DEFAULT_SCALE_VALUE;
-    tex->scale[1] = DEFAULT_SCALE_VALUE;
+    tex->scale[0] = GetDefaultScaleValue();
+    tex->scale[1] = GetDefaultScaleValue();
     tex->rotate = 0;
 }
 
@@ -761,9 +725,10 @@ GtkWidget* create_SurfaceInspector( void ){
     GtkWidget *table1;
 	GtkWidget *table5;
     GtkWidget *flipTable;
-    GtkWidget *axialTable;
 
 	GtkWidget *vbox7;
+
+    axial_size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
 
 	SurfaceInspector = gtk_window_new( GTK_WINDOW_TOPLEVEL );
 	gtk_window_set_transient_for( GTK_WINDOW( SurfaceInspector ), GTK_WINDOW( g_pMainWidget ) );
@@ -919,35 +884,31 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
     gtk_widget_show( label );
 
-    axialTable = gtk_table_new( 2, 1, FALSE );
-    gtk_table_set_col_spacings( GTK_TABLE( axialTable ), 0 );
-    gtk_table_set_row_spacings( GTK_TABLE( axialTable ), 0 );
-    gtk_table_attach( GTK_TABLE( table1 ), axialTable, 1, 2, 12, 15,
+    eventbox = gtk_event_box_new();
+    gtk_table_attach( GTK_TABLE( table1 ), eventbox, 1, 2, 12, 13,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
-    gtk_widget_show( axialTable );
+    gtk_widget_show( eventbox );
 
+    axial_button = gtk_button_new_with_mnemonic( _( "Axial" ) );
+    gtk_widget_set_tooltip_text( axial_button, _( "This will set all shift and rotate values to 0, and sets the scale to 0.5" ) );
+    gtk_container_add( GTK_CONTAINER( eventbox ), axial_button );
+    gtk_container_set_border_width( GTK_CONTAINER( axial_button ), 4 );
+    gtk_size_group_add_widget( axial_size_group, axial_button );
+    gtk_widget_show( axial_button );
 
-        eventbox = gtk_event_box_new();
-        gtk_table_attach( GTK_TABLE( axialTable ), eventbox, 0, 1, 0, 1,
-                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                          (GtkAttachOptions) ( 0 ), 0, 0 );
-        gtk_widget_show( eventbox );
+    eventbox = gtk_event_box_new();
+    gtk_table_attach( GTK_TABLE( table1 ), eventbox, 1, 2, 13, 14,
+                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_widget_show( eventbox );
 
-        axial_button = gtk_button_new_with_mnemonic( _( "Axial" ) );
-        gtk_widget_set_tooltip_text( axial_button, _( "This will set all shift and rotate values to 0, and sets the scale to 0.5" ) );
-        gtk_container_add( GTK_CONTAINER( eventbox ), axial_button );
-        gtk_container_set_border_width( GTK_CONTAINER( axial_button ), 4 );
-        gtk_widget_show( axial_button );
-
-        label = gtk_label_new( _( " ┌\n │\n─┼\n │\n └" ) );
-        gtk_widget_set_tooltip_text( label, _( "The axial button will set all shift and rotate values to 0, and sets the scale to 0.5" ) );
-        gtk_widget_modify_font(label, pango_font_description_from_string("monospace 14"));
-        gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
-        gtk_table_attach( GTK_TABLE( axialTable ), label, 1, 2, 0, 1,
-                          (GtkAttachOptions) ( 0 ),
-                          (GtkAttachOptions) ( 0 ), 0, 0 );
-        gtk_widget_show( label );
+    axial_grid_button = gtk_button_new_with_mnemonic( _( "Axial Grid" ) );
+    gtk_widget_set_tooltip_text( axial_grid_button, _( "This will reset the shift and rotate of the texture to 0, and set the scale so that 1 pixel equals the current grid size" ) );
+    gtk_container_set_border_width( GTK_CONTAINER( axial_grid_button ), 4 );
+    gtk_container_add( GTK_CONTAINER( eventbox ), axial_grid_button );
+    gtk_size_group_add_widget( axial_size_group, axial_grid_button );
+    gtk_widget_show( axial_grid_button );
 
     eventbox = gtk_event_box_new();
     gtk_table_attach( GTK_TABLE( table1 ), eventbox, 2, 3, 12, 13,
@@ -982,24 +943,27 @@ GtkWidget* create_SurfaceInspector( void ){
     reset_scale_button = gtk_button_new_with_mnemonic( _( "Reset Scale" ) );
     // NAB622: For cleanliness sake, let's remove the trailing zeroes
     char scale_tooltip_value[128];
-        switch( getDecimalPrecision( DEFAULT_SCALE_VALUE ) ) {
+        switch( getDecimalPrecision( GetDefaultScaleValue() ) ) {
             case 0:
-                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %i", (int) DEFAULT_SCALE_VALUE );
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %i", (int) GetDefaultScaleValue() );
                 break;
             case 1:
-                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.1f", (float) DEFAULT_SCALE_VALUE );
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.1f", (float) GetDefaultScaleValue() );
                 break;
             case 2:
-                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.2f", (float) DEFAULT_SCALE_VALUE );
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.2f", (float) GetDefaultScaleValue() );
                 break;
             case 3:
-                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.3f", (float) DEFAULT_SCALE_VALUE );
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.3f", (float) GetDefaultScaleValue() );
                 break;
             case 4:
-                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.4f", (float) DEFAULT_SCALE_VALUE );
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.4f", (float) GetDefaultScaleValue() );
+                break;
+            case 5:
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.5f", (float) GetDefaultScaleValue() );
                 break;
             default:
-                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %.5f", (float) DEFAULT_SCALE_VALUE );
+                sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %f", (float) GetDefaultScaleValue() );
         }
 
     gtk_widget_set_tooltip_text( reset_scale_button, _( scale_tooltip_value ) );
@@ -1018,9 +982,12 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_container_add( GTK_CONTAINER( eventbox ), reset_increment_button );
     gtk_widget_show( reset_increment_button );
 
-    flippingFrame = gtk_frame_new( _( "Flip & Mirror" ) );
+//    flippingFrame = gtk_frame_new( _( "Mirror & Flip" ) );
+    flippingFrame = gtk_frame_new( _( "Mirror" ) );
     gtk_box_pack_start( GTK_BOX( vbox7 ), flippingFrame, FALSE, TRUE, 0 );
     gtk_widget_show( flippingFrame );
+
+        flip_size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
 
         flipTable = gtk_table_new( 2, 2, FALSE );
         gtk_container_set_border_width( GTK_CONTAINER( flipTable ), 5 );
@@ -1028,8 +995,39 @@ GtkWidget* create_SurfaceInspector( void ){
         gtk_container_add( GTK_CONTAINER( flippingFrame ), flipTable );
         gtk_widget_show( flipTable );
 
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 0, 1, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_widget_show( eventbox );
+
+        horizontalMirrorButton = gtk_button_new_with_mnemonic( _( "Mirror Horizontal" ) );
+        gtk_widget_set_tooltip_text( horizontalMirrorButton, _( "This will mirror the texture across it's width, without changing the positioning" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), horizontalMirrorButton );
+        gtk_container_set_border_width( GTK_CONTAINER( horizontalMirrorButton ), 4 );
+        gtk_widget_show( horizontalMirrorButton );
+        g_signal_connect( (gpointer) horizontalMirrorButton, "clicked", G_CALLBACK( on_mirror_horizontal_button_clicked ), NULL );
+        gtk_size_group_add_widget( flip_size_group, horizontalMirrorButton );
+
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 1, 2, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_widget_show( eventbox );
+
+        verticalMirrorButton = gtk_button_new_with_mnemonic( _( "Mirror Vertical" ) );
+        gtk_widget_set_tooltip_text( verticalMirrorButton, _( "This will mirror the texture across it's height, without changing the positioning" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), verticalMirrorButton );
+        gtk_container_set_border_width( GTK_CONTAINER( verticalMirrorButton ), 4 );
+        gtk_widget_show( verticalMirrorButton );
+        g_signal_connect( (gpointer) verticalMirrorButton, "clicked", G_CALLBACK( on_mirror_vertical_button_clicked ), NULL );
+        gtk_size_group_add_widget( flip_size_group, verticalMirrorButton );
+
+/*
+    // NAB622: I'm not sure this is even possible.....commenting it out for now
+
             eventbox = gtk_event_box_new();
-            gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 0, 1, 0, 1,
+            gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 0, 1, 1, 2,
                               (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                               (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
             gtk_widget_show( eventbox );
@@ -1039,9 +1037,10 @@ GtkWidget* create_SurfaceInspector( void ){
             gtk_container_add( GTK_CONTAINER( eventbox ), horizontalflip_button );
             gtk_container_set_border_width( GTK_CONTAINER( horizontalflip_button ), 4 );
             gtk_widget_show( horizontalflip_button );
+            gtk_size_group_add_widget( flip_size_group, horizontalflip_button );
 
             eventbox = gtk_event_box_new();
-            gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 1, 2, 0, 1,
+            gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 1, 2, 1, 2,
                               (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                               (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
             gtk_widget_show( eventbox );
@@ -1051,38 +1050,10 @@ GtkWidget* create_SurfaceInspector( void ){
             gtk_container_add( GTK_CONTAINER( eventbox ), verticalflip_button );
             gtk_container_set_border_width( GTK_CONTAINER( verticalflip_button ), 4 );
             gtk_widget_show( verticalflip_button );
-
-            eventbox = gtk_event_box_new();
-            gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 0, 1, 1, 2,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_widget_show( eventbox );
-
-            horizontalMirrorButton = gtk_button_new_with_mnemonic( _( "Mirror Horizontal" ) );
-            gtk_widget_set_tooltip_text( horizontalMirrorButton, _( "This will mirror the texture across it's width, without changing the positioning" ) );
-            gtk_container_add( GTK_CONTAINER( eventbox ), horizontalMirrorButton );
-            gtk_container_set_border_width( GTK_CONTAINER( horizontalMirrorButton ), 4 );
-            gtk_widget_show( horizontalMirrorButton );
-            g_signal_connect( (gpointer) horizontalMirrorButton, "clicked", G_CALLBACK( on_mirror_horizontal_button_clicked ), NULL );
-
-            eventbox = gtk_event_box_new();
-            gtk_table_attach( GTK_TABLE( flipTable ), eventbox, 1, 2, 1, 2,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_widget_show( eventbox );
-
-            verticalMirrorButton = gtk_button_new_with_mnemonic( _( "Mirror Vertical" ) );
-            gtk_widget_set_tooltip_text( verticalMirrorButton, _( "This will mirror the texture across it's height, without changing the positioning" ) );
-            gtk_container_add( GTK_CONTAINER( eventbox ), verticalMirrorButton );
-            gtk_container_set_border_width( GTK_CONTAINER( verticalMirrorButton ), 4 );
-            gtk_widget_show( verticalMirrorButton );
-            g_signal_connect( (gpointer) verticalMirrorButton, "clicked", G_CALLBACK( on_mirror_vertical_button_clicked ), NULL );
-
-            flip_size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
-            gtk_size_group_add_widget( flip_size_group, horizontalflip_button );
             gtk_size_group_add_widget( flip_size_group, verticalflip_button );
-            gtk_size_group_add_widget( flip_size_group, horizontalMirrorButton );
-            gtk_size_group_add_widget( flip_size_group, verticalMirrorButton );
+*/
+
+            g_object_unref( axial_size_group );
             g_object_unref( flip_size_group );
 
     eventbox = gtk_event_box_new();
@@ -1093,7 +1064,7 @@ GtkWidget* create_SurfaceInspector( void ){
 
     label = gtk_label_new( _( "Horizontal Shift: " ) );
     gtk_container_add( GTK_CONTAINER( eventbox ), label );
-    gtk_widget_set_tooltip_text( label, _( "This value is given in pixels, and cannot be larger than the image resolution" ) );
+    gtk_widget_set_tooltip_text( label, _( "This value is given in pixels, and cannot be larger than the image's width" ) );
     gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
     gtk_widget_show( label );
 
@@ -1105,7 +1076,7 @@ GtkWidget* create_SurfaceInspector( void ){
 
     label = gtk_label_new( _( "Vertical Shift: " ) );
 	gtk_container_add( GTK_CONTAINER( eventbox ), label );
-    gtk_widget_set_tooltip_text( label, _( "This value is given in pixels, and cannot be larger than the image resolution" ) );
+    gtk_widget_set_tooltip_text( label, _( "This value is given in pixels, and cannot be larger than the image's height" ) );
     gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
 	gtk_widget_show( label );
 
@@ -1156,9 +1127,9 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( fittingFrame );
 
     // Value Spins
-    hshift_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -MAX_SHIFT_VALUE, MAX_SHIFT_VALUE, 2.0, 8.0, 0.0 ) );
-    hshift_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( hshift_value_spinbutton_adj ), 1, 2 );
-    gtk_widget_set_tooltip_text( hshift_value_spinbutton, _( "This value is given in pixels, and cannot be larger than the image resolution" ) );
+    hshift_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -MAX_SHIFT_VALUE, MAX_SHIFT_VALUE, 1.0, 10.0, 0.0 ) );
+    hshift_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( hshift_value_spinbutton_adj ), 1, TEXTURE_SHIFT_PRECISION );
+    gtk_widget_set_tooltip_text( hshift_value_spinbutton, _( "This value is given in pixels, and cannot be larger than the image's width" ) );
     gtk_table_attach( GTK_TABLE( table1 ), hshift_value_spinbutton, 2, 3, 2, 3,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -1169,9 +1140,9 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_entry_set_alignment( GTK_ENTRY( hshift_value_spinbutton ), 1.0 ); //right
     gtk_widget_show( hshift_value_spinbutton );
 
-    vshift_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -MAX_SHIFT_VALUE, MAX_SHIFT_VALUE, 2.0, 8.0, 0.0 ) );
-    vshift_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( vshift_value_spinbutton_adj ), 1, 2 );
-    gtk_widget_set_tooltip_text( vshift_value_spinbutton, _( "This value is given in pixels, and cannot be larger than the image resolution" ) );
+    vshift_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -MAX_SHIFT_VALUE, MAX_SHIFT_VALUE, 1.0, 10.0, 0.0 ) );
+    vshift_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( vshift_value_spinbutton_adj ), 1, TEXTURE_SHIFT_PRECISION );
+    gtk_widget_set_tooltip_text( vshift_value_spinbutton, _( "This value is given in pixels, and cannot be larger than the image's height" ) );
     gtk_table_attach( GTK_TABLE( table1 ), vshift_value_spinbutton, 2, 3, 4, 5,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -1183,7 +1154,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( vshift_value_spinbutton );
 
     rotate_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -MAX_ROTATE_VALUE, MAX_ROTATE_VALUE, 1.0, 10.0, 0.0 ) );
-    rotate_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( rotate_value_spinbutton_adj ), 1, 4 );
+    rotate_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( rotate_value_spinbutton_adj ), 1, TEXTURE_ROTATE_PRECISION );
     gtk_widget_set_tooltip_text( rotate_value_spinbutton, _( "This value is given in degrees, and cannot be larger than 360" ) );
     gtk_table_attach( GTK_TABLE( table1 ), rotate_value_spinbutton, 2, 3, 6, 7,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1196,7 +1167,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( rotate_value_spinbutton );
 
     hscale_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -MAX_SCALE_VALUE, MAX_SCALE_VALUE, 1.0, 4.0, 0.0 ) );
-    hscale_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( hscale_value_spinbutton_adj ), 1, 4 );
+    hscale_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( hscale_value_spinbutton_adj ), 1, TEXTURE_SCALE_PRECISION );
     gtk_widget_set_tooltip_text( hscale_value_spinbutton, _( "This value is a multiplier, equivalent to the number of grid units used for each pixel of the texture. Smaller numbers result in smaller textures" ) );
     gtk_table_attach( GTK_TABLE( table1 ), hscale_value_spinbutton, 2, 3, 8, 9,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1209,7 +1180,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( hscale_value_spinbutton );
 
     vscale_value_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0.0, -MAX_SCALE_VALUE, MAX_SCALE_VALUE, 1.0, 4.0, 0.0 ) );
-    vscale_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( vscale_value_spinbutton_adj ), 1, 4 );
+    vscale_value_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( vscale_value_spinbutton_adj ), 1, TEXTURE_SCALE_PRECISION );
     gtk_widget_set_tooltip_text( vscale_value_spinbutton, _( "This value is a multiplier, equivalent to the number of grid units used for each pixel of the texture. Smaller numbers result in smaller textures" ) );
     gtk_table_attach( GTK_TABLE( table1 ), vscale_value_spinbutton, 2, 3, 10, 11,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1223,8 +1194,8 @@ GtkWidget* create_SurfaceInspector( void ){
 
 
     // Step Spins
-    hshift_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_SHIFT_INCREMENT_VALUE, 0, MAX_SHIFT_VALUE, 2.0, 8.0, 0.0 ) );
-    hshift_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( hshift_step_spinbutton_adj ), 1, 2 );
+    hshift_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_SHIFT_INCREMENT_VALUE, 0, MAX_SHIFT_VALUE, 1.0, 10.0, 0.0 ) );
+    hshift_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( hshift_step_spinbutton_adj ), 1, TEXTURE_SHIFT_PRECISION );
     gtk_widget_set_tooltip_text( hshift_step_spinbutton, _( "The horizontal shift value will change by this much when its up/down arrows are clicked" ) );
     gtk_table_attach( GTK_TABLE( table1 ), hshift_step_spinbutton, 4, 5, 2, 3,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1234,8 +1205,8 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_entry_set_alignment( GTK_ENTRY( hshift_step_spinbutton ), 1.0 ); //right
     gtk_widget_show( hshift_step_spinbutton );
 
-    vshift_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_SHIFT_INCREMENT_VALUE, 0, MAX_SHIFT_VALUE, 2.0, 8.0, 0.0 ) );
-    vshift_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( vshift_step_spinbutton_adj ), 1, 2 );
+    vshift_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_SHIFT_INCREMENT_VALUE, 0, MAX_SHIFT_VALUE, 1.0, 10.0, 0.0 ) );
+    vshift_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( vshift_step_spinbutton_adj ), 1, TEXTURE_SHIFT_PRECISION );
     gtk_widget_set_tooltip_text( vshift_step_spinbutton, _( "The vertical shift value will change by this much when its up/down arrows are clicked" ) );
     gtk_table_attach( GTK_TABLE( table1 ), vshift_step_spinbutton, 4, 5, 4, 5,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1246,7 +1217,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( vshift_step_spinbutton );
 
     rotate_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_ROTATE_INCREMENT_VALUE, 0, MAX_ROTATE_VALUE, 1.0, 10.0, 0.0 ) );
-    rotate_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( rotate_step_spinbutton_adj ), 1, 4 );
+    rotate_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( rotate_step_spinbutton_adj ), 1, TEXTURE_ROTATE_PRECISION );
     gtk_widget_set_tooltip_text( rotate_step_spinbutton, _( "The rotate value will change by this much when its up/down arrows are clicked" ) );
     gtk_table_attach( GTK_TABLE( table1 ), rotate_step_spinbutton, 4, 5, 6, 7,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1257,7 +1228,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( rotate_step_spinbutton );
 
     hscale_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_SCALE_INCREMENT_VALUE, 0, MAX_SCALE_VALUE, 1.0, 4.0, 0.0 ) );
-    hscale_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( hscale_step_spinbutton_adj ), 1, 4 );
+    hscale_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( hscale_step_spinbutton_adj ), 1, TEXTURE_SCALE_PRECISION );
     gtk_widget_set_tooltip_text( hscale_step_spinbutton, _( "The horizontal scale value will change by this much when its up/down arrows are clicked" ) );
     gtk_table_attach( GTK_TABLE( table1 ), hscale_step_spinbutton, 4, 5, 8, 9,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1268,7 +1239,7 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( hscale_step_spinbutton );
 
     vscale_step_spinbutton_adj = GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_SCALE_INCREMENT_VALUE, 0, MAX_SCALE_VALUE, 1.0, 4.0, 0.0 ) );
-    vscale_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( vscale_step_spinbutton_adj ), 1, 4 );
+    vscale_step_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( vscale_step_spinbutton_adj ), 1, TEXTURE_SCALE_PRECISION );
     gtk_widget_set_tooltip_text( vscale_step_spinbutton, _( "The vertical scale value will change by this much when its up/down arrows are clicked" ) );
     gtk_table_attach( GTK_TABLE( table1 ), vscale_step_spinbutton, 4, 5, 10, 11,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -1413,6 +1384,10 @@ GtkWidget* create_SurfaceInspector( void ){
 
     g_signal_connect( (gpointer) axial_button, "clicked",
                       G_CALLBACK( on_axial_button_clicked ),
+                      NULL );
+
+    g_signal_connect( (gpointer) axial_grid_button, "clicked",
+                      G_CALLBACK( on_axial_grid_button_clicked ),
                       NULL );
 
     g_signal_connect( (gpointer) reset_shift_button, "clicked",
@@ -1779,6 +1754,29 @@ static void on_axial_button_clicked( GtkButton *button, gpointer user_data ){
     Sys_UpdateWindows( W_ALL );
 }
 
+static void on_axial_grid_button_clicked( GtkButton *button, gpointer user_data ){
+    // NAB622: Axial Grid button is the shift and rotate set to 0, and the scale set to 1 pixel per grid size
+    texdef_t* tmp_texdef;
+    texdef_to_face_t* temp_texdef_face_list;
+
+    if ( !texdef_face_list_empty() && g_bListenChanged ) {
+        for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
+        {
+            tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
+            tmp_texdef->shift[0] = 0;
+            tmp_texdef->shift[1] = 0;
+            tmp_texdef->scale[0] = GridSize();
+            tmp_texdef->scale[1] = GridSize();
+            tmp_texdef->rotate = 0;
+        }
+    }
+    if ( !texdef_face_list_empty() ) {
+        SetTexdef_FaceList( get_texdef_face_list(), TRUE, FALSE );
+    }
+    Sys_UpdateWindows( W_ALL );
+}
+
+
 static void on_reset_scale_button_clicked( GtkButton *button, gpointer user_data ){
     texdef_t* tmp_texdef;
     texdef_to_face_t* temp_texdef_face_list;
@@ -1787,8 +1785,8 @@ static void on_reset_scale_button_clicked( GtkButton *button, gpointer user_data
         for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
         {
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
-            tmp_texdef->scale[0] = DEFAULT_SCALE_VALUE;
-            tmp_texdef->scale[1] = DEFAULT_SCALE_VALUE;
+            tmp_texdef->scale[0] = GetDefaultScaleValue();
+            tmp_texdef->scale[1] = GetDefaultScaleValue();
         }
     }
 

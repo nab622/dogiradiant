@@ -31,20 +31,10 @@
 #include <glib/gi18n.h>
 
 
-// NAB622: Made these into defines for easier access later
-#define MAX_FIT_VALUE 999.999
-#define MAX_SHIFT_INCREMENT FLT_MAX
-#define MAX_SCALE_INCREMENT FLT_MAX
-#define MAX_ROTATE_INCREMENT 360.0
-
-#define DEFAULT_SHIFT_INCREMENT_VALUE 1.0
-#define DEFAULT_SCALE_INCREMENT_VALUE 0.1
-#define DEFAULT_ROTATE_INCREMENT_VALUE 22.5
-
 
 //Add the widgets
-GtkWidget *vbox, *vbox2, *hbox, *hbox2, *frame, *table, *label;
-GtkWidget *button, *entry, *spin, *combo, *row_label, *col_label;
+GtkWidget *vbox, *vbox2, *hbox, *hbox2, *frame, *table, *label, *nodeBox, *nodeContainer;
+GtkWidget *button, *entry, *spin, *combo, *row_label, *col_label, *unlockNodesButton;
 GtkWidget *patchFitTable, *patchFittingFrame, *patch_fit_width_spinbutton, *patch_fit_height_spinbutton, *patch_fit_button, *patch_swap_button, *eventbox;
 GtkAdjustment *patch_fit_width_spinbutton_adj, *patch_fit_height_spinbutton_adj;
 GtkWidget *patchTextureFrame, *patchTextureFrameTable;
@@ -61,6 +51,9 @@ GtkWidget *cap_button, *set_button, *nat_button, *fit_button;
 //This is the value for the fit buttons
 float patchFitWidth = 1.0;
 float patchFitHeight = 1.0;
+
+//This is for the unlock button in the nodes section
+bool nodeLock = true;
 
 
 PatchDialog g_PatchDialog;
@@ -420,7 +413,7 @@ void PatchDialog::BuildDialog(){
 	gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
 	gtk_widget_show( table );
 
-	label = gtk_label_new( _( "Horizontal Shift Step" ) );
+    label = gtk_label_new( _( "Horizontal Shift Increment" ) );
 	gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 0, 1,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -456,7 +449,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( label );
 
     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SHIFT_PRECISION );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 0, 1,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -469,7 +462,7 @@ void PatchDialog::BuildDialog(){
 	// so we need to have at least one initialisation somewhere
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->shift[0] );
 
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "hshift_adj", adj );
 
@@ -482,7 +475,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 
     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SHIFT_PRECISION );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 1, 2,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
@@ -491,7 +484,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->shift[1] );
 
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "vshift_adj", adj );
 
@@ -504,7 +497,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 
     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SCALE_PRECISION );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 2, 3,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -514,7 +507,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->scale[0] );
 
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "hscale_adj", adj );
 
@@ -527,7 +520,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 
     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SCALE_PRECISION );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 3, 4,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
@@ -536,7 +529,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->scale[1] );
 
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "vscale_adj", adj );
 
@@ -549,7 +542,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 
     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_ROTATE_INCREMENT, MAX_ROTATE_INCREMENT, 1, 10, 0 ) );
-	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_ROTATE_PRECISION );
 	gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 4, 5,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -559,7 +552,7 @@ void PatchDialog::BuildDialog(){
 	gtk_widget_show( spin );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ),  l_pPIIncrement->rotate );
 
-    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_ROTATE_INCREMENT, MAX_ROTATE_INCREMENT, 1, 1, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
 	g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
 	g_object_set_data( G_OBJECT( m_pWidget ), "rotate_adj", adj );
 
@@ -596,7 +589,7 @@ void PatchDialog::BuildDialog(){
             gtk_widget_show( eventbox );
 
             cap_button = gtk_button_new_with_mnemonic( _( "Cap" ) );
-            gtk_widget_set_tooltip_text( cap_button, _( "This will distribute the texture equally across the mesh based on the distance between nodes" ) );
+            gtk_widget_set_tooltip_text( cap_button, _( "This will distribute the texture equally across the mesh based on the grid" ) );
             gtk_container_add( GTK_CONTAINER( eventbox ), cap_button );
             gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
             gtk_widget_show( cap_button );
@@ -620,7 +613,7 @@ void PatchDialog::BuildDialog(){
             gtk_size_group_add_widget( size_group, nat_button );
             g_object_unref( size_group );
 
-    patchFlippingFrame = gtk_frame_new( _( "Flip & Mirror" ) );
+    patchFlippingFrame = gtk_frame_new( _( "Mirror & Flip" ) );
     gtk_table_attach( GTK_TABLE( functionLayoutTable ), patchFlippingFrame, 0, 1, 1, 2,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
@@ -771,13 +764,24 @@ void PatchDialog::BuildDialog(){
         gtk_box_pack_start( GTK_BOX( hbox ), frame, TRUE, TRUE, 0 );
         gtk_widget_show( frame );
 
-            vbox2 = gtk_vbox_new( FALSE, 5 );
-            gtk_container_add( GTK_CONTAINER( frame ), vbox2 );
-            gtk_container_set_border_width( GTK_CONTAINER( vbox2 ), 5 );
-            gtk_widget_show( vbox2 );
+            nodeBox = gtk_vbox_new( FALSE, 5 );
+            gtk_container_add( GTK_CONTAINER( frame ), nodeBox );
+            gtk_container_set_border_width( GTK_CONTAINER( nodeBox ), 5 );
+            gtk_widget_show( nodeBox );
+
+                eventbox = gtk_event_box_new();
+                gtk_box_pack_start( GTK_BOX( nodeBox ), eventbox, TRUE, TRUE, 0 );
+                gtk_widget_show( eventbox );
+
+                unlockNodesButton = gtk_toggle_button_new_with_mnemonic( _( "🔒   Unlock" ) );
+                gtk_widget_set_tooltip_text( unlockNodesButton, _( "This will unlock the node values for editing. Play with these values at your own risk!" ) );
+                gtk_container_add( GTK_CONTAINER( eventbox ), unlockNodesButton );
+                gtk_container_set_border_width( GTK_CONTAINER( unlockNodesButton ), 4 );
+                gtk_widget_show( unlockNodesButton );
+                g_signal_connect( (gpointer) unlockNodesButton, "clicked", G_CALLBACK( toggle_node_lock ), NULL );
 
                 rowColumnDropdownTable = gtk_table_new( 2, 2, FALSE );
-                gtk_box_pack_start( GTK_BOX( vbox2 ), rowColumnDropdownTable, TRUE, TRUE, 0 );
+                gtk_box_pack_start( GTK_BOX( nodeBox ), rowColumnDropdownTable, TRUE, TRUE, 0 );
                 gtk_table_set_row_spacings( GTK_TABLE( rowColumnDropdownTable ), 5 );
                 gtk_table_set_col_spacings( GTK_TABLE( rowColumnDropdownTable ), 5 );
                 gtk_widget_show( rowColumnDropdownTable );
@@ -836,7 +840,7 @@ void PatchDialog::BuildDialog(){
                     g_list_free( cells );
 
             nodeCoordinatesTable = gtk_table_new( 4, 3, FALSE );
-            gtk_box_pack_start( GTK_BOX( vbox2 ), nodeCoordinatesTable, TRUE, TRUE, 0 );
+            gtk_box_pack_start( GTK_BOX( nodeBox ), nodeCoordinatesTable, TRUE, TRUE, 0 );
             gtk_table_set_row_spacings( GTK_TABLE( nodeCoordinatesTable ), 5 );
             gtk_table_set_col_spacings( GTK_TABLE( nodeCoordinatesTable ), 5 );
             gtk_widget_show( nodeCoordinatesTable );
@@ -873,7 +877,7 @@ void PatchDialog::BuildDialog(){
                     gtk_widget_show( label );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, GRID_DECIMAL_PRECISION );
                     gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 1, 2,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -885,7 +889,7 @@ void PatchDialog::BuildDialog(){
                     AddDialogData( spin, &m_fX, DLG_SPIN_FLOAT );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, GRID_DECIMAL_PRECISION );
                     gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 2, 3,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -897,7 +901,7 @@ void PatchDialog::BuildDialog(){
                     AddDialogData( spin, &m_fY, DLG_SPIN_FLOAT );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, GRID_DECIMAL_PRECISION );
                     gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 3, 4,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -909,7 +913,7 @@ void PatchDialog::BuildDialog(){
                     AddDialogData( spin, &m_fZ, DLG_SPIN_FLOAT );
 
             textureCoordinatesTable = gtk_table_new( 3, 2, FALSE );
-            gtk_box_pack_start( GTK_BOX( vbox2 ), textureCoordinatesTable, TRUE, TRUE, 0 );
+            gtk_box_pack_start( GTK_BOX( nodeBox ), textureCoordinatesTable, TRUE, TRUE, 0 );
             gtk_table_set_row_spacings( GTK_TABLE( textureCoordinatesTable ), 5 );
             gtk_table_set_col_spacings( GTK_TABLE( textureCoordinatesTable ), 5 );
             gtk_widget_show( textureCoordinatesTable );
@@ -937,8 +941,8 @@ void PatchDialog::BuildDialog(){
                 gtk_widget_set_tooltip_text( label, _( "This is the vertical coordinate of the texture at the specified node. This value is normalized, so 0 and 1 refer to opposite edges of the texture" ) );
                 gtk_widget_show( label );
 
-                adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
-                spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -DBL_MAX, DBL_MAX, 1, 10, 0 ) );
+                spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SCALE_PRECISION );
                 gtk_table_attach( GTK_TABLE( textureCoordinatesTable ), spin, 1, 2, 1, 2,
                                   (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                   (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -949,8 +953,8 @@ void PatchDialog::BuildDialog(){
                 gtk_widget_show( spin );
                 AddDialogData( spin, &m_fS, DLG_SPIN_FLOAT );
 
-                adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -INT_MAX, INT_MAX, 1, 10, 0 ) );
-                spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 4 );
+                adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -DBL_MAX, DBL_MAX, 1, 10, 0 ) );
+                spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SCALE_PRECISION );
                 gtk_table_attach( GTK_TABLE( textureCoordinatesTable ), spin, 1, 2, 2, 3,
                                   (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                   (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -960,6 +964,9 @@ void PatchDialog::BuildDialog(){
                 gtk_widget_set_tooltip_text( spin, _( "This is the vertical coordinate of the texture at the specified node. This value is normalized, so 0 and 1 refer to opposite edges of the texture" ) );
                 gtk_widget_show( spin );
                 AddDialogData( spin, &m_fT, DLG_SPIN_FLOAT );
+
+                // NAB622: These need to start disabled. We want to discourage people from messing with them
+                lockNodeInputs();
 
 /*
 // NAB622: We don't need these buttons. The surface inspector doesn't have them either.
@@ -978,6 +985,30 @@ void PatchDialog::BuildDialog(){
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnApply ), NULL );
 */
 
+}
+
+void toggle_node_lock() {
+    if( nodeLock ) {
+        unlockNodeInputs();
+    } else {
+        lockNodeInputs();
+    }
+}
+
+void unlockNodeInputs() {
+    gtk_widget_set_sensitive ( nodeCoordinatesTable, TRUE );
+    gtk_widget_set_sensitive ( rowColumnDropdownTable, TRUE );
+    gtk_widget_set_sensitive ( textureCoordinatesTable, TRUE );
+    nodeLock = false;
+    gtk_toggle_button_set_mode( GTK_TOGGLE_BUTTON( unlockNodesButton ), FALSE );
+}
+
+void lockNodeInputs() {
+    gtk_widget_set_sensitive ( nodeCoordinatesTable, FALSE );
+    gtk_widget_set_sensitive ( rowColumnDropdownTable, FALSE );
+    gtk_widget_set_sensitive ( textureCoordinatesTable, FALSE );
+    nodeLock = true;
+    gtk_toggle_button_set_mode( GTK_TOGGLE_BUTTON( unlockNodesButton ), TRUE );
 }
 
 // sync the dialog our internal data structures

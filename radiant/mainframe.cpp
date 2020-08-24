@@ -1351,10 +1351,10 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 												 G_CALLBACK( HandleCommand ), ID_GRID_4, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_4", item );
     item = create_radio_menu_item_with_mnemonic( menu, item, _( "8 Units" ),
-												 G_CALLBACK( HandleCommand ), ID_GRID_8, TRUE );
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_8, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_8", item );
     item = create_radio_menu_item_with_mnemonic( menu, item, _( "16 Units" ),
-												 G_CALLBACK( HandleCommand ), ID_GRID_16, FALSE );
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_16, TRUE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_16", item );
     item = create_radio_menu_item_with_mnemonic( menu, item, _( "32 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_32, FALSE );
@@ -1380,10 +1380,14 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
     item = create_radio_menu_item_with_mnemonic( menu, item, _( "4096 Units" ),
                                                  G_CALLBACK( HandleCommand ), ID_GRID_4096, FALSE );
     g_object_set_data( G_OBJECT( window ), "menu_grid_4096", item );
+
+/*
+// NAB622: Remove this entirely. It's a bad idea.
     menu_separator( menu );
     item = create_check_menu_item_with_mnemonic( menu, _( "Snap edits to grid" ),
 												 G_CALLBACK( HandleCommand ), ID_SNAPTOGRID, TRUE );
 	g_object_set_data( G_OBJECT( window ), "menu_snaptogrid", item );
+*/
 
 	// Textures menu
 	menu = create_sub_menu_with_mnemonic( menu_bar, _( "_Textures" ) );
