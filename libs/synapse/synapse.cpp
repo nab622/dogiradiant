@@ -19,6 +19,8 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "globalDefines.h"
+
 #include <assert.h>
 
 // seems to be required for str.h
@@ -900,8 +902,6 @@ bool CSynapseClient::AddAPI( const char *major, const char *minor, int size, EAP
   #endif
 	return true;
 }
-
-#include "version.h"
 
 const char* CSynapseClient::GetInfo(){
 	return "CSynapseClient built " __DATE__ " " RADIANT_VERSION;

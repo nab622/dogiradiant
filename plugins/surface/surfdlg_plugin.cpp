@@ -28,6 +28,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "globalDefines.h"
+
 #include <stdio.h>
 #include "surfdlg_plugin.h"
 #include "surfacedialog.h"
@@ -107,8 +109,6 @@ bool CSynapseClient_SurfDLG::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClient_SurfDLG::GetInfo(){
 	return "Surface Dialog (Quake 3) module built " __DATE__ " " RADIANT_VERSION;

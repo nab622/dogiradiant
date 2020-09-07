@@ -651,6 +651,7 @@ int m_nMoveSpeed;
 int m_nAutoSave;
 bool m_bCubicClipping;
 int m_nCubicScale;
+int m_nRenderDistance;
 bool m_bSelectCurves;
 bool m_bSelectModels;
 int m_nEntityShowState;

@@ -48,6 +48,8 @@
      - textures 'n widgets 'n stuff.
  */
 
+#include "globalDefines.h"
+
 //#include "plugin.h"
 //TODO we just poke the objects directly
 #include "bkgrnd2d.h"
@@ -291,8 +293,6 @@ bool CSynapseClientBkgrnd2d::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientBkgrnd2d::GetInfo(){
 	return "2d Background plugin built " __DATE__ " " RADIANT_VERSION;

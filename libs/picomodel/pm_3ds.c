@@ -417,7 +417,7 @@ static int GetMeshShader( T3dsLoaderPers *pers ){
 
 		/* we have a valid map name ptr */
 		if ( mapNamePtr != NULL ) {
-			char temp[128];
+            char temp[128];
 			const char *name;
 
 			/* copy map name to local buffer */
@@ -723,7 +723,7 @@ static int DoNextChunk( T3dsLoaderPers *pers, int endofs ){
 static picoModel_t *_3ds_load( PM_PARAMS_LOAD ){
 	T3dsLoaderPers pers;
 	picoModel_t    *model;
-	char basename[128];
+    char basename[128];
 
 	/* create a new pico model */
 	model = PicoNewModel();

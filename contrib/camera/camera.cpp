@@ -24,6 +24,7 @@
    Copyright (C) 2002 Splash Damage Ltd.
  */
 
+#include "globalDefines.h"
 #include "camera.h"
 
 // Render view
@@ -228,8 +229,6 @@ bool CameraSynapseClient::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CameraSynapseClient::GetInfo(){
 	return "Camera plugin v1.0 - Arnout van Meer - built " __DATE__ " " RADIANT_VERSION;

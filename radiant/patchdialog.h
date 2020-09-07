@@ -34,6 +34,9 @@ void on_patch_flip_vertical_button_clicked( GtkWidget *widget, gpointer data );
 void on_patch_mirror_horizontal_button_clicked( GtkWidget *widget, gpointer data );
 void on_patch_mirror_vertical_button_clicked( GtkWidget *widget, gpointer data );
 
+void on_patch_texture_combo_entry_activate( GtkEntry *entry, gpointer user_data );
+gboolean on_patch_texture_combo_entry_key_press_event( GtkWidget *widget, GdkEventKey *event, gpointer user_data );
+
 void toggle_node_lock();
 void unlockNodeInputs();
 void lockNodeInputs();

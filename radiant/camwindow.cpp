@@ -1392,7 +1392,7 @@ void CamWnd::Cam_Draw(){
 
 	screenaspect = (float)m_Camera.width / m_Camera.height;
 	yfov = 2 * atan( (float)m_Camera.height / m_Camera.width ) * 180 / Q_PI;
-    qgluPerspective( yfov,  screenaspect,  8,  MAX_RENDER_DISTANCE );
+    qgluPerspective( yfov,  screenaspect,  8,  g_PrefsDlg.m_nRenderDistance );
 
 	// we're too lazy to calc projection matrix ourselves!!!
 	qglGetFloatv( GL_PROJECTION_MATRIX, &m_Camera.projection[0][0] );

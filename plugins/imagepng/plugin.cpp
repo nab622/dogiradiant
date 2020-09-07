@@ -22,6 +22,7 @@
 // =============================================================================
 // global tables
 
+#include "globalDefines.h"
 #include "plugin.h"
 
 _QERFuncTable_1 g_FuncTable;
@@ -80,8 +81,6 @@ bool CSynapseClientImage::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientImage::GetInfo(){
 	return "PNG loader module built " __DATE__ " " RADIANT_VERSION;

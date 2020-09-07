@@ -23,6 +23,7 @@
 // Model Plugin
 //
 
+#include "globalDefines.h"
 #include "plugin.h"
 #include "entity.h"
 #include "entity_entitymodel.h"
@@ -109,8 +110,6 @@ bool CSynapseClientEntity::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientEntity::GetInfo(){
 	return "Entity module built " __DATE__ " " RADIANT_VERSION;

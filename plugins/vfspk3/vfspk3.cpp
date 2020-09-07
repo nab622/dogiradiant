@@ -38,6 +38,7 @@
 #include <wtypes.h>
 #endif
 
+#include "globalDefines.h"
 #include <stdio.h>
 #include <errno.h>
 #include "vfspk3.h"
@@ -98,8 +99,6 @@ bool CSynapseClientVFS::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientVFS::GetInfo(){
 	return "PK3 VFS module built " __DATE__ " " RADIANT_VERSION;

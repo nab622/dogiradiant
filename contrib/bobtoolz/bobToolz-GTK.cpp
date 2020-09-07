@@ -17,6 +17,8 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "globalDefines.h"
+
 #include "StdAfx.h"
 
 #include "funchandlers.h"
@@ -280,8 +282,6 @@ bool CSynapseClientBobtoolz::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientBobtoolz::GetInfo(){
 	return "bobToolz module built " __DATE__ " " RADIANT_VERSION;

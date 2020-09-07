@@ -26,6 +26,8 @@
 // texturing tools for Radiant
 //
 
+#include "globalDefines.h"
+
 #include "StdAfx.h"
 #include <cmath>
 
@@ -853,8 +855,6 @@ bool CSynapseClientTexTool::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientTexTool::GetInfo(){
 	return "Texture Tools plugin built " __DATE__ " " RADIANT_VERSION;

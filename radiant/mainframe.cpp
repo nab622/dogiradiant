@@ -80,6 +80,7 @@ CString g_strTempPath;
 MainFrame* g_pParentWnd = NULL;         // used to precast to CMainFrame
 PrefsDlg g_Preferences;                 // global prefs instance
 PrefsDlg& g_PrefsDlg = g_Preferences;   // reference used throughout
+
 int g_nUpdateBits = 0;                  // window update flags
 bool g_bScreenUpdates = true;           // whether window painting is active, used in a few places
                                         // to disable updates for speed reasons
@@ -5498,7 +5499,7 @@ void MainFrame::OnEntitiesSetViewAs( int mode ){
 void MainFrame::OnViewCubicclipping(){
 	GtkWidget *w;
 
-	g_PrefsDlg.m_bCubicClipping ^= 1;
+    g_PrefsDlg.m_bCubicClipping ^= 1;
 	g_bIgnoreCommands++;
 	w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_view_cubicclipping" ) );
 	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );

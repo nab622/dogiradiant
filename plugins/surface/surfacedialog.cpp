@@ -28,13 +28,13 @@
 //
 
 
+#include "globalDefines.h"
+
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <glib/gi18n.h>
 
 #include "surfdlg_plugin.h"
-
-#include "globalDefines.h"
 
 #ifdef _DEBUG
 //  #define DBG_SI 1
@@ -97,7 +97,7 @@ texdef_t texdef_offset;
 texdef_t texdef_SI_values;
 
 // For Texture Entry, activate only on entry change
-char old_texture_entry[128];
+char old_texture_entry[MAX_TEXPATH_SIZE];
 
 // the texdef to switch back to when the OnCancel is called
 texdef_t g_old_texdef;
@@ -219,7 +219,7 @@ static void on_mirror_vertical_button_clicked( GtkButton *button, gpointer user_
 void IsFaceConflicting(){
 	texdef_t* tmp_texdef;
 	texdef_to_face_t* temp_texdef_face_list;
-	char texture_name[128];
+    char texture_name[MAX_TEXPATH_SIZE];
 
     int texWidth = 0;
     int texHeight = 0;
@@ -764,7 +764,7 @@ GtkWidget* create_SurfaceInspector( void ){
         gtk_widget_show( texture_combo );
 
                 texture_combo_entry = gtk_bin_get_child( GTK_BIN( texture_combo ) );
-                gtk_entry_set_max_length( GTK_ENTRY( texture_combo_entry ), 128 );
+                gtk_entry_set_max_length( GTK_ENTRY( texture_combo_entry ), MAX_TEXPATH_SIZE );
                 gtk_widget_show( texture_combo_entry );
 
             label = gtk_label_new( _( "Width:" ) );
@@ -776,7 +776,7 @@ GtkWidget* create_SurfaceInspector( void ){
             gtk_widget_show( label );
 
             textureWidthLabel = gtk_label_new( _( " " ) );
-            gtk_widget_modify_font(textureWidthLabel, pango_font_description_from_string("monospace bold 12"));
+            gtk_widget_modify_font( textureWidthLabel, pango_font_description_from_string( "monospace bold 12" ));
             gtk_widget_set_tooltip_text( textureWidthLabel, _( "This is the width of the texture in pixels" ) );
             gtk_misc_set_alignment( GTK_MISC( textureWidthLabel ), 0.5, 0 );
             gtk_table_attach( GTK_TABLE( textureFrameTable ), textureWidthLabel, 0, 1, 2, 3,
@@ -1122,7 +1122,7 @@ GtkWidget* create_SurfaceInspector( void ){
 					  (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
 	gtk_widget_show( eventbox );
 
-    fittingFrame = gtk_frame_new( _( "Texture Fitting" ) );
+    fittingFrame = gtk_frame_new( _( "Fitting" ) );
     gtk_box_pack_start( GTK_BOX( vbox7 ), fittingFrame, TRUE, TRUE, 0 );
     gtk_widget_show( fittingFrame );
 
@@ -1316,7 +1316,11 @@ GtkWidget* create_SurfaceInspector( void ){
     gtk_widget_show( swap_button );
 
     // closing the window (upper right window manager click)
-	g_signal_connect( (gpointer) SurfaceInspector,
+    g_signal_connect( (gpointer) SurfaceInspector, "key-press-event",
+                      G_CALLBACK( surface_dialog_key_press ),
+                      NULL );
+
+    g_signal_connect( (gpointer) SurfaceInspector,
 					  "delete-event",
 					  G_CALLBACK( apply_and_hide ),
 					  NULL );
@@ -1328,10 +1332,6 @@ GtkWidget* create_SurfaceInspector( void ){
 	g_signal_connect( (gpointer) texture_combo_entry, "key-press-event",
 					  G_CALLBACK( on_texture_combo_entry_key_press_event ),
 					  NULL );
-
-	g_signal_connect( (gpointer) SurfaceInspector, "key-press-event",
-            G_CALLBACK( surface_dialog_key_press ),
-            NULL );
 
 	g_signal_connect( (gpointer) texture_combo_entry, "activate",
 					  G_CALLBACK( on_texture_combo_entry_activate ),
@@ -1432,7 +1432,7 @@ void on_texture_combo_entry_activate( GtkEntry *entry, gpointer user_data ){
 	texdef_t* tmp_texdef;
 	texdef_t* tmp_orig_texdef;
 	texdef_to_face_t* temp_texdef_face_list;
-	char text[128] = { 0 };
+    char text[MAX_TEXPATH_SIZE] = { 0 };
 
     if ( !texdef_face_list_empty() && g_bListenChanged ) {
 		// activate only on entry change
@@ -1679,7 +1679,7 @@ static void on_fit_height_spinbutton_value_changed( GtkSpinButton *spinbutton, g
 
 static void on_fit_button_clicked( GtkButton *button, gpointer user_data ){
     FaceList_FitTexture( get_texdef_face_list(), m_nHeight, m_nWidth );
-    Sys_UpdateWindows( W_ALL );
+    Sys_UpdateWindows( W_CAMERA | W_SURFACE );
 }
 
 static void on_swap_button_clicked( GtkButton *button, gpointer user_data ){

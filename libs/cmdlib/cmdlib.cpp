@@ -179,7 +179,7 @@ void DefaultExtension( char *path, char *extension ){
 }
 
 void DefaultPath( char *path, char *basepath ){
-	char temp[128];
+    char temp[128];
 
 	if ( path[0] == PATHSEPERATOR ) {
 		return;               // absolute path location

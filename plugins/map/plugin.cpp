@@ -19,6 +19,7 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "globalDefines.h"
 #include "plugin.h"
 
 // =============================================================================
@@ -115,8 +116,6 @@ bool CSynapseClientMap::RequestAPI( APIDescriptor_t *pAPI ){
 bool CSynapseClientMap::OnActivate() {
 	return true;
 }
-
-#include "version.h"
 
 const char* CSynapseClientMap::GetInfo(){
 	return "MAP format module built " __DATE__ " " RADIANT_VERSION;

@@ -55,7 +55,7 @@ int g_nTextureOffset = 0;
 
 // current active texture directory
 //++timo FIXME: I'm not sure this is used anymore
-char texture_directory[128];
+char texture_directory[MAX_TEXPATH_SIZE];
 // if true, the texture window will only display in-use shaders
 // if false, all the shaders in memory are displayed
 qboolean g_bShowAllShaders;
@@ -73,7 +73,7 @@ int current_x, current_y, current_row;
 
 // globals for textures
 int texture_nummenus;
-char texture_menunames[MAX_TEXTUREDIRS][128];
+char texture_menunames[MAX_TEXTUREDIRS][MAX_TEXPATH_SIZE];
 
 // the list of scripts/*.shader files we need to work with
 // those are listed in shaderlist file

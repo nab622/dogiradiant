@@ -22,6 +22,9 @@
 #ifdef WIN32
 #include <io.h>
 #endif
+
+#include "globalDefines.h"
+
 #include "q3data.h"
 #include "md3lib.h"
 
@@ -559,8 +562,6 @@ void ParseScript( void ){
 }
 
 //=======================================================
-
-#include "version.h"
 
 /*
    ==============

@@ -34,6 +34,7 @@
 // Leonardo Zide (leo@lokigames.com)
 //
 
+#include "globalDefines.h"
 #include <stdio.h>
 #include "image.h"
 #include "lbmlib.h"
@@ -118,8 +119,6 @@ bool CSynapseClientImage::OnActivate() {
 	}
 	return true;
 }
-
-#include "version.h"
 
 const char* CSynapseClientImage::GetInfo(){
 	return "image formats JPG TGA PCX BMP module built " __DATE__ " " RADIANT_VERSION;

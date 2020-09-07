@@ -47,7 +47,7 @@ QEGlobals_GUI_t g_qeglobals_gui;
 // NAB622: Not sure where to put these, so here they are for now
 bool areWeOutOfBounds( vec3_t inputVectors ) {
     for( int i = 0; i < 3; i++ ) {
-        if(inputVectors[i] < MIN_MAP_SIZE || inputVectors[i] > MAX_MAP_SIZE) {
+        if( inputVectors[i] < MIN_MAP_SIZE || inputVectors[i] > MAX_MAP_SIZE ) {
             return true;
         }
     }

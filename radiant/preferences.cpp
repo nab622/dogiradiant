@@ -45,6 +45,9 @@
 #include <sys/stat.h>
 #endif
 
+#define STR(x) #x
+#define XSTR(x) STR(x)
+
 #define PREF_SECTION            "Prefs"
 #define INTERNAL_SECTION        "Internals"
 #define MOUSE_KEY               "MouseButtons"
@@ -84,6 +87,7 @@
 #define WHATGAME_KEY            "WhichGame"
 #define CUBICCLIP_KEY           "CubicClipping"
 #define CUBICSCALE_KEY          "CubicScale"
+#define RENDER_DIST_KEY         "RenderDistance"
 #define ALTEDGE_KEY             "ALTEdgeDrag"
 #define FACECOLORS_KEY          "FaceColors"
 #define SNAPT_KEY               "SnapT"
@@ -224,6 +228,10 @@
 #define LOADLAST_DEF 1
 #define RUN_DEF 0
 #define SUBDIVISIONS_DEF 4
+
+
+static void updateCubicClippingDistance( GtkWidget *widget, gpointer data );
+
 
 void WindowPosition_Parse( window_position_t& m_value, const CString& value ){
 	if ( sscanf( value.GetBuffer(), "%d %d %d %d", &m_value.x, &m_value.y, &m_value.w, &m_value.h ) != 4 ) {
@@ -621,6 +629,9 @@ PrefsDlg::PrefsDlg (){
 	m_bSnap = TRUE;
 	m_strUserPath = "";
 	m_nRotation = 0;
+    m_bCubicClipping = FALSE;
+    m_nCubicScale = 32;
+    m_nRenderDistance = abs( MAX_MAP_SIZE - MIN_MAP_SIZE / 2 );
     m_bChaseMouse = TRUE;
     m_bMousewheelZoom = FALSE;
 	m_bTextureScrollbar = TRUE;
@@ -1551,11 +1562,13 @@ void PrefsDlg::BuildDialog(){
 	// Widgets on notebook pages
 	GtkWidget *check, *label, *scale, *hbox2, *combo,
     *table, *spin,  *entry, *pixmap,
-	*radio, *button, *pageframe, *vbox;
+    *radio, *button, *pageframe, *vbox,
+    *renderDistanceSpin,
+    *cubicClippingTable, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel;
 	GtkSizeGroup *size_group;
 	GList *combo_list = (GList*)NULL;
 	GList *lst;
-	GtkAdjustment *adj;
+    GtkAdjustment *adj, *cubicClippingSpin_adj;
 
 	dialog = m_pWidget;
 	gtk_window_set_title( GTK_WINDOW( dialog ), _( "GtkRadiant Preferences" ) );
@@ -1801,6 +1814,102 @@ void PrefsDlg::BuildDialog(){
 	gtk_container_set_border_width( GTK_CONTAINER( vbox ), 5 );
 	gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
 	gtk_widget_show( vbox );
+
+
+        table = gtk_table_new( 2, 1, FALSE );
+        gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
+        gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
+        gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+        gtk_widget_show( table );
+        gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
+
+        label = gtk_label_new( _( "Maximum Render Distance:" ) );
+        gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( label );
+
+        // Render distance
+        renderDistanceSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 32, ( abs( MAX_MAP_SIZE - MIN_MAP_SIZE ) * 2 ), 1, 10, 0 ) ), 1, 0 );
+        gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( renderDistanceSpin ), TRUE );
+        gtk_widget_set_sensitive( GTK_WIDGET( renderDistanceSpin ), TRUE );
+        gtk_entry_set_alignment( GTK_ENTRY( renderDistanceSpin ), 1.0 ); //right
+        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( renderDistanceSpin ), GTK_UPDATE_IF_VALID );
+        g_object_set( renderDistanceSpin, "xalign", 1.0, (char*)NULL );
+        gtk_table_attach( GTK_TABLE( table ), renderDistanceSpin, 1, 2, 0, 1,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( renderDistanceSpin );
+        AddDialogData( renderDistanceSpin, &m_nRenderDistance, DLG_SPIN_INT );
+
+        // Cubic clipping enabled
+        check = gtk_check_button_new_with_label( _( "Enable Cubic Clipping" ) );
+        gtk_widget_show( check );
+        AddDialogData( check, &m_bCubicClipping, DLG_CHECK_BOOL );
+        gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
+
+
+        cubicClippingTable = gtk_table_new( 3, 9, FALSE );
+        gtk_table_set_col_spacings( GTK_TABLE( cubicClippingTable ), 6 );
+        gtk_table_set_row_spacings( GTK_TABLE( cubicClippingTable ), 6 );
+        gtk_box_pack_start( GTK_BOX( vbox ), cubicClippingTable, FALSE, FALSE, 0 );
+        gtk_widget_show( cubicClippingTable );
+
+
+            // Cubic clipping distance
+            label = gtk_label_new( _( "Cubic Clip Distance:" ) );
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 1, 2, 1, 2,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( label );
+
+
+            //gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0 );
+            //gtk_widget_modify_font( label, pango_font_description_from_string("monospace bold 12"));
+            //gtk_widget_set_tooltip_text( label, _( "This is the width of the texture in pixels" ) );
+            //gtk_label_set_text( GTK_LABEL( cubicClippingCalculatedDistanceLabel ), XSTR(  ) );
+
+
+            cubicClippingSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, CUBIC_CLIPPING_MIN, CUBIC_CLIPPING_MAX, 1, 10, 0 ) ), 1, 0 );
+            gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( cubicClippingSpin ), TRUE );
+            gtk_widget_set_sensitive( GTK_WIDGET( cubicClippingSpin ), TRUE );
+            gtk_entry_set_alignment( GTK_ENTRY( cubicClippingSpin ), 1.0 ); //right
+            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( cubicClippingSpin ), GTK_UPDATE_IF_VALID );
+            g_object_set( cubicClippingSpin, "xalign", 1.0, (char*)NULL );
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), cubicClippingSpin, 2, 3, 1, 2,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( cubicClippingSpin );
+            AddDialogData( cubicClippingSpin, &m_nCubicScale, DLG_SPIN_INT );
+
+            label = gtk_label_new( _( "x" ) );
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 3, 4, 1, 2,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( label );
+
+            label = gtk_label_new( _( XSTR( CUBIC_CLIPPING_INCREMENT ) ) );
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 4, 5, 1, 2,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( label );
+
+            label = gtk_label_new( _( "=" ) );
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 5, 6, 1, 2,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( label );
+
+            char temp[20];
+            sprintf( temp, "%i grid units", g_PrefsDlg.m_nCubicScale * CUBIC_CLIPPING_INCREMENT );
+            cubicClippingCalculatedDistanceLabel = gtk_label_new( temp );
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), cubicClippingCalculatedDistanceLabel, 6, 7, 1, 2,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( cubicClippingCalculatedDistanceLabel );
+    //            updateCubicClippingDistance();
+
+
 
     // Light drawing
     check = gtk_check_button_new_with_label( _( "Light drawing" ) );
@@ -2292,7 +2401,7 @@ void PrefsDlg::BuildDialog(){
     gtk_widget_show( label );
 
     // spinner (allows undo levels to be set to zero)
-    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 0, 512, 1, 10, 0 ) ), 1, 0 );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 0, 999, 1, 10, 0 ) ), 1, 0 );
     gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
     gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
     gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 1, 2,
@@ -3085,7 +3194,8 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( LIGHTDRAW_KEY,          &m_bNewLightDraw,       TRUE );
 	mLocalPrefs.GetPref( CUBICCLIP_KEY,          &m_bCubicClipping,      FALSE );
     mLocalPrefs.GetPref( CUBICSCALE_KEY,         &m_nCubicScale,         32 );
-	mLocalPrefs.GetPref( ALTEDGE_KEY,            &m_bALTEdge,            FALSE );
+    mLocalPrefs.GetPref( RENDER_DIST_KEY,        &m_nRenderDistance,     abs( MAX_MAP_SIZE - MIN_MAP_SIZE / 2 ) );
+    mLocalPrefs.GetPref( ALTEDGE_KEY,            &m_bALTEdge,            FALSE );
 	mLocalPrefs.GetPref( FACECOLORS_KEY,         &m_bFaceColors,         FALSE );
 	mLocalPrefs.GetPref( XZVIS_KEY,              &m_bXZVis,              FALSE );
 	mLocalPrefs.GetPref( YZVIS_KEY,              &m_bYZVis,              FALSE );
@@ -4027,4 +4137,15 @@ void CGameInstall::ScanGames() {
 	}
 	Sys_Printf( "No installable games found in: %s\n",
 				pakPaths.GetBuffer() );
+}
+
+static void updateCubicClippingDistance( GtkWidget *widget, gpointer data ) {
+    // Make sure this is within bounds!
+    if( g_PrefsDlg.m_nCubicScale < CUBIC_CLIPPING_MIN || g_PrefsDlg.m_nCubicScale > CUBIC_CLIPPING_MAX ) {
+        g_PrefsDlg.m_nCubicScale = CLAMP( g_PrefsDlg.m_nCubicScale, CUBIC_CLIPPING_MIN, CUBIC_CLIPPING_MAX );
+    }
+
+    char temp[20];
+    sprintf( temp, "%i grid units", g_PrefsDlg.m_nCubicScale * CUBIC_CLIPPING_INCREMENT );
+//    gtk_label_set_text( GTK_LABEL( cubicClippingCalculatedDistanceLabel ), temp ) );
 }

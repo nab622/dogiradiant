@@ -275,7 +275,7 @@ picoModel_t	*PicoModuleLoadModelStream( const picoModule_t* module, void* inputS
 
 	{
 		// dummy filename
-		char fileName[128];
+        char fileName[128];
 		fileName[0] = '.';
 		strncpy( fileName + 1, module->defaultExts[ 0 ], 126 );
 		fileName[127] = '\0';

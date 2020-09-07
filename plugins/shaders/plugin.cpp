@@ -32,6 +32,7 @@
 // Shaders Plugin
 //
 
+#include "globalDefines.h"
 #include "plugin.h"
 
 // =============================================================================
@@ -89,8 +90,6 @@ extern "C" CSynapseClient * SYNAPSE_DLL_EXPORT Synapse_EnumerateInterfaces( cons
 
 	return &g_SynapseClient;
 }
-
-#include "version.h"
 
 const char* CSynapseClientShaders::GetInfo(){
 	return "Q3/Half-Life shaders module built " __DATE__ " " RADIANT_VERSION;

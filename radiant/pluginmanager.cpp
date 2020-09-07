@@ -23,6 +23,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include "globalDefines.h"
+
 #include "stdafx.h"
 #if defined( __linux__ ) || defined( __FreeBSD__ ) || defined( __APPLE__ )
   #include <dirent.h>
@@ -44,8 +46,6 @@ extern "C" {
 #include "plugin.h"
 #include "missing.h"
 #include "filters.h"
-
-#include "version.h"
 
 CRadiantImageManager g_ImageManager;
 CRadiantPluginManager g_PluginsManager;

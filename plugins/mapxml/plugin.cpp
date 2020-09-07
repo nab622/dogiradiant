@@ -18,6 +18,8 @@
    along with GtkRadiant; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+
+#include "globalDefines.h"
 #include "plugin.h"
 
 // =============================================================================
@@ -82,8 +84,6 @@ bool CSynapseClientXMap::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientXMap::GetInfo(){
 	return "XMAP module built " __DATE__ " " RADIANT_VERSION;

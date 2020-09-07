@@ -20,7 +20,7 @@
 // PrtView.cpp : Defines the initialization routines for the DLL.
 //
 
-#include "../include/version.h"
+#include "globalDefines.h"
 #include "stdafx.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -543,8 +543,6 @@ bool CSynapseClientPrtView::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientPrtView::GetInfo(){
 	return "PrtView module built " __DATE__ " " RADIANT_VERSION;

@@ -39,12 +39,6 @@ typedef vec_t vec5_t[5];
 typedef vec_t vec4_t[4];
 
 
-// NAB622: Adding these here so they're available globally
-int getDecimalPrecision( float input );
-int getWholeNumberPrecision( float input );
-float calculateRotatingValueBeneathMax( float input, int max );
-float setDecimalPrecision (float input, int precision );
-
 // Smallest positive value for vec_t such that 1.0 + VEC_SMALLEST_EPSILON_AROUND_ONE != 1.0.
 // In the case of 32 bit floats (which is almost certainly the case), it's 0.00000011921.
 // Don't forget that your epsilons should depend on the possible range of values,

@@ -38,6 +38,7 @@
 #include <glib.h>
 #include "qertypes.h"
 
+
 // FIXME TTimo:
 // GUID declaration here should be trashed, it is in synapse.h
 #ifdef _WIN32

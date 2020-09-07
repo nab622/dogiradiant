@@ -20,6 +20,8 @@
 #ifndef __PRTVIEW_AFX_H__
 #define __PRTVIEW_AFX_H__
 
+#include "globalDefines.h"
+
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 #include <stdint.h>
@@ -56,7 +58,6 @@ typedef int BOOL;
 #include "qerplugin.h"
 #include "ibspfrontend.h"
 #include "igl.h"
-#include "version.h"
 
 // PrtView
 #include "gtkdlgs.h"

@@ -133,6 +133,7 @@
       from "sprites/target_speaker.*" which is what I propose anyone creating image sets for Q3/Wolf/etc does.
  */
 
+#include "globalDefines.h"
 #include "plugin.h"
 
 // =============================================================================
@@ -258,8 +259,6 @@ bool CSynapseClientModel::RequestAPI( APIDescriptor_t *pAPI ){
 	Syn_Printf( "ERROR: RequestAPI( '%s' ) not found in '%s'\n", pAPI->major_name, GetInfo() );
 	return false;
 }
-
-#include "version.h"
 
 const char* CSynapseClientModel::GetInfo(){
 	return "Sprite Model module built " __DATE__ " " RADIANT_VERSION;

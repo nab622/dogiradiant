@@ -32,6 +32,8 @@
 
 #endif
 
+#include "globalDefines.h"
+
 // for interfaces, we require main plugin header included
 #include "iplugin.h"
 #include "qerplugin.h"
@@ -73,13 +75,7 @@ void debug_free( void *buf, const char* file, int line );
 void CheckWatchit( char *msg );
 #endif
 
-// those two files are generated
-// if they are missing, you NEED to run makeversion.sh
-// NOTE: for win32 users, cygwin installation is REQUIRED to run makeversion.sh
-// NOTE TTimo if any of those changes (they might change a lot), then the whole app is rebuilt.
-//   very often it's not necessary
-#include "version.h"
-#include "aboutmsg.h"
+#include "globalDefines.h"
 
 // synapse is our utility lib for dynamic shared objects management
 #include "synapse.h"
@@ -88,8 +84,6 @@ void CheckWatchit( char *msg );
 #include "cmdlib.h"
 #include "mathlib.h"
 #include "parse.h"
-
-#include "globalDefines.h"
 
 #include "qedefs.h"
 #include "qfiles.h"
