@@ -754,7 +754,7 @@ void PatchDialog::BuildDialog(){
                           (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                           (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
         gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), TRUE );
-        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), GTK_UPDATE_IF_VALID );
+        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_width_spinbutton ), GTK_UPDATE_ALWAYS );
         gtk_entry_set_alignment( GTK_ENTRY( patch_fit_width_spinbutton ), 1.0 ); //right
         gtk_widget_show( patch_fit_width_spinbutton );
         g_signal_connect( (gpointer) patch_fit_width_spinbutton, "value-changed", G_CALLBACK( on_patch_fit_width_spinbutton_value_changed ), NULL );
@@ -767,7 +767,7 @@ void PatchDialog::BuildDialog(){
                           (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                           (GtkAttachOptions) ( GTK_FILL ), 3, 0 );
         gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), TRUE );
-        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), GTK_UPDATE_IF_VALID );
+        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_fit_height_spinbutton ), GTK_UPDATE_ALWAYS );
         gtk_entry_set_alignment( GTK_ENTRY( patch_fit_height_spinbutton ), 1.0 ); //right
         gtk_widget_show( patch_fit_height_spinbutton );
         g_signal_connect( (gpointer) patch_fit_height_spinbutton, "value-changed", G_CALLBACK( on_patch_fit_height_spinbutton_value_changed ), NULL );

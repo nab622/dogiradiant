@@ -98,25 +98,8 @@
 // NAB622: Calculate the minimum size to be the opposite of the maximum
 #define MIN_MAP_SIZE -MAX_MAP_SIZE
 
-// RENDERER DEFINES
 
-    // NAB622: Make this a define for easier access
-    #define MAX_RENDER_DISTANCE MAX_MAP_SIZE
-
-    //This is the distance change each cubic clipping step will make
-    #define CUBIC_CLIPPING_INCREMENT 1024
-
-    // NAB622: In the preferences, cubic clipping distance is an integer between CUBIC_CLIPPING_MAX & CUBIC_CLIPPING_MIN
-    // It is multiplied by CUBIC_CLIPPING_INCREMENT to determine the cubic-clipped render distance
-    // Since MAX_RENDER_DISTANCE can vary, we need to determine dynamically how many increments we can have, so cubic clipping is always relevant
-    #define CUBIC_CLIPPING_MAX ( ( MAX_RENDER_DISTANCE / CUBIC_CLIPPING_INCREMENT ) - CUBIC_CLIPPING_INCREMENT )
-
-    // This is the minimum cubic clipping increment. You can increase this value if you like to increase the minimum range of
-    // cubic clipping's visibility, but seriously just leave it at 1, there's no good reason to change it.
-    #define CUBIC_CLIPPING_MIN 1
-
-
-// SURFACE INSPECTOR AND PATCH INSPECTOR
+    // SURFACE INSPECTOR AND PATCH INSPECTOR
 
     // NAB622: Made this a define for easier changes later
     #define MAX_TEXPATH_SIZE 128

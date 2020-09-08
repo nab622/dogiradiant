@@ -833,7 +833,7 @@ qboolean CamWnd::CullBrush( brush_t *b ){
 	float d;
 
 	if ( g_PrefsDlg.m_bCubicClipping ) {
-        float fLevel = g_PrefsDlg.m_nCubicScale * CUBIC_CLIPPING_INCREMENT;
+        float fLevel = g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement;
 
 		point[0] = m_Camera.origin[0] - fLevel;
 		point[1] = m_Camera.origin[1] - fLevel;

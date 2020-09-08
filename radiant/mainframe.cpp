@@ -5292,15 +5292,15 @@ void MainFrame::OnViewZzoomout(){
 }
 
 void MainFrame::OnViewCubein(){
-    if (g_PrefsDlg.m_nCubicScale < CUBIC_CLIPPING_MIN ) {
-        g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MIN;
+    if (g_PrefsDlg.m_nCubicScale < g_PrefsDlg.m_nCubicClipMin ) {
+        g_PrefsDlg.m_nCubicScale = g_PrefsDlg.m_nCubicClipMin;
         Sys_Printf( "WARNING: Below minimum clipping distance, correcting\n");
         g_PrefsDlg.SavePrefs();
         return;
     }
     g_PrefsDlg.m_nCubicScale--;
-    if ( g_PrefsDlg.m_nCubicScale < CUBIC_CLIPPING_MIN ) {
-        g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MIN;
+    if ( g_PrefsDlg.m_nCubicScale < g_PrefsDlg.m_nCubicClipMin ) {
+        g_PrefsDlg.m_nCubicScale = g_PrefsDlg.m_nCubicClipMin;
         Sys_Printf( "Already at minimum clipping distance\n");
         return;
     }
@@ -5312,15 +5312,15 @@ void MainFrame::OnViewCubein(){
 }
 
 void MainFrame::OnViewCubeout(){
-    if (g_PrefsDlg.m_nCubicScale > CUBIC_CLIPPING_MAX ) {
-        g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MAX;
+    if (g_PrefsDlg.m_nCubicScale > g_PrefsDlg.m_nCubicClipMax ) {
+        g_PrefsDlg.m_nCubicScale = g_PrefsDlg.m_nCubicClipMax;
         Sys_Printf( "WARNING: Above maximum clipping distance, correcting\n");
         g_PrefsDlg.SavePrefs();
         return;
     }
     g_PrefsDlg.m_nCubicScale++;
-    if ( g_PrefsDlg.m_nCubicScale > CUBIC_CLIPPING_MAX ) {
-        g_PrefsDlg.m_nCubicScale = CUBIC_CLIPPING_MAX;
+    if ( g_PrefsDlg.m_nCubicScale > g_PrefsDlg.m_nCubicClipMax ) {
+        g_PrefsDlg.m_nCubicScale = g_PrefsDlg.m_nCubicClipMax;
         Sys_Printf( "Already at maximum clipping distance\n");
         return;
     }

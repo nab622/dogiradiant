@@ -87,6 +87,9 @@
 #define WHATGAME_KEY            "WhichGame"
 #define CUBICCLIP_KEY           "CubicClipping"
 #define CUBICSCALE_KEY          "CubicScale"
+#define CUBICINCREMENT_KEY      "CubicIncrement"
+#define CUBICMAX_KEY            "CubicMax"
+#define CUBICMIN_KEY            "CubicMin"
 #define RENDER_DIST_KEY         "RenderDistance"
 #define ALTEDGE_KEY             "ALTEdgeDrag"
 #define FACECOLORS_KEY          "FaceColors"
@@ -230,7 +233,12 @@
 #define SUBDIVISIONS_DEF 4
 
 
-static void updateCubicClippingDistance( GtkWidget *widget, gpointer data );
+// Declaring this up here...
+GtkWidget *renderDistanceSpin, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel;
+
+
+static void setCubicClippingRange();
+static void updateCubicClippingDistance();
 
 
 void WindowPosition_Parse( window_position_t& m_value, const CString& value ){
@@ -629,9 +637,12 @@ PrefsDlg::PrefsDlg (){
 	m_bSnap = TRUE;
 	m_strUserPath = "";
 	m_nRotation = 0;
-    m_bCubicClipping = FALSE;
-    m_nCubicScale = 32;
     m_nRenderDistance = abs( MAX_MAP_SIZE - MIN_MAP_SIZE / 2 );
+    m_bCubicClipping = FALSE;
+    m_nCubicIncrement = 1024;
+    m_nCubicClipMin = 1;
+    m_nCubicClipMax = m_nRenderDistance / m_nCubicIncrement;    // NAB622: Since m_nCubicClipMax is an int, the decimal will be dropped
+    m_nCubicScale = CLAMP( ( m_nCubicClipMax - m_nCubicClipMin / 2 ), m_nCubicClipMin, m_nCubicClipMax );
     m_bChaseMouse = TRUE;
     m_bMousewheelZoom = FALSE;
 	m_bTextureScrollbar = TRUE;
@@ -1563,8 +1574,7 @@ void PrefsDlg::BuildDialog(){
 	GtkWidget *check, *label, *scale, *hbox2, *combo,
     *table, *spin,  *entry, *pixmap,
     *radio, *button, *pageframe, *vbox,
-    *renderDistanceSpin,
-    *cubicClippingTable, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel;
+    *cubicClippingTable;
 	GtkSizeGroup *size_group;
 	GList *combo_list = (GList*)NULL;
 	GList *lst;
@@ -1815,13 +1825,11 @@ void PrefsDlg::BuildDialog(){
 	gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
 	gtk_widget_show( vbox );
 
-
-        table = gtk_table_new( 2, 1, FALSE );
-        gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
+        table = gtk_table_new( 3, 1, FALSE );
+        gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
         gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
         gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
         gtk_widget_show( table );
-        gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
 
         label = gtk_label_new( _( "Maximum Render Distance:" ) );
         gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
@@ -1830,24 +1838,31 @@ void PrefsDlg::BuildDialog(){
         gtk_widget_show( label );
 
         // Render distance
-        renderDistanceSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, 32, ( abs( MAX_MAP_SIZE - MIN_MAP_SIZE ) * 2 ), 1, 10, 0 ) ), 1, 0 );
+        int maximumRenderDistance = abs( ( MAX_MAP_SIZE - MIN_MAP_SIZE ) * sqrt(3) );
+        renderDistanceSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( m_nRenderDistance, m_nCubicClipMin * m_nCubicIncrement, maximumRenderDistance, m_nCubicIncrement, m_nCubicIncrement * 10, 0 ) ), 1, 0 );
         gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( renderDistanceSpin ), TRUE );
         gtk_widget_set_sensitive( GTK_WIDGET( renderDistanceSpin ), TRUE );
         gtk_entry_set_alignment( GTK_ENTRY( renderDistanceSpin ), 1.0 ); //right
-        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( renderDistanceSpin ), GTK_UPDATE_IF_VALID );
+        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( renderDistanceSpin ), GTK_UPDATE_ALWAYS );
         g_object_set( renderDistanceSpin, "xalign", 1.0, (char*)NULL );
         gtk_table_attach( GTK_TABLE( table ), renderDistanceSpin, 1, 2, 0, 1,
                           (GtkAttachOptions) ( 0 ),
                           (GtkAttachOptions) ( 0 ), 0, 0 );
         gtk_widget_show( renderDistanceSpin );
         AddDialogData( renderDistanceSpin, &m_nRenderDistance, DLG_SPIN_INT );
+        g_signal_connect( (gpointer) renderDistanceSpin, "value-changed", G_CALLBACK( setCubicClippingRange ), NULL );
+
+        label = gtk_label_new( "grid units" );
+        gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 0, 1,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( label );
 
         // Cubic clipping enabled
         check = gtk_check_button_new_with_label( _( "Enable Cubic Clipping" ) );
         gtk_widget_show( check );
         AddDialogData( check, &m_bCubicClipping, DLG_CHECK_BOOL );
         gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
-
 
         cubicClippingTable = gtk_table_new( 3, 9, FALSE );
         gtk_table_set_col_spacings( GTK_TABLE( cubicClippingTable ), 6 );
@@ -1863,18 +1878,11 @@ void PrefsDlg::BuildDialog(){
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( label );
 
-
-            //gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0 );
-            //gtk_widget_modify_font( label, pango_font_description_from_string("monospace bold 12"));
-            //gtk_widget_set_tooltip_text( label, _( "This is the width of the texture in pixels" ) );
-            //gtk_label_set_text( GTK_LABEL( cubicClippingCalculatedDistanceLabel ), XSTR(  ) );
-
-
-            cubicClippingSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 1, CUBIC_CLIPPING_MIN, CUBIC_CLIPPING_MAX, 1, 10, 0 ) ), 1, 0 );
+            cubicClippingSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( m_nCubicScale, m_nCubicClipMin, m_nCubicClipMax, 1, 10, 0 ) ), 1, 0 );
             gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( cubicClippingSpin ), TRUE );
             gtk_widget_set_sensitive( GTK_WIDGET( cubicClippingSpin ), TRUE );
             gtk_entry_set_alignment( GTK_ENTRY( cubicClippingSpin ), 1.0 ); //right
-            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( cubicClippingSpin ), GTK_UPDATE_IF_VALID );
+            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( cubicClippingSpin ), GTK_UPDATE_ALWAYS );
             g_object_set( cubicClippingSpin, "xalign", 1.0, (char*)NULL );
             gtk_table_attach( GTK_TABLE( cubicClippingTable ), cubicClippingSpin, 2, 3, 1, 2,
                               (GtkAttachOptions) ( 0 ),
@@ -1888,7 +1896,9 @@ void PrefsDlg::BuildDialog(){
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( label );
 
-            label = gtk_label_new( _( XSTR( CUBIC_CLIPPING_INCREMENT ) ) );
+            char temp[20];
+            sprintf( temp, "%i", g_PrefsDlg.m_nCubicIncrement );
+            label = gtk_label_new( temp );
             gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 4, 5, 1, 2,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
@@ -1900,15 +1910,17 @@ void PrefsDlg::BuildDialog(){
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( label );
 
-            char temp[20];
-            sprintf( temp, "%i grid units", g_PrefsDlg.m_nCubicScale * CUBIC_CLIPPING_INCREMENT );
-            cubicClippingCalculatedDistanceLabel = gtk_label_new( temp );
+            char temp2[20];
+            sprintf( temp2, "%i grid units", g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement );
+            cubicClippingCalculatedDistanceLabel = gtk_label_new( temp2 );
             gtk_table_attach( GTK_TABLE( cubicClippingTable ), cubicClippingCalculatedDistanceLabel, 6, 7, 1, 2,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( cubicClippingCalculatedDistanceLabel );
-    //            updateCubicClippingDistance();
+            g_signal_connect( (gpointer) cubicClippingSpin, "value-changed", G_CALLBACK( updateCubicClippingDistance ), NULL );
 
+
+            updateCubicClippingDistance();
 
 
     // Light drawing
@@ -2833,7 +2845,7 @@ void PrefsDlg::BuildDialog(){
 */
 
     // Snap to grid
-    check = gtk_check_button_new_with_label( _( "Snap edits to grid\n(Also available in Grid menu)" ) );
+    check = gtk_check_button_new_with_label( _( "Snap edits to grid" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bSnap, DLG_CHECK_BOOL );
@@ -3020,6 +3032,23 @@ void PrefsDlg::BuildDialog(){
 
 // end new prefs dialog
 
+static void setCubicClippingRange() {
+    // GTK Doesn't update this automatically so we have to do it here
+    g_PrefsDlg.m_nRenderDistance = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( renderDistanceSpin ) );
+    g_PrefsDlg.m_nCubicClipMax = (int) ( g_PrefsDlg.m_nRenderDistance / g_PrefsDlg.m_nCubicIncrement );
+    gtk_spin_button_set_range( GTK_SPIN_BUTTON( cubicClippingSpin ), g_PrefsDlg.m_nCubicClipMin, g_PrefsDlg.m_nCubicClipMax );
+    updateCubicClippingDistance();
+}
+
+static void updateCubicClippingDistance() {
+    // NAB622: Have to use a temp variable here, because if the user clicks cancel the value needs to revert
+    int cubicScale = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( cubicClippingSpin ) );
+
+    char temp[20];
+    sprintf( temp, "%i grid units", cubicScale * g_PrefsDlg.m_nCubicIncrement );
+    gtk_label_set_text( GTK_LABEL( cubicClippingCalculatedDistanceLabel ), temp );
+}
+
 void PrefsDlg::LoadTexdefPref( texdef_t* pTexdef, const char* pName ){
 	char buffer[256];
 
@@ -3110,7 +3139,8 @@ void PrefsDlg::UpdateTextureCompression(){
 void PrefsDlg::UpdateATIHack() {
 	// if OpenGL is not ready yet, don't do anything
 	if ( !g_qeglobals.m_bOpenGLReady ) {
-		Sys_Printf( "OpenGL not ready - postpone ATI bug workaround setup\n" );
+// NAB622: These messages are a nuisance at this point, I'm disabling them
+//		Sys_Printf( "OpenGL not ready - postpone ATI bug workaround setup\n" );
 		return;
 	}
 
@@ -3119,14 +3149,16 @@ void PrefsDlg::UpdateATIHack() {
 		qglDisable = &qglDisable_ATIHack;
 		qglEnable = &qglEnable_ATIHack;
 		qglPolygonMode = &qglPolygonMode_ATIHack;
-		Sys_Printf( "ATI bug workaround enabled\n" );
+// NAB622: These messages are a nuisance at this point, I'm disabling them
+//		Sys_Printf( "ATI bug workaround enabled\n" );
 	}
 	else {
 		qglCullFace = qglCullFace_real;
 		qglDisable = qglDisable_real;
 		qglEnable = qglEnable_real;
 		qglPolygonMode = qglPolygonMode_real;
-		Sys_Printf( "ATI bug workaround disabled\n" );
+// NAB622: These messages are a nuisance at this point, I'm disabling them
+//		Sys_Printf( "ATI bug workaround disabled\n" );
 	}
 }
 #endif
@@ -3149,15 +3181,15 @@ void PrefsDlg::LoadPrefs(){
 	// load local.pref file
 	mLocalPrefs.ReadXMLFile( m_inipath->str );
 
-	mLocalPrefs.GetPref( PATCHSHOWBOUNDS_KEY,  &g_bPatchShowBounds,  FALSE );
-	mLocalPrefs.GetPref( MOUSE_KEY,            &m_nMouse,            MOUSE_DEF );
+    mLocalPrefs.GetPref( PATCHSHOWBOUNDS_KEY,    &g_bPatchShowBounds,            FALSE );
+    mLocalPrefs.GetPref( MOUSE_KEY,              &m_nMouse,                      MOUSE_DEF );
 //	m_nMouseButtons = m_nMouse ? 3 : 2;     // NAB622: Force to a 3 button mouse
     m_nMouseButtons = 3;
 
     // project file
 	// if it's not found here, mainframe.cpp will take care of finding one
-	mLocalPrefs.GetPref( LASTPROJ_KEY, &m_strLastProject, "" );
-	mLocalPrefs.GetPref( LASTPROJVER_KEY, &m_nLastProjectVer, -1 );
+    mLocalPrefs.GetPref( LASTPROJ_KEY,           &m_strLastProject,              "" );
+    mLocalPrefs.GetPref( LASTPROJVER_KEY,        &m_nLastProjectVer,             -1 );
 
 	// prefab path
 	// NOTE TTimo: I'm not sure why this is in prefs
@@ -3167,43 +3199,49 @@ void PrefsDlg::LoadPrefs(){
 	strPrefab = g_qeglobals.m_strHomeGame.GetBuffer();
 	strPrefab += g_pGameDescription->mBaseGame.GetBuffer();
 	strPrefab += "/prefabs/";
-	mLocalPrefs.GetPref( PREFAB_KEY, &m_strPrefabPath, strPrefab );
+    mLocalPrefs.GetPref( PREFAB_KEY,             &m_strPrefabPath,               strPrefab );
 
-	mLocalPrefs.GetPref( LASTLIGHTINTENSITY_KEY, &m_iLastLightIntensity, 300 );
-	mLocalPrefs.GetPref( TLOCK_KEY,              &m_bTextureLock,        TLOCK_DEF );
-	mLocalPrefs.GetPref( RLOCK_KEY,              &m_bRotateLock,         TLOCK_DEF );
-	mLocalPrefs.GetPref( LASTMAP_KEY,            &m_strLastMap,          "" );
-	mLocalPrefs.GetPref( LOADLAST_KEY,           &m_bLoadLast,           LOADLAST_DEF );
-	mLocalPrefs.GetPref( BSP_KEY,                &m_bInternalBSP,        FALSE );
-	mLocalPrefs.GetPref( RCLICK_KEY,             &m_bRightClick,         TRUE );
-	mLocalPrefs.GetPref( AUTOSAVE_KEY,           &m_bAutoSave,           TRUE );
-	mLocalPrefs.GetPref( LOADLASTMAP_KEY,        &m_bLoadLastMap,        FALSE );
-	mLocalPrefs.GetPref( TINYBRUSH_KEY,          &m_bCleanTiny,          FALSE );
-	mLocalPrefs.GetPref( TINYSIZE_KEY,           &m_fTinySize,           0.5f );
-	mLocalPrefs.GetPref( AUTOSAVETIME_KEY,       &m_nAutoSave,           5 );
-	mLocalPrefs.GetPref( SAVEBEEP_KEY,           &m_bSaveBeep,           TRUE );
-	mLocalPrefs.GetPref( SNAPSHOT_KEY,           &m_bSnapShots,          FALSE );
-    mLocalPrefs.GetPref( MOVESPEED_KEY,          &m_nMoveSpeed,          100 );
-	mLocalPrefs.GetPref( ANGLESPEED_KEY,         &m_nAngleSpeed,         3 );
-	mLocalPrefs.GetPref( SETGAME_KEY,            &m_bSetGame,            FALSE );
-	mLocalPrefs.GetPref( CAMXYUPDATE_KEY,        &m_bCamXYUpdate,        TRUE );
-	mLocalPrefs.GetPref( CAMDRAGMULTISELECT_KEY, &m_nCamDragMultiSelect, TRUE );
-	mLocalPrefs.GetPref( CAMFREELOOK_KEY,        &m_bCamFreeLook,        TRUE );
-	mLocalPrefs.GetPref( CAMINVERSEMOUSE_KEY,    &m_bCamInverseMouse,    FALSE );
-	mLocalPrefs.GetPref( CAMDISCRETE_KEY,        &m_bCamDiscrete,        TRUE );
-	mLocalPrefs.GetPref( LIGHTDRAW_KEY,          &m_bNewLightDraw,       TRUE );
-	mLocalPrefs.GetPref( CUBICCLIP_KEY,          &m_bCubicClipping,      FALSE );
-    mLocalPrefs.GetPref( CUBICSCALE_KEY,         &m_nCubicScale,         32 );
-    mLocalPrefs.GetPref( RENDER_DIST_KEY,        &m_nRenderDistance,     abs( MAX_MAP_SIZE - MIN_MAP_SIZE / 2 ) );
-    mLocalPrefs.GetPref( ALTEDGE_KEY,            &m_bALTEdge,            FALSE );
-	mLocalPrefs.GetPref( FACECOLORS_KEY,         &m_bFaceColors,         FALSE );
-	mLocalPrefs.GetPref( XZVIS_KEY,              &m_bXZVis,              FALSE );
-	mLocalPrefs.GetPref( YZVIS_KEY,              &m_bYZVis,              FALSE );
-	mLocalPrefs.GetPref( ZVIS_KEY,               &m_bZVis,               FALSE );
-	mLocalPrefs.GetPref( SIZEPAINT_KEY,          &m_bSizePaint,                  FALSE );
-	mLocalPrefs.GetPref( DLLENTITIES_KEY,        &m_bDLLEntities,                FALSE );
+    mLocalPrefs.GetPref( LASTLIGHTINTENSITY_KEY, &m_iLastLightIntensity,         300 );
+    mLocalPrefs.GetPref( TLOCK_KEY,              &m_bTextureLock,                TLOCK_DEF );
+    mLocalPrefs.GetPref( RLOCK_KEY,              &m_bRotateLock,                 TLOCK_DEF );
+    mLocalPrefs.GetPref( LASTMAP_KEY,            &m_strLastMap,                  "" );
+    mLocalPrefs.GetPref( LOADLAST_KEY,           &m_bLoadLast,                   LOADLAST_DEF );
+    mLocalPrefs.GetPref( BSP_KEY,                &m_bInternalBSP,                FALSE );
+    mLocalPrefs.GetPref( RCLICK_KEY,             &m_bRightClick,                 TRUE );
+    mLocalPrefs.GetPref( AUTOSAVE_KEY,           &m_bAutoSave,                   TRUE );
+    mLocalPrefs.GetPref( LOADLASTMAP_KEY,        &m_bLoadLastMap,                FALSE );
+    mLocalPrefs.GetPref( TINYBRUSH_KEY,          &m_bCleanTiny,                  FALSE );
+    mLocalPrefs.GetPref( TINYSIZE_KEY,           &m_fTinySize,                   0.5f );
+    mLocalPrefs.GetPref( AUTOSAVETIME_KEY,       &m_nAutoSave,                   5 );
+    mLocalPrefs.GetPref( SAVEBEEP_KEY,           &m_bSaveBeep,                   TRUE );
+    mLocalPrefs.GetPref( SNAPSHOT_KEY,           &m_bSnapShots,                  FALSE );
+    mLocalPrefs.GetPref( MOVESPEED_KEY,          &m_nMoveSpeed,                  100 );
+    mLocalPrefs.GetPref( ANGLESPEED_KEY,         &m_nAngleSpeed,                 3 );
+    mLocalPrefs.GetPref( SETGAME_KEY,            &m_bSetGame,                    FALSE );
+    mLocalPrefs.GetPref( CAMXYUPDATE_KEY,        &m_bCamXYUpdate,                TRUE );
+    mLocalPrefs.GetPref( CAMDRAGMULTISELECT_KEY, &m_nCamDragMultiSelect,         TRUE );
+    mLocalPrefs.GetPref( CAMFREELOOK_KEY,        &m_bCamFreeLook,                TRUE );
+    mLocalPrefs.GetPref( CAMINVERSEMOUSE_KEY,    &m_bCamInverseMouse,            FALSE );
+    mLocalPrefs.GetPref( CAMDISCRETE_KEY,        &m_bCamDiscrete,                TRUE );
+    mLocalPrefs.GetPref( LIGHTDRAW_KEY,          &m_bNewLightDraw,               TRUE );
+    mLocalPrefs.GetPref( RENDER_DIST_KEY,        &m_nRenderDistance,             abs( MAX_MAP_SIZE - MIN_MAP_SIZE / 2 ) );
+    mLocalPrefs.GetPref( CUBICCLIP_KEY,          &m_bCubicClipping,              FALSE );
+    mLocalPrefs.GetPref( CUBICINCREMENT_KEY,     &m_nCubicIncrement,             1024 );
+    mLocalPrefs.GetPref( CUBICMIN_KEY,           &m_nCubicClipMin,               1 );
 
-    mLocalPrefs.GetPref( DETACHABLEMENUS_KEY,    &m_bLatchedDetachableMenus,            FALSE );
+    //This shouldn't be loaded from the prefs file
+    m_nCubicClipMax = m_nRenderDistance / m_nCubicIncrement;
+
+    mLocalPrefs.GetPref( CUBICSCALE_KEY,         &m_nCubicScale,                 CLAMP( ( m_nCubicClipMax - m_nCubicClipMin / 2 ), m_nCubicClipMin, m_nCubicClipMax ) );
+    mLocalPrefs.GetPref( ALTEDGE_KEY,            &m_bALTEdge,                    FALSE );
+    mLocalPrefs.GetPref( FACECOLORS_KEY,         &m_bFaceColors,                 FALSE );
+    mLocalPrefs.GetPref( XZVIS_KEY,              &m_bXZVis,                      FALSE );
+    mLocalPrefs.GetPref( YZVIS_KEY,              &m_bYZVis,                      FALSE );
+    mLocalPrefs.GetPref( ZVIS_KEY,               &m_bZVis,                       FALSE );
+    mLocalPrefs.GetPref( SIZEPAINT_KEY,          &m_bSizePaint,                  FALSE );
+    mLocalPrefs.GetPref( DLLENTITIES_KEY,        &m_bDLLEntities,                FALSE );
+
+    mLocalPrefs.GetPref( DETACHABLEMENUS_KEY,    &m_bLatchedDetachableMenus,     FALSE );
 	m_bDetachableMenus = m_bLatchedDetachableMenus;
 
 	if ( g_pGameDescription->mNoPatch ) {
@@ -3211,45 +3249,45 @@ void PrefsDlg::LoadPrefs(){
 	}
 	else
 	{
-		mLocalPrefs.GetPref( PATCHTOOLBAR_KEY,       &m_bLatchedPatchToolbar,               TRUE );
+        mLocalPrefs.GetPref( PATCHTOOLBAR_KEY,       &m_bLatchedPatchToolbar,    TRUE );
 		m_bPatchToolbar = m_bLatchedPatchToolbar;
 	}
 
-	mLocalPrefs.GetPref( WIDETOOLBAR_KEY,        &m_bLatchedWideToolbar,                TRUE );
+    mLocalPrefs.GetPref( WIDETOOLBAR_KEY,        &m_bLatchedWideToolbar,         TRUE );
 	m_bWideToolbar = m_bLatchedWideToolbar;
 
-	mLocalPrefs.GetPref( PLUGINTOOLBAR_KEY, &m_bLatchedPluginToolbar, TRUE );
+    mLocalPrefs.GetPref( PLUGINTOOLBAR_KEY, &m_bLatchedPluginToolbar,            TRUE );
 	m_bPluginToolbar = m_bLatchedPluginToolbar;
 
-	mLocalPrefs.GetPref( WINDOW_KEY,             (int*)&m_nLatchedView,  WINDOW_DEF );
+    mLocalPrefs.GetPref( WINDOW_KEY,             (int*)&m_nLatchedView,          WINDOW_DEF );
 	m_nView = m_nLatchedView;
 
-	mLocalPrefs.GetPref( FLOATINGZ_KEY,          &m_bLatchedFloatingZ,           FALSE );
+    mLocalPrefs.GetPref( FLOATINGZ_KEY,          &m_bLatchedFloatingZ,           FALSE );
 	m_bFloatingZ = m_bLatchedFloatingZ;
 
-	mLocalPrefs.GetPref( TEXTUREQUALITY_KEY,     &m_nLatchedTextureQuality,             3 );
+    mLocalPrefs.GetPref( TEXTUREQUALITY_KEY,     &m_nLatchedTextureQuality,      3 );
 	m_nTextureQuality = m_nLatchedTextureQuality;
 
-    mLocalPrefs.GetPref( LOADSHADERS_KEY,        &m_nLatchedShader,                     1 );
+    mLocalPrefs.GetPref( LOADSHADERS_KEY,        &m_nLatchedShader,              1 );
 	m_nShader = m_nLatchedShader;
 
 
-	mLocalPrefs.GetPref( FIXEDTEXSIZE_KEY,       &m_bFixedTextureSize,          FALSE );
-    mLocalPrefs.GetPref( FIXEDTEXSIZEWIDTH_KEY,  &m_nFixedTextureSizeWidth,     128 );
-    mLocalPrefs.GetPref( FIXEDTEXSIZEHEIGHT_KEY, &m_nFixedTextureSizeHeight,    128 );
+    mLocalPrefs.GetPref( FIXEDTEXSIZE_KEY,       &m_bFixedTextureSize,           FALSE );
+    mLocalPrefs.GetPref( FIXEDTEXSIZEWIDTH_KEY,  &m_nFixedTextureSizeWidth,      128 );
+    mLocalPrefs.GetPref( FIXEDTEXSIZEHEIGHT_KEY, &m_nFixedTextureSizeHeight,     128 );
 
-	mLocalPrefs.GetPref( SHOWTEXDIRLIST_KEY,     &m_bShowTexDirList,             TRUE );
+    mLocalPrefs.GetPref( SHOWTEXDIRLIST_KEY,     &m_bShowTexDirList,             TRUE );
 
     mLocalPrefs.GetPref( NOCLAMP_KEY,            &m_bNoClamp,                    FALSE );
-	mLocalPrefs.GetPref( SNAP_KEY,               &m_bSnap,                       TRUE );
-	mLocalPrefs.GetPref( USERINI_KEY,            &m_strUserPath,                 "" );
+    mLocalPrefs.GetPref( SNAP_KEY,               &m_bSnap,                       TRUE );
+    mLocalPrefs.GetPref( USERINI_KEY,            &m_strUserPath,                 "" );
     mLocalPrefs.GetPref( ROTATION_KEY,           &m_nRotation,                   2.5 );
-	mLocalPrefs.GetPref( CHASEMOUSE_KEY,         &m_bChaseMouse,                 TRUE );
-	mLocalPrefs.GetPref( MOUSEWHEELZOOM_KEY,     &m_bMousewheelZoom,             FALSE );
-	mLocalPrefs.GetPref( ENTITYSHOW_KEY,         &m_nEntityShowState,            ENTITY_SKINNED_BOXED );
+    mLocalPrefs.GetPref( CHASEMOUSE_KEY,         &m_bChaseMouse,                 TRUE );
+    mLocalPrefs.GetPref( MOUSEWHEELZOOM_KEY,     &m_bMousewheelZoom,             FALSE );
+    mLocalPrefs.GetPref( ENTITYSHOW_KEY,         &m_nEntityShowState,            ENTITY_SKINNED_BOXED );
 
 	// this will probably need to be 75 or 100 for Q1.
-	mLocalPrefs.GetPref( TEXTURESCALE_KEY,       &m_nTextureScale,               50 );
+    mLocalPrefs.GetPref( TEXTURESCALE_KEY,       &m_nTextureScale,               50 );
 
     // If we're using the new pixel width settings, we need to make sure fixed texture size is turned on
     switch ( m_nTextureScale ) {
@@ -3268,9 +3306,9 @@ void PrefsDlg::LoadPrefs(){
 
 	if ( ( g_pGameDescription->mGameFile == "hl.game" ) ) {
 		// No BSP monitoring in the default compiler tools for Half-life (yet)
-		mLocalPrefs.GetPref( WATCHBSP_KEY,           &m_bWatchBSP,                   FALSE );
+        mLocalPrefs.GetPref( WATCHBSP_KEY,           &m_bWatchBSP,               FALSE );
 	} else {
-		mLocalPrefs.GetPref( WATCHBSP_KEY,           &m_bWatchBSP,                   TRUE );
+        mLocalPrefs.GetPref( WATCHBSP_KEY,           &m_bWatchBSP,               TRUE );
 	}
 
     // Texture filtering on by default, ALWAYS.
@@ -3334,7 +3372,7 @@ void PrefsDlg::LoadPrefs(){
 #ifdef _WIN32
 	mLocalPrefs.GetPref( STATE_KEY,              &mWindowInfo.nState,            SW_SHOW );
 #endif
-	mLocalPrefs.GetPref( TEXDIRLISTWIDTH_KEY,        &mWindowInfo.nTextureDirectoryListWidth,      50 );
+    mLocalPrefs.GetPref( TEXDIRLISTWIDTH_KEY,    &mWindowInfo.nTextureDirectoryListWidth,      50 );
 
 	// menu stuff
 	mLocalPrefs.GetPref( COUNT_KEY,              &m_nMRUCount,                   0 );
@@ -3342,7 +3380,7 @@ void PrefsDlg::LoadPrefs(){
 	{
 		char buf[64];
 		sprintf( buf, "%s%d", FILE_KEY, i );
-		mLocalPrefs.GetPref( buf,                  &m_strMRUFiles[i],              "" );
+        mLocalPrefs.GetPref( buf,                &m_strMRUFiles[i],              "" );
 	}
 
 	// some platform specific prefs
@@ -3362,17 +3400,17 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( SI_SHOWAXIS_KEY,        &g_qeglobals.d_savedinfo.show_axis,               TRUE );
 	mLocalPrefs.GetPref( SI_NOSELOUTLINES_KEY,   &g_qeglobals.d_savedinfo.bNoSelectedOutlines,     FALSE );
 
-	mLocalPrefs.GetPref( SI_OUTLINESTYLE_KEY,   &g_qeglobals.d_savedinfo.iSelectedOutlinesStyle,  OUTLINE_ZBUF | OUTLINE_BSEL );
+    mLocalPrefs.GetPref( SI_OUTLINESTYLE_KEY,    &g_qeglobals.d_savedinfo.iSelectedOutlinesStyle,  OUTLINE_ZBUF | OUTLINE_BSEL );
 
-	LoadTexdefPref( &g_qeglobals.d_savedinfo.m_SIIncrement, SI_SURFACE_TEXDEF_KEY );
-	LoadTexdefPref( &g_qeglobals.d_savedinfo.m_PIIncrement, SI_PATCH_TEXDEF_KEY );
+    LoadTexdefPref( &g_qeglobals.d_savedinfo.m_SIIncrement, SI_SURFACE_TEXDEF_KEY );
+    LoadTexdefPref( &g_qeglobals.d_savedinfo.m_PIIncrement, SI_PATCH_TEXDEF_KEY );
 
 	// text editor binding
 #ifdef _WIN32
-	mLocalPrefs.GetPref( CUSTOMSHADEREDITOR_KEY, &m_bUseWin32Editor, TRUE );
+    mLocalPrefs.GetPref( CUSTOMSHADEREDITOR_KEY, &m_bUseWin32Editor,                               TRUE );
 #else
-	mLocalPrefs.GetPref( CUSTOMSHADEREDITOR_KEY, &m_bUseCustomEditor, FALSE );
-	mLocalPrefs.GetPref( CUSTOMSHADEREDITORCOMMAND_KEY, &m_strEditorCommand, "" );
+    mLocalPrefs.GetPref( CUSTOMSHADEREDITOR_KEY, &m_bUseCustomEditor,                              FALSE );
+    mLocalPrefs.GetPref( CUSTOMSHADEREDITORCOMMAND_KEY, &m_strEditorCommand,                       "" );
 #endif
 
 
@@ -3385,7 +3423,7 @@ void PrefsDlg::LoadPrefs(){
 	for ( i = 0; i < 3; i++ ) {
 		char buf[64];
 		sprintf( buf, "%s%d", SI_AXISCOLORS_KEY, i );
-		mLocalPrefs.GetPref( buf,   g_qeglobals.d_savedinfo.AxisColors[i], vDefaultAxisColours[i] );
+        mLocalPrefs.GetPref( buf,                g_qeglobals.d_savedinfo.AxisColors[i],            vDefaultAxisColours[i] );
 	}
 
 	vec3_t vDefaultColours[COLOR_LAST] = {
@@ -3411,20 +3449,20 @@ void PrefsDlg::LoadPrefs(){
     for ( i = 0; i < COLOR_LAST; i++ ) {
 		char buf[64];
 		sprintf( buf, "%s%d", SI_COLORS_KEY, i );
-		mLocalPrefs.GetPref( buf,   g_qeglobals.d_savedinfo.colors[i], vDefaultColours[i] );
+        mLocalPrefs.GetPref( buf,                g_qeglobals.d_savedinfo.colors[i],                vDefaultColours[i] );
 	}
 
-	mLocalPrefs.GetPref( TEXTURECOMPRESSIONFORMAT_KEY, &m_nTextureCompressionFormat, 1 );
+    mLocalPrefs.GetPref( TEXTURECOMPRESSIONFORMAT_KEY, &m_nTextureCompressionFormat,               1 );
 
-	mLocalPrefs.GetPref( LIGHTRADIUS_KEY, &m_nLightRadiuses, TRUE );
+    mLocalPrefs.GetPref( LIGHTRADIUS_KEY,        &m_nLightRadiuses,                                TRUE );
 
-	mLocalPrefs.GetPref( Q3MAP2TEX_KEY, &m_bQ3Map2Texturing, TRUE );
+    mLocalPrefs.GetPref( Q3MAP2TEX_KEY,          &m_bQ3Map2Texturing,                              TRUE );
 #ifdef _WIN32
-	mLocalPrefs.GetPref( X64Q3MAP2_KEY, &m_bx64q3map2, TRUE );
+    mLocalPrefs.GetPref( X64Q3MAP2_KEY,          &m_bx64q3map2,                                    TRUE );
 #endif
 
 #ifdef ATIHACK_812
-	mLocalPrefs.GetPref( ATIHACK_KEY, &m_bGlATIHack, FALSE );
+    mLocalPrefs.GetPref( ATIHACK_KEY,            &m_bGlATIHack,                                    FALSE );
 #endif
 
 	Undo_SetMaxSize( m_nUndoLevels ); // set it internally as well / FIXME: why not just have one global value?
@@ -4139,13 +4177,3 @@ void CGameInstall::ScanGames() {
 				pakPaths.GetBuffer() );
 }
 
-static void updateCubicClippingDistance( GtkWidget *widget, gpointer data ) {
-    // Make sure this is within bounds!
-    if( g_PrefsDlg.m_nCubicScale < CUBIC_CLIPPING_MIN || g_PrefsDlg.m_nCubicScale > CUBIC_CLIPPING_MAX ) {
-        g_PrefsDlg.m_nCubicScale = CLAMP( g_PrefsDlg.m_nCubicScale, CUBIC_CLIPPING_MIN, CUBIC_CLIPPING_MAX );
-    }
-
-    char temp[20];
-    sprintf( temp, "%i grid units", g_PrefsDlg.m_nCubicScale * CUBIC_CLIPPING_INCREMENT );
-//    gtk_label_set_text( GTK_LABEL( cubicClippingCalculatedDistanceLabel ), temp ) );
-}
