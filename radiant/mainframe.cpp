@@ -2132,14 +2132,17 @@ static void mainframe_map( GtkWidget *widget ){
 	if ( ( g_pParentWnd->CurrentStyle() == MainFrame::eFloating ) && ( widget == g_pParentWnd->m_pWidget ) ) {
 		// restore previously visible windows
 		CHECK_RESTORE( g_pParentWnd->GetCamWnd()->m_pParent );
-		if ( g_PrefsDlg.m_bFloatingZ ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+        if ( g_PrefsDlg.m_bFloatingZ ) {
 			CHECK_RESTORE( g_pParentWnd->GetZWnd()->m_pParent );
 		}
-		CHECK_RESTORE( g_pParentWnd->GetXYWnd()->m_pParent );
+*/
+        CHECK_RESTORE( g_pParentWnd->GetXYWnd()->m_pParent );
 		CHECK_RESTORE( g_pParentWnd->GetXZWnd()->m_pParent );
 		CHECK_RESTORE( g_pParentWnd->GetYZWnd()->m_pParent );
 		CHECK_RESTORE( g_pGroupDlg->m_pWidget );
-	}
+    }
 }
 
 inline void CHECK_MINIMIZE( GtkWidget* w ){
@@ -2152,10 +2155,13 @@ static void mainframe_unmap( GtkWidget *widget ){
 	if ( ( g_pParentWnd->CurrentStyle() == MainFrame::eFloating ) && ( widget == g_pParentWnd->m_pWidget ) ) {
 		// minimize all other windows when the main window is minimized
 		CHECK_MINIMIZE( g_pParentWnd->GetCamWnd()->m_pParent );
-		if ( g_PrefsDlg.m_bFloatingZ ) {
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+        if ( g_PrefsDlg.m_bFloatingZ ) {
 			CHECK_MINIMIZE( g_pParentWnd->GetZWnd()->m_pParent );
 		}
-		CHECK_MINIMIZE( g_pParentWnd->GetXYWnd()->m_pParent );
+*/
+        CHECK_MINIMIZE( g_pParentWnd->GetXYWnd()->m_pParent );
 		CHECK_MINIMIZE( g_pParentWnd->GetXZWnd()->m_pParent );
 		CHECK_MINIMIZE( g_pParentWnd->GetYZWnd()->m_pParent );
 		CHECK_MINIMIZE( g_pGroupDlg->m_pWidget );
@@ -2578,6 +2584,8 @@ GtkWidget* create_framed_texwnd( TexWnd* texwnd ){
 	return frame;
 }
 
+/*
+// NAB622: Disabling the Z window. It serves no purpose
 static ZWnd *create_floating_zwnd( MainFrame *mainframe ){
     ZWnd *pZWnd = new ZWnd();
 	GtkWidget* wnd = create_floating( mainframe );
@@ -2620,6 +2628,7 @@ static ZWnd *create_floating_zwnd( MainFrame *mainframe ){
 
 	return pZWnd;
 }
+*/
 
 static const int gutter = 12;
 
@@ -4918,6 +4927,10 @@ void MainFrame::OnPrefs() {
     bool    bFloatingZ          = g_PrefsDlg.m_bFloatingZ;
 	bool    bShowTexDirList     = g_PrefsDlg.m_bShowTexDirList;
 
+    int nRenderDistance = g_PrefsDlg.m_nRenderDistance;
+    bool bCubicClipping = g_PrefsDlg.m_bCubicClipping;
+    int nCubicScale = g_PrefsDlg.m_nCubicScale;
+
     g_PrefsDlg.LoadPrefs();
 
     if(g_PrefsDlg.DoModal() == IDOK) {
@@ -4935,6 +4948,8 @@ void MainFrame::OnPrefs() {
                               MB_OK | MB_ICONINFORMATION);
         }
 
+/*
+// NAB622: Disabling the Z window. It serves no purpose
         // if the view mode was switched to floating, set the Z window on by
         // default. this was originally intended as a bug fix, but the fix is 
         // elsewhere .. anyway making sure we force Z on each time is good
@@ -4943,18 +4958,42 @@ void MainFrame::OnPrefs() {
            ((EViewStyle)g_PrefsDlg.m_nView == (EViewStyle)eFloating)) {
             g_PrefsDlg.m_bZVis = true;
         }
+*/
 
         if(m_pTexWnd) {
             m_pTexWnd->UpdatePrefs();
         }
 
-        GtkWidget *item = GTK_WIDGET(g_object_get_data(G_OBJECT(m_pWidget), 
+/*
+// NAB622: This option was removed from the menu, so don't touch it
+        GtkWidget *item = GTK_WIDGET(g_object_get_data(G_OBJECT(m_pWidget),
                                                        "menu_snaptogrid"));
         g_bIgnoreCommands++;
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item),
                                       (g_PrefsDlg.m_bSnap) ? TRUE : FALSE);
         g_bIgnoreCommands--;
+*/
+    } else {
+        // NAB622: If the renderer settings were touched and the changes were canceled, we need to restore the original settings and redraw the camera window
+        if ( g_PrefsDlg.m_nRenderDistance != nRenderDistance ||
+             g_PrefsDlg.m_bCubicClipping != bCubicClipping ||
+             g_PrefsDlg.m_nCubicScale != nCubicScale
+           ) {
+            g_PrefsDlg.m_nRenderDistance = nRenderDistance;
+            g_PrefsDlg.m_bCubicClipping = bCubicClipping;
+            g_PrefsDlg.m_nCubicScale = nCubicScale;
+
+            Sys_UpdateWindows( W_CAMERA );
+        }
     }
+
+    g_bIgnoreCommands++;
+    GtkWidget *w;
+    w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_view_cubicclipping" ) );
+    gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
+    w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "ttb_view_cubicclipping" ) );
+    gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
+    g_bIgnoreCommands--;
 }
 
 void MainFrame::OnTogglecamera(){
@@ -5111,7 +5150,10 @@ void MainFrame::OnTogglez(){
 // NAB622: Disabling the Z window. It serves no purpose
     return;
 	if ( g_pParentWnd->FloatingGroupDialog() ) { // QE4 style
-		if ( m_pZWnd && m_pZWnd->m_pParent ) {
+
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+        if ( m_pZWnd && m_pZWnd->m_pParent ) {
 			if ( gtk_widget_get_visible( m_pZWnd->m_pParent ) ) {
 				widget_delete_hide( m_pZWnd->m_pParent );
 			}
@@ -5121,7 +5163,8 @@ void MainFrame::OnTogglez(){
 			g_PrefsDlg.m_bZVis ^= 1;
 			g_PrefsDlg.SavePrefs();
 		}
-	}
+*/
+    }
 	else {
 		Sys_FPrintf( SYS_WRN, "Z view toggle is only valid in floating views\n" );
 	}
@@ -5291,11 +5334,25 @@ void MainFrame::OnViewZzoomout(){
 	Sys_UpdateWindows( W_Z | W_Z_OVERLAY );
 }
 
+void MainFrame::saveCubicClipSettings(){
+    if ( GTK_IS_WIDGET( cubicClippingSpin ) ) {
+        // NAB622: If the preferences window is open, we need to update it
+        gtk_spin_button_set_value( GTK_SPIN_BUTTON( cubicClippingSpin ), g_PrefsDlg.m_nCubicScale );
+    }
+    g_PrefsDlg.SavePrefs();
+}
+
 void MainFrame::OnViewCubein(){
-    if (g_PrefsDlg.m_nCubicScale < g_PrefsDlg.m_nCubicClipMin ) {
+    if ( g_PrefsDlg.m_nCubicScale > g_PrefsDlg.m_nCubicClipMax ) {
+        g_PrefsDlg.m_nCubicScale = g_PrefsDlg.m_nCubicClipMax;
+        Sys_Printf( "WARNING: Above maximum clipping distance, correcting\n");
+        saveCubicClipSettings();
+        return;
+    }
+    if ( g_PrefsDlg.m_nCubicScale < g_PrefsDlg.m_nCubicClipMin ) {
         g_PrefsDlg.m_nCubicScale = g_PrefsDlg.m_nCubicClipMin;
         Sys_Printf( "WARNING: Below minimum clipping distance, correcting\n");
-        g_PrefsDlg.SavePrefs();
+        saveCubicClipSettings();
         return;
     }
     g_PrefsDlg.m_nCubicScale--;
@@ -5305,17 +5362,23 @@ void MainFrame::OnViewCubein(){
         return;
     }
     else {
-        g_PrefsDlg.SavePrefs();
+        saveCubicClipSettings();
     }
     Sys_UpdateWindows( W_CAMERA );
     SetGridStatus();
 }
 
 void MainFrame::OnViewCubeout(){
-    if (g_PrefsDlg.m_nCubicScale > g_PrefsDlg.m_nCubicClipMax ) {
+    if ( g_PrefsDlg.m_nCubicScale < g_PrefsDlg.m_nCubicClipMin ) {
+        g_PrefsDlg.m_nCubicScale = g_PrefsDlg.m_nCubicClipMin;
+        Sys_Printf( "WARNING: Below minimum clipping distance, correcting\n");
+        saveCubicClipSettings();
+        return;
+    }
+    if ( g_PrefsDlg.m_nCubicScale > g_PrefsDlg.m_nCubicClipMax ) {
         g_PrefsDlg.m_nCubicScale = g_PrefsDlg.m_nCubicClipMax;
         Sys_Printf( "WARNING: Above maximum clipping distance, correcting\n");
-        g_PrefsDlg.SavePrefs();
+        saveCubicClipSettings();
         return;
     }
     g_PrefsDlg.m_nCubicScale++;
@@ -5325,7 +5388,7 @@ void MainFrame::OnViewCubeout(){
         return;
     }
     else {
-        g_PrefsDlg.SavePrefs();
+        saveCubicClipSettings();
     }
     Sys_UpdateWindows( W_CAMERA );
     SetGridStatus();
@@ -5506,7 +5569,14 @@ void MainFrame::OnViewCubicclipping(){
 	w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "ttb_view_cubicclipping" ) );
 	gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
 	g_bIgnoreCommands--;
-	g_PrefsDlg.SavePrefs();
+
+    if ( GTK_IS_WIDGET( cubicClippingCheckbox ) ) {
+        // NAB622: If the preferences window is open, we need to update it
+        gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
+    }
+    g_PrefsDlg.SavePrefs();
+
+
 	//Map_BuildBrushData ();
 	Sys_UpdateWindows( W_CAMERA );
 }

@@ -232,11 +232,19 @@
 #define RUN_DEF 0
 #define SUBDIVISIONS_DEF 4
 
+#define DEFAULT_RENDER_DISTANCE 65536
+
+
+//Setting this up here so it can be used several places
+int maximumRenderDistance = abs( ( MAX_MAP_SIZE - MIN_MAP_SIZE ) * sqrt(3) );
+
 
 // Declaring this up here...
-GtkWidget *renderDistanceSpin, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel;
+GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel;
 
-
+static void resetRenderDistanceSpin();
+static void renderDistanceSpinChanged();
+static void cubicClippingToggled();
 static void setCubicClippingRange();
 static void updateCubicClippingDistance();
 
@@ -637,7 +645,7 @@ PrefsDlg::PrefsDlg (){
 	m_bSnap = TRUE;
 	m_strUserPath = "";
 	m_nRotation = 0;
-    m_nRenderDistance = abs( MAX_MAP_SIZE - MIN_MAP_SIZE / 2 );
+    m_nRenderDistance = DEFAULT_RENDER_DISTANCE;
     m_bCubicClipping = FALSE;
     m_nCubicIncrement = 1024;
     m_nCubicClipMin = 1;
@@ -1148,7 +1156,7 @@ void CGameDialog::SInstallCallback( GtkWidget *widget, gpointer data ) {
 }
 
 void CGameDialog::BuildDialog() {
-	GtkWidget *dlg, *vbox1, *button, *setup_button;
+    GtkWidget *dlg, *vbox1, *button, *setup_button;
 
 	dlg = m_pWidget;
 	gtk_window_set_title( GTK_WINDOW( dlg ), _( "Select a game" ) );
@@ -1825,7 +1833,7 @@ void PrefsDlg::BuildDialog(){
 	gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
 	gtk_widget_show( vbox );
 
-        table = gtk_table_new( 3, 1, FALSE );
+        table = gtk_table_new( 5, 1, FALSE );
         gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
         gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
         gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
@@ -1838,8 +1846,10 @@ void PrefsDlg::BuildDialog(){
         gtk_widget_show( label );
 
         // Render distance
-        int maximumRenderDistance = abs( ( MAX_MAP_SIZE - MIN_MAP_SIZE ) * sqrt(3) );
-        renderDistanceSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( m_nRenderDistance, m_nCubicClipMin * m_nCubicIncrement, maximumRenderDistance, m_nCubicIncrement, m_nCubicIncrement * 10, 0 ) ), 1, 0 );
+        char RenderDistanceTooltipMsg[128];
+        sprintf( RenderDistanceTooltipMsg, "This value controls the maximum render distance of Radiant.\nFor ease of use, it will always change in increments of %i", m_nCubicIncrement );
+        renderDistanceSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_RENDER_DISTANCE, m_nCubicClipMin * m_nCubicIncrement, maximumRenderDistance, m_nCubicIncrement, m_nCubicIncrement * 10, 0 ) ), 1, 0 );
+        gtk_widget_set_tooltip_text( renderDistanceSpin, RenderDistanceTooltipMsg );
         gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( renderDistanceSpin ), TRUE );
         gtk_widget_set_sensitive( GTK_WIDGET( renderDistanceSpin ), TRUE );
         gtk_entry_set_alignment( GTK_ENTRY( renderDistanceSpin ), 1.0 ); //right
@@ -1850,7 +1860,7 @@ void PrefsDlg::BuildDialog(){
                           (GtkAttachOptions) ( 0 ), 0, 0 );
         gtk_widget_show( renderDistanceSpin );
         AddDialogData( renderDistanceSpin, &m_nRenderDistance, DLG_SPIN_INT );
-        g_signal_connect( (gpointer) renderDistanceSpin, "value-changed", G_CALLBACK( setCubicClippingRange ), NULL );
+        g_signal_connect( (gpointer) renderDistanceSpin, "value-changed", G_CALLBACK( renderDistanceSpinChanged ), NULL );
 
         label = gtk_label_new( "grid units" );
         gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 0, 1,
@@ -1858,11 +1868,23 @@ void PrefsDlg::BuildDialog(){
                           (GtkAttachOptions) ( 0 ), 0, 0 );
         gtk_widget_show( label );
 
+        // Render distance reset button
+        char resetTooltipMsg[128];
+        sprintf( resetTooltipMsg, "This will reset the render distance to %i", DEFAULT_RENDER_DISTANCE );
+        resetRenderDistanceButton = gtk_button_new_with_mnemonic( _( "Reset" ) );
+        gtk_widget_set_tooltip_text( resetRenderDistanceButton, resetTooltipMsg );
+        gtk_table_attach( GTK_TABLE( table ), resetRenderDistanceButton, 4, 5, 0, 1,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( resetRenderDistanceButton );
+        g_signal_connect( (gpointer) resetRenderDistanceButton, "clicked", G_CALLBACK( resetRenderDistanceSpin ), NULL );
+
         // Cubic clipping enabled
-        check = gtk_check_button_new_with_label( _( "Enable Cubic Clipping" ) );
-        gtk_widget_show( check );
-        AddDialogData( check, &m_bCubicClipping, DLG_CHECK_BOOL );
-        gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
+        cubicClippingCheckbox = gtk_check_button_new_with_label( _( "Enable Cubic Clipping" ) );
+        gtk_widget_show( cubicClippingCheckbox );
+        gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
+        gtk_box_pack_start( GTK_BOX( vbox ), cubicClippingCheckbox, FALSE, FALSE, 0 );
+        g_signal_connect( (gpointer) cubicClippingCheckbox, "toggled", G_CALLBACK( cubicClippingToggled ), NULL );
 
         cubicClippingTable = gtk_table_new( 3, 9, FALSE );
         gtk_table_set_col_spacings( GTK_TABLE( cubicClippingTable ), 6 );
@@ -3032,6 +3054,38 @@ void PrefsDlg::BuildDialog(){
 
 // end new prefs dialog
 
+static void resetRenderDistanceSpin() {
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( renderDistanceSpin ), DEFAULT_RENDER_DISTANCE );
+}
+
+static void renderDistanceSpinChanged() {
+    int temp = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( renderDistanceSpin ) );
+    int temp2;
+
+    if( temp >= maximumRenderDistance ) {
+        temp = maximumRenderDistance;
+    } else if( temp < g_PrefsDlg.m_nCubicClipMin * g_PrefsDlg.m_nCubicIncrement ) {
+        temp = g_PrefsDlg.m_nCubicClipMin * g_PrefsDlg.m_nCubicIncrement;
+    } else {
+        temp2 = temp % g_PrefsDlg.m_nCubicIncrement;
+        if( temp2 < g_PrefsDlg.m_nCubicIncrement / 2 ) {
+            temp = temp - temp2;
+        } else {
+            temp = temp + ( g_PrefsDlg.m_nCubicIncrement - temp2 );
+        }
+    }
+
+    g_PrefsDlg.m_nRenderDistance = temp;
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( renderDistanceSpin ), temp );
+
+    setCubicClippingRange();
+}
+
+static void cubicClippingToggled() {
+    g_PrefsDlg.m_bCubicClipping ^= 1;
+    Sys_UpdateWindows( W_CAMERA );
+}
+
 static void setCubicClippingRange() {
     // GTK Doesn't update this automatically so we have to do it here
     g_PrefsDlg.m_nRenderDistance = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( renderDistanceSpin ) );
@@ -3041,12 +3095,14 @@ static void setCubicClippingRange() {
 }
 
 static void updateCubicClippingDistance() {
-    // NAB622: Have to use a temp variable here, because if the user clicks cancel the value needs to revert
-    int cubicScale = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( cubicClippingSpin ) );
+    g_PrefsDlg.m_nCubicScale = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( cubicClippingSpin ) );
 
     char temp[20];
-    sprintf( temp, "%i grid units", cubicScale * g_PrefsDlg.m_nCubicIncrement );
+    sprintf( temp, "%i grid units", g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement );
     gtk_label_set_text( GTK_LABEL( cubicClippingCalculatedDistanceLabel ), temp );
+
+    // Update the camera so the changes are visible immediately
+    Sys_UpdateWindows( W_CAMERA );
 }
 
 void PrefsDlg::LoadTexdefPref( texdef_t* pTexdef, const char* pName ){
@@ -3175,7 +3231,7 @@ void PrefsDlg::LoadPrefs(){
 
 	// if we already have a document loaded, we will free and reload from file
 	if ( mLocalPrefs.InUse() ) {
-		mLocalPrefs.Clear();
+        mLocalPrefs.Clear();
 	}
 
 	// load local.pref file
@@ -3224,7 +3280,7 @@ void PrefsDlg::LoadPrefs(){
     mLocalPrefs.GetPref( CAMINVERSEMOUSE_KEY,    &m_bCamInverseMouse,            FALSE );
     mLocalPrefs.GetPref( CAMDISCRETE_KEY,        &m_bCamDiscrete,                TRUE );
     mLocalPrefs.GetPref( LIGHTDRAW_KEY,          &m_bNewLightDraw,               TRUE );
-    mLocalPrefs.GetPref( RENDER_DIST_KEY,        &m_nRenderDistance,             abs( MAX_MAP_SIZE - MIN_MAP_SIZE / 2 ) );
+    mLocalPrefs.GetPref( RENDER_DIST_KEY,        &m_nRenderDistance,             DEFAULT_RENDER_DISTANCE );
     mLocalPrefs.GetPref( CUBICCLIP_KEY,          &m_bCubicClipping,              FALSE );
     mLocalPrefs.GetPref( CUBICINCREMENT_KEY,     &m_nCubicIncrement,             1024 );
     mLocalPrefs.GetPref( CUBICMIN_KEY,           &m_nCubicClipMin,               1 );
@@ -3298,7 +3354,6 @@ void PrefsDlg::LoadPrefs(){
         case 384:
         case 512:
             m_bFixedTextureSize = true;
-            Sys_Printf( "FIXED TEXTURE SIZE DETECTED\n" );
             break;
         default:
             break;
@@ -3355,7 +3410,7 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( ENTITYWND_KEY,          &mWindowInfo.posEntityWnd,      default_window_pos );
 	mLocalPrefs.GetPref( MAPINFOWND_KEY,         &mWindowInfo.posMapInfoWnd,     default_window_pos );
 	mLocalPrefs.GetPref( CAMWND_KEY,             &mWindowInfo.posCamWnd,         default_window_pos );
-	mLocalPrefs.GetPref( ZWND_KEY,               &mWindowInfo.posZWnd,           default_window_pos );
+//	mLocalPrefs.GetPref( ZWND_KEY,               &mWindowInfo.posZWnd,           default_window_pos );  // NAB622: Z-Window has been disabled
 	mLocalPrefs.GetPref( XYWND_KEY,              &mWindowInfo.posXYWnd,          default_window_pos );
 	mLocalPrefs.GetPref( YZWND_KEY,              &mWindowInfo.posYZWnd,          default_window_pos );
 	mLocalPrefs.GetPref( XZWND_KEY,              &mWindowInfo.posXZWnd,          default_window_pos );
@@ -3473,11 +3528,12 @@ void PrefsDlg::LoadPrefs(){
 	UpdateATIHack();
 #endif
 
-	if ( mLocalPrefs.mbEmpty ) {
+    if ( mLocalPrefs.mbEmpty ) {
 		mLocalPrefs.mbEmpty = false;
 		Sys_Printf( "Saving local.pref with default pref values\n" );
 		SavePrefs();
 	}
+
 }
 
 void PrefsDlg::SavePrefs(){

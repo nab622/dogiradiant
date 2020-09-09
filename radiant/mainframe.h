@@ -24,7 +24,7 @@
 
 #include "xywindow.h"
 #include "texwindow.h"
-#include "zwindow.h"
+//#include "zwindow.h"    // NAB622: Disabling the Z window. It serves no purpose
 #include "camwindow.h"
 #include "watchbsp.h"
 
@@ -36,6 +36,9 @@
 #ifdef __APPLE__
 #define __toascii( c )    ( ( c ) & 0x7f )
 #endif
+
+extern GtkWidget *cubicClippingCheckbox;
+extern GtkWidget *cubicClippingSpin;
 
 const int RAD_SHIFT =   0x01;
 const int RAD_ALT =     0x02;
@@ -511,7 +514,7 @@ XYWnd* m_pYZWnd;
 XYWnd* m_pXZWnd;
 CamWnd* m_pCamWnd;
 TexWnd* m_pTexWnd;
-ZWnd* m_pZWnd;
+//ZWnd* m_pZWnd;    // NAB622: Disabling the Z window. It serves no purpose
 CWatchBSP* m_pWatchBSP;
 
 XYWnd* m_pActiveXY;
@@ -557,7 +560,7 @@ virtual ~MainFrame();
 XYWnd* GetXYWnd() {return m_pXYWnd; }
 XYWnd* GetXZWnd() {return m_pXZWnd; }
 XYWnd* GetYZWnd() {return m_pYZWnd; }
-ZWnd* GetZWnd() {return m_pZWnd; }
+//ZWnd* GetZWnd() {return m_pZWnd; }        // NAB622: Disabling the Z window. It serves no purpose
 CamWnd* GetCamWnd() {return m_pCamWnd; }
 TexWnd* GetTexWnd() {return m_pTexWnd; }
 CWatchBSP *GetWatchBSP() { return m_pWatchBSP; }
@@ -792,6 +795,7 @@ void OnScalelockz();
 void OnSelectMousescale();
 void OnViewCubicclipping();
 void OnFileProjectsettings();
+void saveCubicClipSettings();
 void OnViewCubein();
 void OnViewCubeout();
 void OnFileSaveregion();
