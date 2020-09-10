@@ -236,11 +236,11 @@
 
 
 //Setting this up here so it can be used several places
-int maximumRenderDistance = abs( ( MAX_MAP_SIZE - MIN_MAP_SIZE ) * sqrt(3) );
+int maximumRenderDistance = abs( ( g_MaxWorldCoord - g_MinWorldCoord ) * sqrt(3) );
 
 
-// Declaring this up here...
-GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel;
+// Declaring these up here...
+GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox;
 
 static void resetRenderDistanceSpin();
 static void renderDistanceSpinChanged();
@@ -1901,6 +1901,7 @@ void PrefsDlg::BuildDialog(){
             gtk_widget_show( label );
 
             cubicClippingSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( m_nCubicScale, m_nCubicClipMin, m_nCubicClipMax, 1, 10, 0 ) ), 1, 0 );
+            gtk_widget_set_tooltip_text( cubicClippingSpin, _( "Press Ctrl + [ or Ctrl + ] to change this setting more easily" ) );
             gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( cubicClippingSpin ), TRUE );
             gtk_widget_set_sensitive( GTK_WIDGET( cubicClippingSpin ), TRUE );
             gtk_entry_set_alignment( GTK_ENTRY( cubicClippingSpin ), 1.0 ); //right
@@ -1944,6 +1945,37 @@ void PrefsDlg::BuildDialog(){
 
             updateCubicClippingDistance();
 
+
+    // Outlines
+    table = gtk_table_new( 2, 1, FALSE );
+    gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
+    gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+    gtk_widget_show( table );
+
+    label = gtk_label_new( _( "Selection Visibility:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+                      (GtkAttachOptions) ( 0 ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_widget_show( label );
+
+    outlineComboBox = gtk_combo_box_text_new();
+    gtk_table_attach( GTK_TABLE( table ), outlineComboBox, 1, 2, 0, 1,
+                      (GtkAttachOptions) ( 0 ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_widget_show( outlineComboBox );
+    AddDialogData( outlineComboBox, &g_qeglobals.d_savedinfo.iSelectedOutlinesStyle, DLG_COMBO_BOX_INT );
+
+    combo_list = NULL;
+    combo_list = g_list_append( combo_list, (void *)_( "Highlight And Outline" ) );
+    combo_list = g_list_append( combo_list, (void *)_( "Outline Only" ) );
+    combo_list = g_list_append( combo_list, (void *)_( "Highlight Only" ) );
+    combo_list = g_list_append( combo_list, (void *)_( "No Highlight Or Outline" ) );
+    for( lst = combo_list; lst != NULL; lst = g_list_next( lst ) )
+    {
+        gtk_combo_box_text_append_text( GTK_COMBO_BOX_TEXT( combo ), (const char *)lst->data );
+    }
+    g_list_free( combo_list );
 
     // Light drawing
     check = gtk_check_button_new_with_label( _( "Light drawing" ) );

@@ -233,9 +233,12 @@ SCommandInfo g_Commands[] =
 	{"PasteToCamera", GDK_KEY_V, RAD_ALT, ID_EDIT_PASTEBRUSHTOCAMERA, "menu_edit_pastebrushtocamera"},
 	{"Undo", GDK_KEY_Z, 0x04, ID_EDIT_UNDO, "menu_edit_undo"},
 	{"Redo", GDK_KEY_Y, 0x04, ID_EDIT_REDO, "menu_edit_redo"},
-	{"ZZoomOut", GDK_KEY_Insert, 0x04, ID_VIEW_ZZOOMOUT, "menu_view_zzoomout"},
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+    {"ZZoomOut", GDK_KEY_Insert, 0x04, ID_VIEW_ZZOOMOUT, "menu_view_zzoomout"},
 	{"ZZoomIn", GDK_KEY_Delete, 0x04, ID_VIEW_ZZOOMIN, "menu_view_zzoomin"},
-	{"TexRotateClock", GDK_KEY_Next, 0x01, ID_SELECTION_TEXTURE_ROTATECLOCK, "menu_selection_texture_rotateclock"},
+*/
+    {"TexRotateClock", GDK_KEY_Next, 0x01, ID_SELECTION_TEXTURE_ROTATECLOCK, "menu_selection_texture_rotateclock"},
 	{"TexRotateCounter", GDK_KEY_Prior, 0x01, ID_SELECTION_TEXTURE_ROTATECOUNTER, "menu_selection_texture_rotatecounter"},
 	{"TexScaleUp", GDK_KEY_Up, 0x04, ID_SELECTION_TEXTURE_SCALEUP, "menu_selection_texture_scaleup"},
 	{"TexScaleDown", GDK_KEY_Down, 0x04, ID_SELECTION_TEXTURE_SCALEDOWN, "menu_selection_texture_scaledown"},
@@ -487,11 +490,14 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 		  case ID_VIEW_SIDE: g_pParentWnd->OnViewSide(); break;
 		  case ID_VIEW_FRONT: g_pParentWnd->OnViewFront(); break;
 		  case ID_VIEW_100: g_pParentWnd->OnView100(); break;
-		  case ID_VIEW_ZOOMIN: g_pParentWnd->OnViewZoomin(); break;
+          case ID_VIEW_ZOOMIN: g_pParentWnd->OnViewZoomin(); break;
 		  case ID_VIEW_ZOOMOUT: g_pParentWnd->OnViewZoomout(); break;
-		  case ID_VIEW_Z100: g_pParentWnd->OnViewZ100(); break;
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+          case ID_VIEW_Z100: g_pParentWnd->OnViewZ100(); break;
 		  case ID_VIEW_ZZOOMIN: g_pParentWnd->OnViewZzoomin(); break;
 		  case ID_VIEW_ZZOOMOUT: g_pParentWnd->OnViewZzoomout(); break;
+*/
 		  case ID_VIEW_CUBEIN: g_pParentWnd->OnViewCubein(); break;
 		  case ID_VIEW_CUBEOUT: g_pParentWnd->OnViewCubeout(); break;
 		  case ID_VIEW_SHOWNAMES: g_pParentWnd->OnViewShownames(); break;
@@ -1127,7 +1133,10 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 	item = create_menu_item_with_mnemonic( menu_in_menu, _( "XY Zoom _In" ), G_CALLBACK( HandleCommand ), ID_VIEW_ZOOMIN );
 	item = create_menu_item_with_mnemonic( menu_in_menu, _( "XY Zoom _Out" ), G_CALLBACK( HandleCommand ), ID_VIEW_ZOOMOUT );
 	menu_separator( menu_in_menu );
-	create_menu_item_with_mnemonic( menu_in_menu, _( "_Z 100%" ), G_CALLBACK( HandleCommand ), ID_VIEW_Z100 );
+
+/*
+// NAB622: Disabling the Z window. It serves no purpose
+    create_menu_item_with_mnemonic( menu_in_menu, _( "_Z 100%" ), G_CALLBACK( HandleCommand ), ID_VIEW_Z100 );
 	item = create_menu_item_with_mnemonic( menu_in_menu, _( "Z Zoo_m In" ), G_CALLBACK( HandleCommand ), ID_VIEW_ZZOOMIN );
 	g_object_set_data( G_OBJECT( window ), "menu_view_zzoomin", item );
 	item = create_menu_item_with_mnemonic( menu_in_menu, _( "Z Zoom O_ut" ), G_CALLBACK( HandleCommand ), ID_VIEW_ZZOOMOUT );
@@ -1136,6 +1145,7 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 	item = create_menu_item_with_mnemonic( menu_in_menu, _( "Cubic Clip Zoom In" ), G_CALLBACK( HandleCommand ), ID_VIEW_CUBEIN );
 	item = create_menu_item_with_mnemonic( menu_in_menu, _( "Cubic Clip Zoom Out" ), G_CALLBACK( HandleCommand ), ID_VIEW_CUBEOUT );
 	menu_separator( menu );
+*/
 
 	menu_in_menu = create_menu_in_menu_with_mnemonic( menu, _( "Show" ) );
 	item = create_check_menu_item_with_mnemonic( menu_in_menu, _( "Show _Angles" ), G_CALLBACK( HandleCommand ), ID_VIEW_SHOWANGLES, FALSE );
@@ -5313,6 +5323,9 @@ void MainFrame::OnViewZoomout(){
 	Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
 
+
+/*
+// NAB622: Disabling the Z window. It serves no purpose
 void MainFrame::OnViewZ100(){
 	z.scale = 1;
 	Sys_UpdateWindows( W_Z | W_Z_OVERLAY );
@@ -5333,6 +5346,7 @@ void MainFrame::OnViewZzoomout(){
 	}
 	Sys_UpdateWindows( W_Z | W_Z_OVERLAY );
 }
+*/
 
 void MainFrame::saveCubicClipSettings(){
     if ( GTK_IS_WIDGET( cubicClippingSpin ) ) {

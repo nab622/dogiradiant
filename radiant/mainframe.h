@@ -39,6 +39,7 @@
 
 extern GtkWidget *cubicClippingCheckbox;
 extern GtkWidget *cubicClippingSpin;
+extern GtkWidget *outlineComboBox;
 
 const int RAD_SHIFT =   0x01;
 const int RAD_ALT =     0x02;
@@ -292,9 +293,12 @@ struct SKeyInfo
 #define ID_VIEW_ZOOMIN                  40061
 #define ID_VIEW_ZOOMOUT                 40062
 #define ID_VIEW_SHOWCOORDINATES         40063
+/*
+// NAB622: Disabling the Z window. It serves no purpose
 #define ID_VIEW_Z100                    40064
 #define ID_VIEW_ZZOOMIN                 40065
 #define ID_VIEW_ZZOOMOUT                40066
+*/
 #define ID_SELECTION_CLONE              40067
 #define ID_SELECTION_DESELECT           40068
 #define ID_SELECTION_DELETE             40069

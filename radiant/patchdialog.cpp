@@ -649,7 +649,7 @@ void PatchDialog::BuildDialog(){
             gtk_size_group_add_widget( size_group, nat_button );
             g_object_unref( size_group );
 
-    patchFlippingFrame = gtk_frame_new( _( "Mirror & Flip" ) );
+    patchFlippingFrame = gtk_frame_new( _( "Flip & Mirror" ) );
     gtk_table_attach( GTK_TABLE( functionLayoutTable ), patchFlippingFrame, 0, 1, 1, 2,
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
@@ -912,7 +912,7 @@ void PatchDialog::BuildDialog(){
                     gtk_widget_set_tooltip_text( label, _( "This is the location of the specified node on the grid's Z axis" ) );
                     gtk_widget_show( label );
 
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
+                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, g_MinWorldCoord, g_MaxWorldCoord, 1, 10, 0 ) );
                     spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, GRID_DECIMAL_PRECISION );
                     gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 1, 2,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -924,7 +924,7 @@ void PatchDialog::BuildDialog(){
                     gtk_widget_show( spin );
                     AddDialogData( spin, &m_fX, DLG_SPIN_FLOAT );
 
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
+                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, g_MinWorldCoord, g_MaxWorldCoord, 1, 10, 0 ) );
                     spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, GRID_DECIMAL_PRECISION );
                     gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 2, 3,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -936,7 +936,7 @@ void PatchDialog::BuildDialog(){
                     gtk_widget_show( spin );
                     AddDialogData( spin, &m_fY, DLG_SPIN_FLOAT );
 
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 10, 0 ) );
+                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, g_MinWorldCoord, g_MaxWorldCoord, 1, 10, 0 ) );
                     spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, GRID_DECIMAL_PRECISION );
                     gtk_table_attach( GTK_TABLE( nodeCoordinatesTable ), spin, 1, 2, 3, 4,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),

@@ -2018,14 +2018,14 @@ void DoNewPatchDlg(){
 	gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
 	gtk_widget_show( table );
 
-	label = gtk_label_new( _( "Width:" ) );
+    label = gtk_label_new( _( "Width:" ) );
 	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
 
-	label = gtk_label_new( _( "Height:" ) );
+    label = gtk_label_new( _( "Height:" ) );
 	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 1, 2,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );

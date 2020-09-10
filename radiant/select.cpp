@@ -687,8 +687,8 @@ void Select_GetBounds( vec3_t mins, vec3_t maxs ){
 
 	for ( i = 0 ; i < 3 ; i++ )
 	{
-        mins[i] = MIN_MAP_SIZE;
-        maxs[i] = MAX_MAP_SIZE;
+        mins[i] = g_MinWorldCoord;
+        maxs[i] = g_MaxWorldCoord;
 	}
 
 	for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next )

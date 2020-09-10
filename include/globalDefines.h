@@ -71,6 +71,7 @@
         return output;
     }
 
+
 // GRID DEFINES
 
     // NAB622: Grid precisions down to 0.03125 have been added and they work - however, they're too precise to guarantee accuracy in a compiled map.
@@ -92,7 +93,7 @@
     #define MAX_GRID_ZOOM_BLOCKSIZE ( MAX_GRID_ZOOM_PIXELS / MIN_GRID_PRECISION )
 
     // NAB622: This is the maximum distance the grid can go on any axis, both positive and negative
-    // This is a define now because the camera controls are attached to it, amongst other things
+    // This will simply translate into a value for g_MaxWorldCoord and g_MinWorldCoord on load, and those will be used throughout the rest of Radiant
     #define MAX_MAP_SIZE 65536
 
 // NAB622: Calculate the minimum size to be the opposite of the maximum

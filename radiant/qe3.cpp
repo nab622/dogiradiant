@@ -47,7 +47,7 @@ QEGlobals_GUI_t g_qeglobals_gui;
 // NAB622: Not sure where to put these, so here they are for now
 bool areWeOutOfBounds( vec3_t inputVectors ) {
     for( int i = 0; i < 3; i++ ) {
-        if( inputVectors[i] < MIN_MAP_SIZE || inputVectors[i] > MAX_MAP_SIZE ) {
+        if( inputVectors[i] < g_MinWorldCoord || inputVectors[i] > g_MaxWorldCoord ) {
             return true;
         }
     }
@@ -55,13 +55,13 @@ bool areWeOutOfBounds( vec3_t inputVectors ) {
 }
 
 float clampBoundaries( float input ) {
-    return CLAMP( input, MIN_MAP_SIZE, MAX_MAP_SIZE );
+    return CLAMP( input, g_MinWorldCoord, g_MaxWorldCoord );
 }
 
 float clampCameraBoundaries( float input ) {
     // NAB622: This cushion multiplier will allow the camera outside the grid, just slightly
     float cushion = 1.015;
-    return CLAMP( input, MIN_MAP_SIZE * cushion, MAX_MAP_SIZE * cushion );
+    return CLAMP( input, g_MinWorldCoord * cushion, g_MaxWorldCoord * cushion );
 }
 
 
