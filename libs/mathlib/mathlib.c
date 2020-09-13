@@ -170,11 +170,12 @@ vec_t VectorNormalize( const vec3_t in, vec3_t out ) {
 	// I don't see a reason why using a double outright (instead of using the
 	// vec_accu_t alias for example) could possibly be frowned upon.
 
-	double x, y, z, length;
+    // NAB622: Since vectors are no longer floats...this may as well be made as precise as possible
+    long double x, y, z, length;
 
-	x = (double) in[0];
-	y = (double) in[1];
-	z = (double) in[2];
+    x = (long double) in[0];
+    y = (long double) in[1];
+    z = (long double) in[2];
 
 	length = sqrt( ( x * x ) + ( y * y ) + ( z * z ) );
 	if ( length == 0 ) {
@@ -280,10 +281,10 @@ void VectorRotateOrigin( vec3_t vIn, vec3_t vRotation, vec3_t vOrigin, vec3_t ou
 	VectorAdd( vTemp2, vOrigin, out );
 }
 
-void VectorPolar( vec3_t v, float radius, float theta, float phi ){
-	v[0] = (float)( radius * cos( theta ) * cos( phi ) );
-	v[1] = (float)( radius * sin( theta ) * cos( phi ) );
-	v[2] = (float)( radius * sin( phi ) );
+void VectorPolar( vec3_t v, vec_t radius, vec_t theta, vec_t phi ){
+    v[0] = (vec_t)( radius * cos( theta ) * cos( phi ) );
+    v[1] = (vec_t)( radius * sin( theta ) * cos( phi ) );
+    v[2] = (vec_t)( radius * sin( phi ) );
 }
 
 void VectorSnap( vec3_t v ){
@@ -302,7 +303,7 @@ void VectorISnap( vec3_t point, int snap ){
 	}
 }
 
-void VectorFSnap( vec3_t point, float snap ){
+void VectorFSnap( vec3_t point, vec_t snap ){
 	int i;
 	for ( i = 0 ; i < 3 ; i++ )
 	{
@@ -585,16 +586,15 @@ void PerpendicularVector( vec3_t dst, const vec3_t src ){
    This is not implemented very well...
    ===============
  */
-void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point,
-							  float degrees ) {
-	float m[3][3];
-	float im[3][3];
-	float zrot[3][3];
-	float tmpmat[3][3];
-	float rot[3][3];
+void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, vec_t degrees ) {
+    vec_t m[3][3];
+    vec_t im[3][3];
+    vec_t zrot[3][3];
+    vec_t tmpmat[3][3];
+    vec_t rot[3][3];
 	int i;
 	vec3_t vr, vup, vf;
-	float rad;
+    vec_t rad;
 
 	vf[0] = dir[0];
 	vf[1] = dir[1];

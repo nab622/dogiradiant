@@ -157,9 +157,9 @@ texdef_t& operator =( const texdef_t& rhs ){
 	}
 	return *this;
 }
-float shift[2];
-float rotate;
-float scale[2];
+vec_t shift[2];
+vec_t rotate;
+vec_t scale[2];
 int contents;
 int flags;
 int value;
@@ -204,9 +204,9 @@ texdef_t& operator =( const texdef_t& rhs ){
 	}
 	return *this;
 }
-float shift[2];
-float rotate;
-float scale[2];
+vec_t shift[2];
+vec_t rotate;
+vec_t scale[2];
 int contents;
 int flags;
 int value;
@@ -331,8 +331,8 @@ typedef struct face_s
 
 typedef struct {
 	vec3_t xyz;
-	float sideST[2];
-	float capST[2];
+    vec_t sideST[2];
+    vec_t capST[2];
 } curveVertex_t;
 
 typedef struct {
@@ -375,7 +375,7 @@ typedef struct {
 typedef struct {
 	vec3_t xyz;
     vec_t st[2];
-	float lightmap[2];
+    vec_t lightmap[2];
 	vec3_t normal;
 } drawVert_t;
 
@@ -479,9 +479,9 @@ typedef struct brush_s
 
 typedef struct vertmodel_t
 {
-	float v[3];
-	float st[2];
-	float normal[3];
+    vec_t v[3];
+    vec_t st[2];
+    vec_t normal[3];
 } vertmodel;
 
 typedef struct triindex_t
@@ -689,8 +689,8 @@ typedef struct entity_s
 	vec3_t color;
 
 	// Arnout: HACK-ish and change for 1.3 (in 1.3 we have a blind data pointer according to TTimo)
-	float fLightEnvelope1[3];
-	float fLightEnvelope2[2];
+    vec_t fLightEnvelope1[3];
+    vec_t fLightEnvelope2[2];
 } entity_t;
 
 typedef struct
@@ -708,9 +708,9 @@ typedef struct
 	qboolean timing;
 
 	vec3_t origin;   // at center of window
-	float scale;
+    vec_t scale;
 
-	float topclip, bottomclip;
+    vec_t topclip, bottomclip;
 
 	qboolean d_dirty;
 } xy_t;
@@ -737,7 +737,7 @@ typedef struct
 {
 	int iTexMenu;           // nearest, linear, etc
 	float fGamma;         // gamma for textures
-	vec3_t colors[COLOR_LAST];
+    vecFloat3_t colors[COLOR_LAST];
 	int exclude;
 	int include;
 	texdef_t m_SIIncrement; // increments for the surface inspector
@@ -775,7 +775,7 @@ typedef enum
 typedef struct
 {
 	qboolean d_showgrid;
-	float d_gridsize;
+    vec_t d_gridsize;
 	qboolean d_bSmallGrid; // we use this flag to hack our way into editing of <1 grids
 
 	int d_num_entities;

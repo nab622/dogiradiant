@@ -34,27 +34,27 @@ class C2DView
 {
 enum      E2DViewState { View_Idle, View_Move } ViewState;
 int m_xPosMove, m_yPosMove;
-float m_MinsMove[2], m_MaxsMove[2];
+vec_t m_MinsMove[2], m_MaxsMove[2];
 qboolean m_bDoGrid;
-float m_GridStep[2];
+vec_t m_GridStep[2];
 qboolean m_bPopup;
 public:
 RECT m_rect;
-float m_Mins[2],m_Maxs[2],m_Center[2];
+vec_t m_Mins[2],m_Maxs[2],m_Center[2];
 C2DView(){
 	ViewState = View_Idle;
 	m_bDoGrid = false;
 	m_bPopup = false;
 }
 ~C2DView() { }
-void SetGrid( float xGridStep, float yGridStep )
+void SetGrid( vec_t xGridStep, vec_t yGridStep )
 {   m_bDoGrid = true; m_GridStep[0] = xGridStep; m_GridStep[1] = yGridStep; }
 
 // get window coordinates for space coordinates
-void WindowForSpace( int &x, int &y, const float c[2] );
-void SpaceForWindow( float c[2], int x, int y );
-void GridForWindow( float c[2], int x, int y );
-qboolean DoesSelect( int x, int y, float c[2] );
+void WindowForSpace( int &x, int &y, const vec_t c[2] );
+void SpaceForWindow( vec_t c[2], int x, int y );
+void GridForWindow( vec_t c[2], int x, int y );
+qboolean DoesSelect( int x, int y, vec_t c[2] );
 void PreparePaint();
 
 bool OnRButtonDown( int x, int y );

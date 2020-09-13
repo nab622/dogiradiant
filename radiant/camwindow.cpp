@@ -271,8 +271,8 @@ void CamWnd::OriginalMouseDown( guint32 nFlags, int pointx, int pointy ){
 }
 
 void CamWnd::Cam_BuildMatrix(){
-	float ya;
-	float matrix[4][4];
+    vec_t ya;
+    vec_t matrix[4][4];
 	int i;
 
 	if ( !m_bFreeMove ) {
@@ -310,7 +310,7 @@ void CamWnd::Cam_BuildMatrix(){
 
 void CamWnd::Cam_ChangeFloor( qboolean up ){
 	brush_t   *b;
-	float d, bestd, current;
+    vec_t d, bestd, current;
 	vec3_t start, dir;
 
 	start[0] = m_Camera.origin[0];
@@ -364,8 +364,8 @@ void CamWnd::Cam_PositionDrag( int buttons ){
 
     Sys_GetCursorPos( &x, &y );
     if ( x != m_ptCursorX || y != m_ptCursorY ) {
-        float xf = (x - m_ptCursorX) * multiplier * .25;
-        float yf = (y - m_ptCursorY) * multiplier * .25;
+        vec_t xf = (x - m_ptCursorX) * multiplier * .25;
+        vec_t yf = (y - m_ptCursorY) * multiplier * .25;
         VectorMA( m_Camera.origin, xf, m_Camera.vright, m_Camera.origin );
         if ( buttons & MK_SHIFT ) {
             m_Camera.origin[2] -= yf;

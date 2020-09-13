@@ -126,7 +126,7 @@ void Close();
 #include "2DView.h"
 typedef struct
 {
-	float data[MAX_POINTS_ON_WINDING][2];
+    vec_t data[MAX_POINTS_ON_WINDING][2];
 } CtrlPts_t;
 #include "ControlPointsManager.h"
 

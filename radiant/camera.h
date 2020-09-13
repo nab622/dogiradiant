@@ -75,8 +75,8 @@ typedef struct
 	vec3_t forward, right; // move matrix (TTimo: used to have up but it was not updated)
 	vec3_t vup, vpn, vright;    // view matrix (taken from the GL_PROJECTION matrix)
 
-	float projection[4][4];
-	float modelview[4][4];
+    vec_t projection[4][4];
+    vec_t modelview[4][4];
 
 	unsigned int movementflags; // movement flags
 

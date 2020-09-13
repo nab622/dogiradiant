@@ -328,11 +328,11 @@ void Face_SetColor( brush_t *b, face_t *f, float fCurveColor ){
    Face_TextureVectors
    ================
  */
-void Face_TextureVectors( face_t *f, float STfromXYZ[2][4] ){
+void Face_TextureVectors( face_t *f, vec_t STfromXYZ[2][4] ){
 	vec3_t pvecs[2];
 	int sv, tv;
-	float ang, sinv, cosv;
-	float ns, nt;
+    vec_t ang, sinv, cosv;
+    vec_t ns, nt;
 	int i,j;
 	qtexture_t *q;
 	texdef_t    *td;
@@ -347,7 +347,7 @@ void Face_TextureVectors( face_t *f, float STfromXYZ[2][4] ){
 	td = &f->texdef;
 	q = f->d_texture;
 
-	memset( STfromXYZ, 0, 8 * sizeof( float ) );
+    memset( STfromXYZ, 0, 8 * sizeof( vec_t ) );
 
 	if ( !td->scale[0] ) {
 		td->scale[0] = g_PrefsDlg.m_fDefTextureScale;
@@ -541,8 +541,8 @@ void Face_MakePlane( face_t *f ){
    EmitTextureCoordinates
    ================
  */
-void EmitTextureCoordinates( float *xyzst, qtexture_t *q, face_t *f ){
-	float STfromXYZ[2][4];
+void EmitTextureCoordinates( vec_t *xyzst, qtexture_t *q, face_t *f ){
+    vec_t STfromXYZ[2][4];
 
 	Face_TextureVectors( f,  STfromXYZ );
 	xyzst[3] = DotProduct( xyzst, STfromXYZ[0] ) + STfromXYZ[0][3];
@@ -570,7 +570,7 @@ void SarrusSolve( long double a1, long double b1, long double c1, long double d1
 						   a3, b3, d3 ) / det;
 }
 
-void Face_TexdefFromTextureCoordinates( float *xyzst1, float *xyzst2, float *xyzst3, qtexture_t *q, face_t *f ){
+void Face_TexdefFromTextureCoordinates( vec_t *xyzst1, vec_t *xyzst2, vec_t *xyzst3, qtexture_t *q, face_t *f ){
 	vec3_t pvecs[2];
 	int sv, tv, uv;
 
@@ -2521,9 +2521,9 @@ void Brush_SetTexture( brush_t *b, texdef_t *texdef, brushprimit_texdef_t *brush
 
 
 qboolean ClipLineToFace( vec3_t p1, vec3_t p2, face_t *f ){
-	float d1, d2, fr;
+    vec_t d1, d2, fr;
 	int i;
-	float   *v;
+    vec_t   *v;
 
 	d1 = DotProduct( p1, f->plane.normal ) - f->plane.dist;
 	d2 = DotProduct( p2, f->plane.normal ) - f->plane.dist;
@@ -2551,7 +2551,7 @@ qboolean ClipLineToFace( vec3_t p1, vec3_t p2, face_t *f ){
 }
 
 
-int AddPlanept( float *f ){
+int AddPlanept( vec_t *f ){
 	int i;
 
 	for ( i = 0 ; i < g_qeglobals.d_num_move_points ; i++ )

@@ -66,11 +66,11 @@ CtrlPts_t m_RefPts;
 // current geometry
 CtrlPts_t *m_pPts;
 // transform matrix ( 2DView is Window <-> ST )
-float m_TM[2][3];
+vec_t m_TM[2][3];
 // texture size for ST <-> XY
 int m_TexSize[2];
 // used when translating
-float m_TransOffset[2];
+vec_t m_TransOffset[2];
 // dragged point index
 int m_iDragPoint;
 // do we have an anchor ?
@@ -78,7 +78,7 @@ bool m_bGotAnchor;
 // anchor point index
 int m_iAnchorPoint;
 // coordinates of Anchor
-float m_Anchor[2];
+vec_t m_Anchor[2];
 // used for commit
 _QERFaceData  *m_pFaceData;
 
@@ -101,7 +101,7 @@ private:
 // internal members
 void UpdateCtrlPts();
 void ComputeTransOffset( int i );
-void XYSpaceForSTSpace( float xy[2], const float st[2] );
+void XYSpaceForSTSpace( vec_t xy[2], vec_t const st[2] );
 };
 
 // patch manager

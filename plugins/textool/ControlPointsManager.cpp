@@ -36,7 +36,7 @@ void CControlPointsManagerBFace::Init( int iPts, CtrlPts_t *Pts, C2DView *p2DVie
 	// store the initial config
 	memcpy( &m_RefPts, Pts, sizeof( CtrlPts_t ) );
 	// init TM
-	memset( m_TM, 0, sizeof( float[2][3] ) );
+    memset( m_TM, 0, sizeof( vec_t[2][3] ) );
 	m_TM[0][0] = 1.0f; m_TM[1][1] = 1.0f;
 	m_bGotAnchor = false;
 	m_TransOffset[0] = 0.0f; m_TransOffset[1] = 0.0f;
@@ -80,14 +80,14 @@ bool CControlPointsManagerBFace::OnMouseMove( int xPos, int yPos ){
 		if ( m_bGotAnchor ) {
 			// there's an anchor, we are rotating the shape
 			// we need to work in XY space for orthonormality
-			float Pt[2];
+            vec_t Pt[2];
 			vec3_t V1,V2;
 			vec3_t cross;
-			float c,s;
+            vec_t c,s;
 			// used in XY space
-			float XYTM[2][3];
-			float XYRefAnchor[2];
-			float XYAnchor[2];
+            vec_t XYTM[2][3];
+            vec_t XYRefAnchor[2];
+            vec_t XYAnchor[2];
 			m_p2DView->GridForWindow( Pt, xPos, yPos );
 			V2[0] = Pt[0] - m_Anchor[0];
 			V2[1] = Pt[1] - m_Anchor[1];
@@ -119,11 +119,11 @@ bool CControlPointsManagerBFace::OnMouseMove( int xPos, int yPos ){
 			XYTM[1][2] = s * XYRefAnchor[0] - c * XYRefAnchor[1] + XYAnchor[1];
 			// express this transformation matrix in ST space
 			m_TM[0][0] = XYTM[0][0];
-			m_TM[1][0] = XYTM[1][0] * (float)m_TexSize[0] / (float)m_TexSize[1];
-			m_TM[0][1] = XYTM[0][1] * (float)m_TexSize[1] / (float)m_TexSize[0];
+            m_TM[1][0] = XYTM[1][0] * (vec_t)m_TexSize[0] / (vec_t)m_TexSize[1];
+            m_TM[0][1] = XYTM[0][1] * (vec_t)m_TexSize[1] / (vec_t)m_TexSize[0];
 			m_TM[1][1] = XYTM[1][1];
-			m_TM[0][2] = XYTM[0][2] / (float)m_TexSize[0];
-			m_TM[1][2] = XYTM[1][2] / (float)m_TexSize[1];
+            m_TM[0][2] = XYTM[0][2] / (vec_t)m_TexSize[0];
+            m_TM[1][2] = XYTM[1][2] / (vec_t)m_TexSize[1];
 			// update all points
 			UpdateCtrlPts();
 		}
@@ -217,9 +217,9 @@ void CControlPointsManagerBFace::ComputeTransOffset( int i ){
 	m_TransOffset[1] = -m_TM[1][0] * m_RefPts.data[i][0] - m_TM[1][1] * m_RefPts.data[i][1];
 }
 
-void CControlPointsManagerBFace::XYSpaceForSTSpace( float xy[2], const float st[2] ){
-	xy[0] = st[0] * (float)m_TexSize[0];
-	xy[1] = st[1] * (float)m_TexSize[1];
+void CControlPointsManagerBFace::XYSpaceForSTSpace( vec_t xy[2], const vec_t st[2] ){
+    xy[0] = st[0] * (vec_t)m_TexSize[0];
+    xy[1] = st[1] * (vec_t)m_TexSize[1];
 }
 
 /*

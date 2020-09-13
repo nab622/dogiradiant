@@ -98,7 +98,7 @@ const char* QERPlug_GetCommandList(){
 	return PLUGIN_COMMANDS;
 }
 
-void QERPlug_Dispatch( const char* p, float* vMin, float* vMax, bool bSingleBrush ){
+void QERPlug_Dispatch( const char* p, vec_t* vMin, vec_t* vMax, bool bSingleBrush ){
 	if ( !strcmp( p, "New Fixed Camera" ) ) {
 		DoNewFixedCamera();
 	}

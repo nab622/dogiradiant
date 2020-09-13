@@ -93,7 +93,7 @@ void _CrossProduct( vec3_t v1, vec3_t v2, vec3_t cross );
 vec_t VectorNormalize( const vec3_t in, vec3_t out );
 vec_t ColorNormalize( const vec3_t in, vec3_t out );
 void VectorInverse( vec3_t v );
-void VectorPolar( vec3_t v, float radius, float theta, float phi );
+void VectorPolar( vec3_t v, vec_t radius, vec_t theta, vec_t phi );
 
 // default snapping, to 1
 void VectorSnap( vec3_t v );
@@ -101,11 +101,11 @@ void VectorSnap( vec3_t v );
 // integer snapping
 void VectorISnap( vec3_t point, int snap );
 
-// Gef:   added snap to float for sub-integer grid sizes
+// Gef:   added snap to vec_t for sub-integer grid sizes
 // TTimo: we still use the int version of VectorSnap when possible
 //        to avoid potential rounding issues
 // TTimo: renaming to VectorFSnap for C implementation
-void VectorFSnap( vec3_t point, float snap );
+void VectorFSnap( vec3_t point, vec_t snap );
 
 // NOTE: added these from Ritual's Q3Radiant
 void ClearBounds( vec3_t mins, vec3_t maxs );
@@ -128,7 +128,7 @@ void VectorRotateOrigin( vec3_t vIn, vec3_t vRotation, vec3_t vOrigin, vec3_t ou
 qboolean PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c );
 void NormalToLatLong( const vec3_t normal, byte bytes[2] );
 int PlaneTypeForNormal( vec3_t normal );
-void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees );
+void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, vec_t degrees );
 
 // Spog
 // code imported from geomlib
@@ -275,7 +275,7 @@ int aabb_intersect_point( const aabb_t *aabb, const vec3_t point );
 /*! Return 2 if aabb_src intersects, else 1 if aabb_src touches exactly, else 0. */
 int aabb_intersect_aabb( const aabb_t *aabb, const aabb_t *aabb_src );
 /*! Return 2 if aabb is behind plane, else 1 if aabb intersects plane, else 0. */
-int aabb_intersect_plane( const aabb_t *aabb, const float *plane );
+int aabb_intersect_plane( const aabb_t *aabb, const vec_t *plane );
 /*! Return 1 if aabb intersects ray, else 0... dist = closest intersection. */
 int aabb_intersect_ray( const aabb_t *aabb, const ray_t *ray, vec_t *dist );
 /*! Return 1 if aabb intersects ray, else 0. Faster, but does not provide point of intersection */

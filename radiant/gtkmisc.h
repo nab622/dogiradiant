@@ -90,7 +90,7 @@ const gchar* file_dialog( void *parent, gboolean open, const char* title, const 
  */
 char* WINAPI dir_dialog( void *parent, const char* title = "Choose Directory", const char* path = (char*)NULL );
 // GtkWidget *parent
-bool WINAPI color_dialog( void *parent, float *color, const char* title = "Choose Color" );
+bool WINAPI color_dialog( void *parent, vecFloat_t *color, const char* title = "Choose Color" );
 
 void dialog_button_callback( GtkWidget *widget, gpointer data );
 gint dialog_delete_callback( GtkWidget *widget, GdkEvent* event, gpointer data );

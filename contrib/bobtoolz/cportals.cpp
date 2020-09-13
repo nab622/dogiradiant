@@ -35,7 +35,7 @@ CBspPortal::~CBspPortal(){
 	delete[] point;
 }
 
-void ClampFloat( float* p ){
+void ClampVector( vec_t* p ){
 	double i;
 	double frac = modf( *p, &i );
 
@@ -84,9 +84,9 @@ bool CBspPortal::Build( char *def, unsigned int pointCnt, bool bInverse ){
 
 		sscanf( c, "%f %f %f", &point[x].p[0], &point[x].p[1], &point[x].p[2] );
 
-		ClampFloat( &point[x].p[0] );
-		ClampFloat( &point[x].p[1] );
-		ClampFloat( &point[x].p[2] );
+        ClampVector( &point[x].p[0] );
+        ClampVector( &point[x].p[1] );
+        ClampVector( &point[x].p[2] );
 	}
 
 	return TRUE;

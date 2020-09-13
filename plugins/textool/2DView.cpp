@@ -45,12 +45,12 @@ void C2DView::PreparePaint(){
 	g_QglTable.m_pfn_qglOrtho( m_Mins[0], m_Maxs[0], m_Maxs[1], m_Mins[1], -1, 1 );
 }
 
-void C2DView::SpaceForWindow( float c[2], int x, int y ){
+void C2DView::SpaceForWindow( vec_t c[2], int x, int y ){
 	c[0] = ( (float)( x ) ) / ( (float)( m_rect.right - m_rect.left ) ) * ( m_Maxs[0] - m_Mins[0] ) + m_Mins[0];
 	c[1] = ( (float)( y ) ) / ( (float)( m_rect.bottom - m_rect.top ) ) * ( m_Maxs[1] - m_Mins[1] ) + m_Mins[1];
 }
 
-void C2DView::GridForWindow( float c[2], int x, int y ){
+void C2DView::GridForWindow( vec_t c[2], int x, int y ){
 	SpaceForWindow( c, x, y );
 	if ( !m_bDoGrid ) {
 		return;
@@ -63,12 +63,12 @@ void C2DView::GridForWindow( float c[2], int x, int y ){
 	c[1] *= m_GridStep[1];
 }
 
-void C2DView::WindowForSpace( int &x, int &y, const float c[2] ){
+void C2DView::WindowForSpace( int &x, int &y, const vec_t c[2] ){
 	x = m_rect.left + (int)( ( (float)( m_rect.right - m_rect.left ) ) * ( c[0] - m_Mins[0] ) / ( m_Maxs[0] - m_Mins[0] ) );
 	y = m_rect.top + (int)( ( (float)( m_rect.bottom - m_rect.top ) ) * ( c[1] - m_Mins[1] ) / ( m_Maxs[1] - m_Mins[1] ) );
 }
 
-qboolean C2DView::DoesSelect( int x, int y, float c[2] ){
+qboolean C2DView::DoesSelect( int x, int y, vec_t c[2] ){
 	int xc,yc;
 	WindowForSpace( xc, yc, c );
 	if ( abs( xc - x ) <= 3 && abs( yc - y ) <= 3 ) {

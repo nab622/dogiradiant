@@ -96,7 +96,7 @@ inline bool PtInRect( RECT *rc, POINT pt ){
 #define MAX_NODES ( MAX_ROWS + 1 ) * ( MAX_ROWS + 1 )
 #define MAX_TRIS  (MAX_ROWS)*( MAX_ROWS )
 
-typedef float vec;
+typedef vec_t vec;
 typedef vec vec3[3];
 typedef vec vec2[2];
 

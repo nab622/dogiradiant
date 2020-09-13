@@ -177,7 +177,7 @@ void EmitBrushPrimitTextureCoordinates( face_t * f, winding_t * w ){
 
 // compute a fake shift scale rot representation from the texture matrix
 // these shift scale rot values are to be understood in the local axis base
-void TexMatToFakeTexCoords( vec_t texMat[2][3], float shift[2], float *rot, float scale[2] ){
+void TexMatToFakeTexCoords( vec_t texMat[2][3], vec_t shift[2], vec_t *rot, vec_t scale[2] ){
 #ifdef DBG_BP
 	// check this matrix is orthogonal
 	if ( fabs( texMat[0][0] * 1.0L * texMat[0][1] + texMat[1][0] * 1.0L * texMat[1][1] ) > ZERO_EPSILON ) {

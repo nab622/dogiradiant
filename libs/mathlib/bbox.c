@@ -120,8 +120,8 @@ int aabb_intersect_aabb( const aabb_t *aabb, const aabb_t *aabb_src ){
 	return 1;
 }
 
-int aabb_intersect_plane( const aabb_t *aabb, const float *plane ){
-	float fDist, fIntersect;
+int aabb_intersect_plane( const aabb_t *aabb, const vec_t *plane ){
+    vec_t fDist, fIntersect;
 
 	// calc distance of origin from plane
 	fDist = DotProduct( plane, aabb->origin ) + plane[3];

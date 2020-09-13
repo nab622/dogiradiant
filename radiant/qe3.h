@@ -543,22 +543,22 @@ void FaceToBrushPrimitFace( face_t *f );
 void BrushPrimitFaceToFace( face_t *f );
 void EmitBrushPrimitTextureCoordinates( face_t *, winding_t * );
 // EmitTextureCoordinates, is old code used for brush to brush primitive conversion
-void EmitTextureCoordinates( float *xyzst, qtexture_t *q, face_t *f );
-void Face_TexdefFromTextureCoordinates( float *xyzst1, float *xyzst2, float *xyzst3, qtexture_t *q, face_t *f );
+void EmitTextureCoordinates( vec_t *xyzst, qtexture_t *q, face_t *f );
+void Face_TexdefFromTextureCoordinates( vec_t *xyzst1, vec_t *xyzst2, vec_t *xyzst3, qtexture_t *q, face_t *f );
 //void BrushPrimit_Parse(brush_t *);
 // compute a fake shift scale rot representation from the texture matrix
-void TexMatToFakeTexCoords( vec_t texMat[2][3], float shift[2], float *rot, float scale[2] );
-void FakeTexCoordsToTexMat( float shift[2], float rot, float scale[2], vec_t texMat[2][3] );
+void TexMatToFakeTexCoords( vec_t texMat[2][3], vec_t shift[2], vec_t *rot, vec_t scale[2] );
+void FakeTexCoordsToTexMat( vec_t shift[2], vec_t rot, vec_t scale[2], vec_t texMat[2][3] );
 void ConvertTexMatWithQTexture( vec_t texMat1[2][3], qtexture_t * qtex1, vec_t texMat2[2][3], qtexture_t * qtex2 );
 // NOTE: this is a wrapper over the vec_t mat[2][3] version
 void ConvertTexMatWithQTexture( brushprimit_texdef_t *texMat1, qtexture_t *qtex1, brushprimit_texdef_t *texMat2, qtexture_t *qtex2 );
 // texture locking
 void ShiftTextureGeometric_BrushPrimit( face_t *f, vec3_t delta );
-void ShiftTextureRelative_BrushPrimit( face_t *f, float x, float y );
-void RotateFaceTexture_BrushPrimit( face_t *f, int nAxis, float fDeg, vec3_t vOrigin );
+void ShiftTextureRelative_BrushPrimit( face_t *f, vec_t x, vec_t y );
+void RotateFaceTexture_BrushPrimit( face_t *f, int nAxis, vec_t fDeg, vec3_t vOrigin );
 // used in CCamWnd::ShiftTexture_BrushPrimit
 void ComputeBest2DVector( vec3_t v, vec3_t X, vec3_t Y, int &x, int &y );
-void Face_FitTexture_BrushPrimit( face_t *face, vec3_t minx, vec3_t maxs, float nHeight, float nWidth );
+void Face_FitTexture_BrushPrimit( face_t *face, vec3_t minx, vec3_t maxs, vec_t nHeight, vec_t nWidth );
 // lock textures on a random transformation
 void ApplyMatrix_BrushPrimit( face_t * f, vec3_t matrix[3], vec3_t origin );
 // low level functions .. put in mathlib?
@@ -570,7 +570,7 @@ void ApplyMatrix_BrushPrimit( face_t * f, vec3_t matrix[3], vec3_t origin );
 // 2D homogeneous matrix product C = A*B
 void BPMatMul( vec_t A[2][3], vec_t B[2][3], vec_t C[2][3] );
 // apply a rotation (degrees)
-void BPMatRotate( vec_t A[2][3], float theta );
+void BPMatRotate( vec_t A[2][3], vec_t theta );
 #ifdef _DEBUG
 void BPMatDump( vec_t A[2][3] );
 #endif
@@ -757,8 +757,8 @@ extern gint try_destroy_splash( gpointer );
 
 //mainframe.cpp
 bool areWeOutOfBounds( vec3_t inputVectors );
-float clampBoundaries( float input );
-float clampCameraBoundaries( float input );
+vec_t clampBoundaries( vec_t input );
+vec_t clampCameraBoundaries( vec_t input );
 
 
 #include "mainframe.h"

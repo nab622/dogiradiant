@@ -21,7 +21,7 @@
 
 class CBspPoint {
 public:
-float p[3];
+vec_t p[3];
 };
 
 class CBspPortal {

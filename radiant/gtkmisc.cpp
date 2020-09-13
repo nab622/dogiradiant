@@ -1594,14 +1594,15 @@ char* WINAPI dir_dialog( void *parent, const char* title, const char* path ){
 	return filename;
 }
 
-bool WINAPI color_dialog( void *parent, float *color, const char* title ){
+bool WINAPI color_dialog( void *parent, vecFloat_t *color, const char* title ){
 	GtkWidget* dlg;
-	double clr[3];
+    double clr[3];
 	int loop = 1, ret = IDCANCEL;
 
-	clr[0] = color[0];
-	clr[1] = color[1];
-	clr[2] = color[2];
+    // Needed for GTK
+    clr[0] = (double) color[0];
+    clr[1] = (double) color[1];
+    clr[2] = (double) color[2];
 
 	dlg = gtk_color_selection_dialog_new( title );
 	gtk_color_selection_set_color( GTK_COLOR_SELECTION( GTK_COLOR_SELECTION_DIALOG( dlg )->colorsel ), clr );
@@ -1636,9 +1637,9 @@ bool WINAPI color_dialog( void *parent, float *color, const char* title ){
 	gtk_widget_destroy( dlg );
 
 	if ( ret == IDOK ) {
-		color[0] = (float)clr[0];
-		color[1] = (float)clr[1];
-		color[2] = (float)clr[2];
+        color[0] = (vecFloat_t) clr[0];
+        color[1] = (vecFloat_t) clr[1];
+        color[2] = (vecFloat_t) clr[2];
 
 		return true;
 	}
