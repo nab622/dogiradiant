@@ -145,7 +145,7 @@ int m_nUpdateBits;
 int m_nWidth;
 int m_nHeight;
 bool m_bTiming;
-float m_fScale;
+double m_fScale;
 float m_TopClip;
 float m_BottomClip;
 bool m_bDirty;
@@ -186,11 +186,11 @@ int m_ptDownX, m_ptDownY;
 
 public:
 void OnEntityCreate( const char* item );
-int GetViewType() {return m_nViewType; }
-void SetScale( float f ) {m_fScale = f; }
-float Scale() {return m_fScale; }
-int Width() {return m_nWidth; }
-int Height() {return m_nHeight; }
+int GetViewType() { return m_nViewType; }
+void SetScale( double f ) { m_fScale = f; }
+double Scale() { return m_fScale; }
+int Width() { return m_nWidth; }
+int Height() { return m_nHeight; }
 
 protected:
 

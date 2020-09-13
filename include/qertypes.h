@@ -74,8 +74,7 @@ typedef bool qboolean;
 
 // ----------------------------
 
-typedef float vec_t;
-typedef vec_t vec3_t[3];
+#include "gridDataType.h"
 
 // turn this on/off to use a static texdef or a memory one
 // THIS MUST BE CONSISTENT throughout a whole build of Radiant / modules / plugins
@@ -285,7 +284,7 @@ typedef struct
 {
 	int numpoints;
 	int maxpoints;
-	float points[8][5];             // variable sized
+    vec_t points[8][5];             // variable sized
 } winding_t;
 
 typedef struct
@@ -375,7 +374,7 @@ typedef struct {
 
 typedef struct {
 	vec3_t xyz;
-    float st[2];
+    vec_t st[2];
 	float lightmap[2];
 	vec3_t normal;
 } drawVert_t;
@@ -795,7 +794,7 @@ typedef struct
 	int d_numedges;
 
 	int d_num_move_points;
-	float        *d_move_points[4096];
+    vec_t        *d_move_points[4096];
 
 	qtexture_t   *d_qtextures;
 	// used to speedup access, specially in QERApp_Try_Texture_ForName

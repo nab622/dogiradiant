@@ -73,7 +73,7 @@ inline bool PtInRect( RECT *rc, POINT pt ){
 #define RadiansToDegrees( a ) ( floor( a * 57.2957795 - 0.5 ) + 1. )
 #define DegreesToRadians( a ) ( a / 57.2957795 )
 
-#define BOGUS_RANGE 65536
+#define BOGUS_RANGE MAX_MAP_SIZE
 #define DotProduct( x,y ) ( x[0] * y[0] + x[1] * y[1] + x[2] * y[2] )
 #define VectorAdd( a,b,c ) {c[0] = a[0] + b[0]; c[1] = a[1] + b[1]; c[2] = a[2] + b[2]; }
 #define VectorClear( x ) {x[0] = x[1] = x[2] = 0; }

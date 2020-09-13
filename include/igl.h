@@ -232,8 +232,8 @@ struct _QERQglTable
 	PFN_QGLSCISSOR m_pfn_qglScissor;
 	PFN_QGLSHADEMODEL m_pfn_qglShadeModel;
 	PFN_QGLTEXCOORD2F m_pfn_qglTexCoord2f;
-	PFN_QGLTEXCOORD2FV m_pfn_qglTexCoord2fv;
-	PFN_QGLTEXCOORDPOINTER m_pfn_qglTexCoordPointer;
+    PFN_QGLTEXCOORD2FV m_pfn_qglTexCoord2fv;
+    PFN_QGLTEXCOORDPOINTER m_pfn_qglTexCoordPointer;
 	PFN_QGLTEXENVF m_pfn_qglTexEnvf;
 	PFN_QGLTEXGENF m_pfn_qglTexGenf;
 	PFN_QGLTEXIMAGE1D m_pfn_qglTexImage1D;

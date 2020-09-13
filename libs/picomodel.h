@@ -33,6 +33,8 @@
    ----------------------------------------------------------------------------- */
 
 
+#include "gridDataType.h"
+
 
 /* marker */
 #ifndef PICOMODEL_H
@@ -62,10 +64,10 @@ extern "C"
 
 /* types */
 typedef unsigned char picoByte_t;
-typedef float picoVec_t;
-typedef float picoVec2_t[ 2 ];
-typedef float picoVec3_t[ 3 ];
-typedef float picoVec4_t[ 4 ];
+typedef vec_t picoVec_t;
+typedef vec_t picoVec2_t[ 2 ];
+typedef vec_t picoVec3_t[ 3 ];
+typedef vec_t picoVec4_t[ 4 ];
 typedef picoByte_t picoColor_t[ 4 ];
 typedef int picoIndex_t;
 

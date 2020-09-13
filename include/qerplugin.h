@@ -38,6 +38,8 @@
 #include <glib.h>
 #include "qertypes.h"
 
+// NAB622: All plugins should have access to these, they are intended to be global after all
+#include "globalDefines.h"
 
 // FIXME TTimo:
 // GUID declaration here should be trashed, it is in synapse.h

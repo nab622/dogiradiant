@@ -3115,7 +3115,7 @@ static void renderDistanceSpinChanged() {
 
 static void cubicClippingToggled() {
     g_PrefsDlg.m_bCubicClipping ^= 1;
-    Sys_UpdateWindows( W_CAMERA );
+    Sys_UpdateWindows( W_CAMERA_IFON );
 }
 
 static void setCubicClippingRange() {
@@ -3134,7 +3134,7 @@ static void updateCubicClippingDistance() {
     gtk_label_set_text( GTK_LABEL( cubicClippingCalculatedDistanceLabel ), temp );
 
     // Update the camera so the changes are visible immediately
-    Sys_UpdateWindows( W_CAMERA );
+    Sys_UpdateWindows( W_CAMERA_IFON );
 }
 
 void PrefsDlg::LoadTexdefPref( texdef_t* pTexdef, const char* pName ){

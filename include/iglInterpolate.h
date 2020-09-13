@@ -19,29 +19,24 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _IPLUGIN_H_
-#define _IPLUGIN_H_
 
-#include "gridDataType.h"
+// NAB622: These functions are used at the entry points to the OpenGL functions.
+// They convert the higher-precision data types back to floats for OpenGL
+void qglVertex2f_convertFloat( vec2_t const input ) {
+    g_QglTable.m_pfn_qglVertex2f( (float) input[0], (float) input[1] );
+}
 
-#define PLUGIN_MAJOR "plugin"
+void qglVertex3f_convertFloat( vec3_t const input ) {
+    g_QglTable.m_pfn_qglVertex3f( (float) input[0], (float) input[1], (float) input[2] );
+}
 
-typedef const char* ( *PFN_QERPLUG_INIT )( void* hApp, void* pMainWidget );
-typedef const char* ( *PFN_QERPLUG_GETNAME )();
-typedef const char* ( *PFN_QERPLUG_GETCOMMANDLIST )();
-typedef void ( *PFN_QERPLUG_DISPATCH )( const char* p, vec_t* vMin, vec_t* vMax, bool bSingleBrush );
-
-struct _QERPluginTable
-{
-	int m_nSize;
-	PFN_QERPLUG_INIT m_pfnQERPlug_Init;
-	PFN_QERPLUG_GETNAME m_pfnQERPlug_GetName;
-	PFN_QERPLUG_GETCOMMANDLIST m_pfnQERPlug_GetCommandList;
-	PFN_QERPLUG_DISPATCH m_pfnQERPlug_Dispatch;
-};
-
-#endif
-
-extern void qglVertex2f_convertFloat( vec2_t const input );
-extern void qglVertex3f_convertFloat( vec3_t const input );
-//extern void qglVertex3fv_convertFloat( vec3_t const input );
+/*
+void qglVertex3fv_convertFloat( vec3_t const *input ) {
+    vec3_t temp;
+    for( int i = 0; i < 3; i++ ) {
+        temp[i] = input[i];
+    }
+    g_QglTable.m_pfn_qglVertex3f( (float) temp[0], (float) temp[1], (float) temp[2] );
+//    g_QglTable.m_pfn_qglVertex3f( temp[0], temp[1], temp[2] );
+}
+*/

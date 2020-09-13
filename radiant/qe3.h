@@ -108,7 +108,9 @@ extern _QERPlugMapTable g_MapTable;
 
 //++timo for BP conversion escaping FIXME: remove when mixing two formats!
 extern bool g_bCancel_Map_LoadFile;
-// used to be #defines, multiple engine support suggests we should go towards dynamic
+
+// There are still two #defines, MAX_MAP_SIZE and MIN_MAP_SIZE, in globalDefines.h that are used to set these variables,
+// but these values are the ones that should be used for anything dynamic, as the defines are only maximum values
 extern vec_t g_MaxWorldCoord;
 extern vec_t g_MinWorldCoord;
 extern vec_t g_MaxBrushSize;

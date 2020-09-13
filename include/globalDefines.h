@@ -32,6 +32,7 @@
 // If you fork the project, please change this so it doesn't conflict with others
 #define PREFS_SUBDIRECTORY "upgRadiant"
 
+
 // This has to be here for the functions below
 #include <math.h>
 
@@ -87,7 +88,7 @@
 
     // NAB622: This value is the maximum zoom-in distance on the grid. The numeric value specified here corresponds to the maximum
     // number of pixels the grid can render per block before it stops zooming in, at the smallest precision available
-    #define MAX_GRID_ZOOM_PIXELS 90
+    #define MAX_GRID_ZOOM_PIXELS 45
 
     // NAB622: Calculate the actual zoom value needed, based on the values given previously
     #define MAX_GRID_ZOOM_BLOCKSIZE ( MAX_GRID_ZOOM_PIXELS / MIN_GRID_PRECISION )
@@ -96,11 +97,11 @@
     // This will simply translate into a value for g_MaxWorldCoord and g_MinWorldCoord on load, and those will be used throughout the rest of Radiant
     #define MAX_MAP_SIZE 65536
 
-// NAB622: Calculate the minimum size to be the opposite of the maximum
-#define MIN_MAP_SIZE -MAX_MAP_SIZE
+    // NAB622: Calculate the minimum size to be the opposite of the maximum
+    #define MIN_MAP_SIZE -MAX_MAP_SIZE
 
 
-    // SURFACE INSPECTOR AND PATCH INSPECTOR
+// SURFACE INSPECTOR AND PATCH INSPECTOR
 
     // NAB622: Made this a define for easier changes later
     #define MAX_TEXPATH_SIZE 128

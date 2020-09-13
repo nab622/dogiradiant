@@ -19,29 +19,30 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _IPLUGIN_H_
-#define _IPLUGIN_H_
+#pragma once
 
-#include "gridDataType.h"
 
-#define PLUGIN_MAJOR "plugin"
+// NAB622: The purpose of this header is to put all the vector declarations in one location for easy precision changes later
 
-typedef const char* ( *PFN_QERPLUG_INIT )( void* hApp, void* pMainWidget );
-typedef const char* ( *PFN_QERPLUG_GETNAME )();
-typedef const char* ( *PFN_QERPLUG_GETCOMMANDLIST )();
-typedef void ( *PFN_QERPLUG_DISPATCH )( const char* p, vec_t* vMin, vec_t* vMax, bool bSingleBrush );
 
-struct _QERPluginTable
-{
-	int m_nSize;
-	PFN_QERPLUG_INIT m_pfnQERPlug_Init;
-	PFN_QERPLUG_GETNAME m_pfnQERPlug_GetName;
-	PFN_QERPLUG_GETCOMMANDLIST m_pfnQERPlug_GetCommandList;
-	PFN_QERPLUG_DISPATCH m_pfnQERPlug_Dispatch;
-};
+// The data type used on this line will be propogated through the vectors and other precision values in the code, keeping it all uniform
+typedef float gridUnits_t;
 
-#endif
 
-extern void qglVertex2f_convertFloat( vec2_t const input );
-extern void qglVertex3f_convertFloat( vec3_t const input );
-//extern void qglVertex3fv_convertFloat( vec3_t const input );
+typedef gridUnits_t vec_t;
+typedef vec_t vec2_t[2];
+typedef vec_t vec3_t[3];
+typedef vec_t vec4_t[4];
+typedef vec_t vec5_t[5];
+
+
+
+
+// Everything below here is ONLY to be used for data conversions back to floats for OpenGL and other stuff.
+
+typedef float vecFloat_t;
+typedef vecFloat_t vecFloat2_t[2];
+typedef vecFloat_t vecFloat3_t[3];
+typedef vecFloat_t vecFloat4_t[4];
+typedef vecFloat_t vecFloat5_t[5];
+

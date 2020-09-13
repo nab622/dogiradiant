@@ -19,6 +19,8 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "../include/globalDefines.h"
+
 #ifndef __QFILES_H__
 #define __QFILES_H__
 
@@ -353,8 +355,8 @@ typedef struct {
 #define LIGHTMAP_WIDTH      128
 #define LIGHTMAP_HEIGHT     128
 
-#define MIN_WORLD_COORD     ( -65536 )
-#define MAX_WORLD_COORD     ( 65536 )
+#define MIN_WORLD_COORD     ( MIN_MAP_SIZE )
+#define MAX_WORLD_COORD     ( MAX_MAP_SIZE )
 #define WORLD_SIZE          ( MAX_WORLD_COORD - MIN_WORLD_COORD )
 
 //=============================================================================

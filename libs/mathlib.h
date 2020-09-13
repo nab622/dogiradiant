@@ -33,11 +33,7 @@ extern "C"
 {
 #endif
 
-typedef float vec_t;
-typedef vec_t vec3_t[3];
-typedef vec_t vec5_t[5];
-typedef vec_t vec4_t[4];
-
+#include "../include/gridDataType.h"
 
 // Smallest positive value for vec_t such that 1.0 + VEC_SMALLEST_EPSILON_AROUND_ONE != 1.0.
 // In the case of 32 bit floats (which is almost certainly the case), it's 0.00000011921.

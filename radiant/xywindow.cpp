@@ -1029,7 +1029,7 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
          && HasCapture() ) {
 
         //NAB622: This keeps grid movements from crawling at lower grid sizes, or shooting off too fast at larger grid sizes
-        float fAdjustment = CLAMP(fAdjustment, 8, 64 );
+        double fAdjustment = CLAMP(fAdjustment, 8, 64 );
 
         m_ptDragAdjX = 0;
         m_ptDragAdjY = 0;
@@ -2647,7 +2647,7 @@ void XYWnd::XY_DrawBlockGrid(){
 		sscanf( value, "%i", &g_qeglobals.blockSize );
 	}
 
-	if ( !g_qeglobals.blockSize || g_qeglobals.blockSize > 65536 || g_qeglobals.blockSize < 1024 ) {
+    if ( !g_qeglobals.blockSize || g_qeglobals.blockSize > g_MaxWorldCoord || g_qeglobals.blockSize < 1024 ) {
 		// don't use custom blocksize if it is less than the default, or greater than the maximum world coordinate
 		g_qeglobals.blockSize = 1024;
 	}

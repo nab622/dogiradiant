@@ -85,7 +85,7 @@ int Plane_FromPoints( vec3_t p1, vec3_t p2, vec3_t p3, plane_t *plane ){
    Point_Equal
    =================
  */
-int Point_Equal( vec3_t p1, vec3_t p2, float epsilon ){
+int Point_Equal( vec3_t p1, vec3_t p2, vec_t epsilon ){
 	int i;
 
 	for ( i = 0; i < 3; i++ )

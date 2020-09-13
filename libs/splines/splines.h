@@ -28,6 +28,9 @@
 #ifdef GTKRADIANT
 #include "misc_def.h"
 #include "igl_to_qgl.h"
+
+#include "../include/gridDataType.h"
+
 #endif
 #endif
 
@@ -995,7 +998,7 @@ void stopCamera() {
 void getActiveSegmentInfo( int segment, idVec3 &origin, idVec3 &direction, float *fv );
 
 bool getCameraInfo( long time, idVec3 &origin, idVec3 &direction, float *fv );
-bool getCameraInfo( long time, float *origin, float *direction, float *fv ) {
+bool getCameraInfo( long time, vec_t *origin, vec_t *direction, float *fv ) {
 	idVec3 org, dir;
 	org[0] = origin[0];
 	org[1] = origin[1];

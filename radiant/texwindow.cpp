@@ -649,8 +649,8 @@ void Texture_ListDirectory(){
 		}
 	}
 
-	Sys_Printf( "Loaded %d shaders and created default shader for %d orphan textures.\n",
-				shaders_count, textures_count );
+    Sys_Printf( "Loaded %d shaders and created default shader for %d orphan textures.\n",
+                shaders_count, textures_count );
     vfsClearFileDirList( &files );
 }
 

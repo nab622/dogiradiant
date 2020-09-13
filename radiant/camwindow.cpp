@@ -1557,8 +1557,15 @@ void CamWnd::Cam_Draw(){
 			qglPointSize( 4 );
 			qglColor3f( 0,1,0 );
 			qglBegin( GL_POINTS );
-			for ( i = 0 ; i < g_qeglobals.d_numpoints ; i++ )
-				qglVertex3fv( g_qeglobals.d_points[i] );
+            for ( i = 0 ; i < g_qeglobals.d_numpoints ; i++ ) {
+
+                vecFloat3_t tempVec;
+                for( int z = 0; z < 3; z++ ) {
+                    tempVec[z] = (float) g_qeglobals.d_points[i][z];
+                }
+
+                qglVertex3f( tempVec[0], tempVec[1], tempVec[2] );
+            }
 			qglEnd();
 
 			if ( g_qeglobals.d_num_move_points ) {
@@ -1566,8 +1573,16 @@ void CamWnd::Cam_Draw(){
 				qglPointSize( 5 );
 				qglColor3f( 0,0,1 );
 				qglBegin( GL_POINTS );
-				for ( i = 0; i < g_qeglobals.d_num_move_points; i++ )
-					qglVertex3fv( g_qeglobals.d_move_points[i] );
+                for ( i = 0; i < g_qeglobals.d_num_move_points; i++ ) {
+
+                    vecFloat3_t tempVec;
+                    for( int z = 0; z < 3; z++ ) {
+                        tempVec[z] = (float) g_qeglobals.d_move_points[i][z];
+                    }
+
+                    qglVertex3f( tempVec[0], tempVec[1], tempVec[2] );
+                }
+
 				qglEnd();
 			}
 
@@ -1580,8 +1595,15 @@ void CamWnd::Cam_Draw(){
 		qglBegin( GL_POINTS );
 		for ( i = 0 ; i < g_qeglobals.d_numedges ; i++ )
 		{
-			v1 = g_qeglobals.d_points[g_qeglobals.d_edges[i].p1];
-			v2 = g_qeglobals.d_points[g_qeglobals.d_edges[i].p2];
+            vecFloat3_t tempVec1, tempVec2;
+            for( int z = 0; z < 3; z++ ) {
+                tempVec1[z] = (float) g_qeglobals.d_points[g_qeglobals.d_edges[i].p1][z];
+                tempVec2[z] = (float) g_qeglobals.d_points[g_qeglobals.d_edges[i].p2][z];
+            }
+
+            v1 = tempVec1;
+            v2 = tempVec2;
+
 			qglVertex3f( ( v1[0] + v2[0] ) * 0.5,( v1[1] + v2[1] ) * 0.5,( v1[2] + v2[2] ) * 0.5 );
 		}
 		qglEnd();

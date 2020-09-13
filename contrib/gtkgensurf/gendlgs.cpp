@@ -930,9 +930,11 @@ static gint fix_value_entryfocusout( GtkWidget* widget, GdkEventFocus *event, gp
 	int i = atoi( gtk_entry_get_text( GTK_ENTRY( widget ) ) ), k;
 	char Text[32];
 
-	if ( i < -65536 || i > 65536 ) {
+    if ( i < -MIN_MAP_SIZE || i > MAX_MAP_SIZE ) {
 		gdk_beep();
-		g_FuncTable.m_pfnMessageBox( g_pWnd, _( "The value must be between -65536 and 65536, inclusive." ),
+        char temp[128];
+        sprintf( temp, "The value must be between %i and %i, inclusive.", MIN_MAP_SIZE, MAX_MAP_SIZE );
+        g_FuncTable.m_pfnMessageBox( g_pWnd, _( temp ),
 									 _( "GenSurf" ), MB_OK | MB_ICONEXCLAMATION, NULL );
 		sprintf( Text, "%d", (int)xyz[Vertex[0].i][Vertex[0].j].fixed_value );
 		gtk_entry_set_text( GTK_ENTRY( widget ), Text );
@@ -1958,7 +1960,7 @@ GtkWidget* create_main_dialog(){
 	gtk_widget_show( label );
 	g_object_set_data( G_OBJECT( dlg ), "fix_rate_text", label );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -65536, 65536, 1, 16, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MIN_MAP_SIZE, MAX_MAP_SIZE, 1, 16, 0 ) );
 	g_signal_connect( G_OBJECT( adj ), "value-changed", G_CALLBACK( fix_value_changed ), NULL );
 	spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 0, 1,
