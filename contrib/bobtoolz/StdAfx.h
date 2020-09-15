@@ -148,7 +148,6 @@ extern _QERQglTable g_QglTable;
 extern _QERUITable g_MessageTable;
 extern _QEREntityTable g_EntityTable;
 
-
 #define MAX_ROUND_ERROR 0.05
 
 #include "gtkr_list.h"

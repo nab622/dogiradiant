@@ -106,11 +106,11 @@ void CPicoSurface::Draw( int state, IShader *pShader, int rflags ){
 	case PICO_TRIANGLES:  g_QglTable.m_pfn_qglBegin( GL_TRIANGLES );
 		for ( j = 0; j < PicoGetSurfaceNumIndexes( m_pSurface ); j++ )
 		{
-			g_QglTable.m_pfn_qglNormal3fv( PicoGetSurfaceNormal( m_pSurface,PicoGetSurfaceIndex( m_pSurface,j ) ) );
+            qglNormal3f_convertFloat( PicoGetSurfaceNormal( m_pSurface,PicoGetSurfaceIndex( m_pSurface,j ) ) );
 
 			if ( !( rflags & ( DRAW_RF_SEL_OUTLINE | DRAW_RF_SEL_FILL | DRAW_RF_XY ) ) ) {
 				if ( state & DRAW_GL_TEXTURE_2D ) {
-					g_QglTable.m_pfn_qglTexCoord2fv( PicoGetSurfaceST( m_pSurface,0,PicoGetSurfaceIndex( m_pSurface,j ) ) );
+                    qglTexCoord2f_convertFloat( PicoGetSurfaceST( m_pSurface,0,PicoGetSurfaceIndex( m_pSurface,j ) ) );
 				}
 				else {
 					picoByte_t *vertexColor = PicoGetSurfaceColor( m_pSurface,0,PicoGetSurfaceIndex( m_pSurface,j ) );
@@ -121,7 +121,7 @@ void CPicoSurface::Draw( int state, IShader *pShader, int rflags ){
 					g_QglTable.m_pfn_qglColor4ubv( vertexColor );
 				}
 			}
-			g_QglTable.m_pfn_qglVertex3fv( PicoGetSurfaceXYZ( m_pSurface, PicoGetSurfaceIndex( m_pSurface, j ) ) );
+            qglVertex3f_convertFloat( PicoGetSurfaceXYZ( m_pSurface, PicoGetSurfaceIndex( m_pSurface, j ) ) );
 		}
 		g_QglTable.m_pfn_qglEnd();
 		/*g_QglTable.m_pfn_qglVertexPointer( 3, GL_FLOAT, 0, PicoGetSurfaceXYZ( m_pSurface, 0 ) );
@@ -140,8 +140,8 @@ void CPicoSurface::Draw( int state, IShader *pShader, int rflags ){
 		   for( int i = 0; i < PicoGetSurfaceNumIndexes( m_pSurface ); i++ ) {
 		   vec3_t outerpoint;
 		   VectorMA( PicoGetSurfaceXYZ( m_pSurface, PicoGetSurfaceIndex( m_pSurface, i ) ), .3f, PicoGetSurfaceNormal( m_pSurface, PicoGetSurfaceIndex( m_pSurface, i ) ), outerpoint );
-		   g_QglTable.m_pfn_qglVertex3fv( PicoGetSurfaceXYZ( m_pSurface, PicoGetSurfaceIndex( m_pSurface, i ) ) );
-		   g_QglTable.m_pfn_qglVertex3fv( outerpoint );
+           qglVertex3f_convertFloat( PicoGetSurfaceXYZ( m_pSurface, PicoGetSurfaceIndex( m_pSurface, i ) ) );
+           qglVertex3f_convertFloat( outerpoint );
 		   }
 		   g_QglTable.m_pfn_qglEnd();*/
 

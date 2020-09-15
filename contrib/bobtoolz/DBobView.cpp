@@ -98,7 +98,7 @@ void DBobView::Draw2D( VIEWTYPE vt ){
 	g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 
 	for ( i = 0; i < nPathCount; i++ )
-		g_QglTable.m_pfn_qglVertex3fv( path[i] );
+        qglVertex3f_convertFloat( path[i] );
 
 	g_QglTable.m_pfn_qglEnd();
 
@@ -112,7 +112,7 @@ void DBobView::Draw2D( VIEWTYPE vt ){
 		g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 
 		for ( i = 0; i < nPathCount; i++ )
-			g_QglTable.m_pfn_qglVertex3fv( path[i] );
+            qglVertex3f_convertFloat( path[i] );
 
 		g_QglTable.m_pfn_qglEnd();
 
@@ -124,7 +124,7 @@ void DBobView::Draw2D( VIEWTYPE vt ){
 		g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 
 		for ( i = 0; i < nPathCount; i++ )
-			g_QglTable.m_pfn_qglVertex3fv( path[i] );
+            qglVertex3f_convertFloat( path[i] );
 
 		g_QglTable.m_pfn_qglEnd();
 
@@ -136,7 +136,7 @@ void DBobView::Draw2D( VIEWTYPE vt ){
 		g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 
 		for ( i = 0; i < nPathCount; i++ )
-			g_QglTable.m_pfn_qglVertex3fv( path[i] );
+            qglVertex3f_convertFloat( path[i] );
 
 		g_QglTable.m_pfn_qglEnd();
 
@@ -151,12 +151,12 @@ void DBobView::Draw2D( VIEWTYPE vt ){
         if ( boundingShow == BOUNDS_ALL )
         {
             for ( i = 0; i < nPathCount; i++ )
-                g_QglTable.m_pfn_qglVertex3fv( path[i] );
+                qglVertex3f_convertFloat( path[i] );
         }
         else if ( boundingShow == BOUNDS_APEX )
         {
             for ( i = (nPathCount/4); i < (nPathCount/4) * 3; i++ )
-                g_QglTable.m_pfn_qglVertex3fv( path[i] );
+                qglVertex3f_convertFloat( path[i] );
         }
 
         g_QglTable.m_pfn_qglEnd();*/                                                                                                                                                                                                                                                                                                                                                                                                                   // djbob: er, um doesn't really seem to do anyhting
@@ -185,7 +185,7 @@ void DBobView::Draw3D(){
 	g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 
 	for ( int i = 0; i < nPathCount; i++ )
-		g_QglTable.m_pfn_qglVertex3fv( path[i] );
+        qglVertex3f_convertFloat( path[i] );
 
 	g_QglTable.m_pfn_qglEnd();
 
@@ -201,7 +201,7 @@ void DBobView::Draw3D(){
 
 		int i;
 		for ( i = 0; i < nPathCount; i++ )
-			g_QglTable.m_pfn_qglVertex3fv( path[i] );
+            qglVertex3f_convertFloat( path[i] );
 
 		g_QglTable.m_pfn_qglEnd();
 
@@ -213,7 +213,7 @@ void DBobView::Draw3D(){
 		g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 
 		for ( i = 0; i < nPathCount; i++ )
-			g_QglTable.m_pfn_qglVertex3fv( path[i] );
+            qglVertex3f_convertFloat( path[i] );
 
 		g_QglTable.m_pfn_qglEnd();
 
@@ -225,7 +225,7 @@ void DBobView::Draw3D(){
 		g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 
 		for ( i = 0; i < nPathCount; i++ )
-			g_QglTable.m_pfn_qglVertex3fv( path[i] );
+            qglVertex3f_convertFloat( path[i] );
 
 		g_QglTable.m_pfn_qglEnd();
 
@@ -237,7 +237,7 @@ void DBobView::Draw3D(){
 		g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 
 		for ( i = 0; i < nPathCount; i++ )
-			g_QglTable.m_pfn_qglVertex3fv( path[i] );
+            qglVertex3f_convertFloat( path[i] );
 
 		g_QglTable.m_pfn_qglEnd();
 	}

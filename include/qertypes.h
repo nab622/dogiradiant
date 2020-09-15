@@ -742,7 +742,7 @@ typedef struct
 	int include;
 	texdef_t m_SIIncrement; // increments for the surface inspector
 	texdef_t m_PIIncrement; // increments for the patch inspector
-	vec3_t AxisColors[3];   // colors used for X, Y Z axis
+    vecFloat3_t AxisColors[3];   // colors used for X, Y Z axis
 	                        // these are in the View > Show menu with Show coordinates
 	qboolean show_names;
 	qboolean show_coordinates;

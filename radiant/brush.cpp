@@ -26,6 +26,8 @@
 #include <limits.h>
 #include "filters.h"
 
+#include "iglInterpolate.h"
+
 extern MainFrame* g_pParentWnd;
 
 // globals
@@ -261,8 +263,8 @@ void Face_SetShader( face_t *face, IShader *shader ){
    Clamp
    ================
  */
-void Clamp( float& f, int nClamp ){
-	float fFrac = f - static_cast<int>( f );
+void Clamp( vec_t& f, int nClamp ){
+    vec_t fFrac = f - static_cast<int>( f );
 	f = static_cast<int>( f ) % nClamp;
 	f += fFrac;
 }
@@ -732,32 +734,32 @@ void DrawBrushEntityName( brush_t *b ){
 			mid[i] = ( b->mins[i] + b->maxs[i] ) * 0.5;
 
 		qglBegin( GL_LINE_STRIP );
-		qglVertex3fv( mid );
+        qglVertex3f_convertFloat( mid );
 		mid[0] += c * 8;
 		mid[1] += s * 8;
 		mid[2] += s * 8;
-		qglVertex3fv( mid );
+        qglVertex3f_convertFloat( mid );
 		mid[0] -= c * 4;
 		mid[1] -= s * 4;
 		mid[2] -= s * 4;
 		mid[0] -= s * 4;
 		mid[1] += c * 4;
 		mid[2] += c * 4;
-		qglVertex3fv( mid );
+        qglVertex3f_convertFloat( mid );
 		mid[0] += c * 4;
 		mid[1] += s * 4;
 		mid[2] += s * 4;
 		mid[0] += s * 4;
 		mid[1] -= c * 4;
 		mid[2] -= c * 4;
-		qglVertex3fv( mid );
+        qglVertex3f_convertFloat( mid );
 		mid[0] -= c * 4;
 		mid[1] -= s * 4;
 		mid[2] -= s * 4;
 		mid[0] += s * 4;
 		mid[1] -= c * 4;
 		mid[2] -= c * 4;
-		qglVertex3fv( mid );
+        qglVertex3f_convertFloat( mid );
 		qglEnd();
 	}
 
@@ -2215,10 +2217,10 @@ brush_t *Brush_FullClone( brush_t *b ){
    ==============
  */
 extern bool Patch_Ray( patchMesh_t *patch, vec3_t origin, vec3_t dir, double *t, double *u, double *v );
-face_t *Brush_Ray( vec3_t origin, vec3_t dir, brush_t *b, float *dist, int nFlags ){
+face_t *Brush_Ray( vec3_t origin, vec3_t dir, brush_t *b, vec_t *dist, int nFlags ){
 	face_t  *f, *firstface = NULL;
 	vec3_t p1, p2;
-	float frac, d1, d2;
+    vec_t frac, d1, d2;
 	int i;
 
 	if ( b->owner->eclass->fixedsize
@@ -3047,12 +3049,12 @@ void Brush_DrawFacingAngle( brush_t *b, entity_t *e ){
 	qglColor4f( 1, 1, 1, 1 );
 	qglLineWidth( 4 );
 	qglBegin( GL_LINES );
-	qglVertex3fv( start );
-	qglVertex3fv( endpoint );
-	qglVertex3fv( endpoint );
-	qglVertex3fv( tip1 );
-	qglVertex3fv( endpoint );
-	qglVertex3fv( tip2 );
+    qglVertex3f_convertFloat( start );
+    qglVertex3f_convertFloat( endpoint );
+    qglVertex3f_convertFloat( endpoint );
+    qglVertex3f_convertFloat( tip1 );
+    qglVertex3f_convertFloat( endpoint );
+    qglVertex3f_convertFloat( tip2 );
 	qglEnd();
 	qglLineWidth( 1 );
 }
@@ -3063,7 +3065,7 @@ void Brush_FaceDraw( face_t *face, int nGLState ){
 		return;
 	}
 	if ( ( nGLState & DRAW_GL_LIGHTING ) && g_PrefsDlg.m_bGLLighting ) {
-		qglNormal3fv( face->plane.normal );
+        qglNormal3f_convertFloat( face->plane.normal );
 	}
 	/*
 	   if (mode & DRAW_GL_TEXTURE_2D)
@@ -3086,9 +3088,9 @@ void Brush_FaceDraw( face_t *face, int nGLState ){
 	for ( int i = 0 ; i < w->numpoints ; i++ )
 	{
 		if ( nGLState & DRAW_GL_TEXTURE_2D ) {
-			qglTexCoord2fv( &w->points[i][3] );
+            qglTexCoord2f_convertFloat( &w->points[i][3] );
 		}
-		qglVertex3fv( w->points[i] );
+        qglVertex3f_convertFloat( w->points[i] );
 	}
 	qglEnd();
 }
@@ -3219,7 +3221,7 @@ void Face_Draw( face_t *f ){
 	}
 	qglBegin( GL_POLYGON );
 	for ( i = 0 ; i < f->face_winding->numpoints; i++ )
-		qglVertex3fv( f->face_winding->points[i] );
+        qglVertex3f_convertFloat( f->face_winding->points[i] );
 	qglEnd();
 }
 
@@ -3285,32 +3287,32 @@ void Brush_DrawXY( brush_t *b, int nViewType ){
 			vBottom[2] = b->mins[2];
 
 			qglBegin( GL_LINES );
-			qglVertex3fv( vTop );
-			qglVertex3fv( vCorners[0] );
-			qglVertex3fv( vTop );
-			qglVertex3fv( vCorners[1] );
-			qglVertex3fv( vTop );
-			qglVertex3fv( vCorners[2] );
-			qglVertex3fv( vTop );
-			qglVertex3fv( vCorners[3] );
+            qglVertex3f_convertFloat( vTop );
+            qglVertex3f_convertFloat( vCorners[0] );
+            qglVertex3f_convertFloat( vTop );
+            qglVertex3f_convertFloat( vCorners[1] );
+            qglVertex3f_convertFloat( vTop );
+            qglVertex3f_convertFloat( vCorners[2] );
+            qglVertex3f_convertFloat( vTop );
+            qglVertex3f_convertFloat( vCorners[3] );
 			qglEnd();
 
 			qglBegin( GL_LINES );
-			qglVertex3fv( vBottom );
-			qglVertex3fv( vCorners[0] );
-			qglVertex3fv( vBottom );
-			qglVertex3fv( vCorners[1] );
-			qglVertex3fv( vBottom );
-			qglVertex3fv( vCorners[2] );
-			qglVertex3fv( vBottom );
-			qglVertex3fv( vCorners[3] );
+            qglVertex3f_convertFloat( vBottom );
+            qglVertex3f_convertFloat( vCorners[0] );
+            qglVertex3f_convertFloat( vBottom );
+            qglVertex3f_convertFloat( vCorners[1] );
+            qglVertex3f_convertFloat( vBottom );
+            qglVertex3f_convertFloat( vCorners[2] );
+            qglVertex3f_convertFloat( vBottom );
+            qglVertex3f_convertFloat( vCorners[3] );
 			qglEnd();
 
 			qglBegin( GL_LINE_LOOP );
-			qglVertex3fv( vCorners[0] );
-			qglVertex3fv( vCorners[1] );
-			qglVertex3fv( vCorners[2] );
-			qglVertex3fv( vCorners[3] );
+            qglVertex3f_convertFloat( vCorners[0] );
+            qglVertex3f_convertFloat( vCorners[1] );
+            qglVertex3f_convertFloat( vCorners[2] );
+            qglVertex3f_convertFloat( vCorners[3] );
 			qglEnd();
 #endif
 			DrawBrushEntityName( b );
@@ -3318,7 +3320,7 @@ void Brush_DrawXY( brush_t *b, int nViewType ){
 		}
 		else if ( b->owner->model.pRender && !( !IsBrushSelected( b ) && ( g_PrefsDlg.m_nEntityShowState & ENTITY_SELECTED_ONLY ) ) ) {
 			qglPushAttrib( GL_CURRENT_BIT ); // save brush colour
-			qglColor3fv( b->owner->eclass->color );
+            qglColor3f_convertFloat( b->owner->eclass->color );
 			if ( g_PrefsDlg.m_nEntityShowState != ENTITY_BOX ) {
 				b->owner->model.pRender->Draw( DRAW_GL_WIRE, DRAW_RF_XY );
 			}
@@ -3360,7 +3362,7 @@ void Brush_DrawXY( brush_t *b, int nViewType ){
 		// draw the polygon
 		qglBegin( GL_LINE_LOOP );
 		for ( i = 0 ; i < w->numpoints ; i++ )
-			qglVertex3fv( w->points[i] );
+            qglVertex3f_convertFloat( w->points[i] );
 		qglEnd();
 	}
 
@@ -3783,41 +3785,41 @@ void aabb_draw( const aabb_t *aabb, int mode ){
 
 	qglBegin( GL_QUADS );
 
-	qglNormal3fv( normals[0] );
-	qglVertex3fv( points[2] );
-	qglVertex3fv( points[1] );
-	qglVertex3fv( points[5] );
-	qglVertex3fv( points[6] );
+    qglNormal3f_convertFloat( normals[0] );
+    qglVertex3f_convertFloat( points[2] );
+    qglVertex3f_convertFloat( points[1] );
+    qglVertex3f_convertFloat( points[5] );
+    qglVertex3f_convertFloat( points[6] );
 
-	qglNormal3fv( normals[1] );
-	qglVertex3fv( points[1] );
-	qglVertex3fv( points[0] );
-	qglVertex3fv( points[4] );
-	qglVertex3fv( points[5] );
+    qglNormal3f_convertFloat( normals[1] );
+    qglVertex3f_convertFloat( points[1] );
+    qglVertex3f_convertFloat( points[0] );
+    qglVertex3f_convertFloat( points[4] );
+    qglVertex3f_convertFloat( points[5] );
 
-	qglNormal3fv( normals[2] );
-	qglVertex3fv( points[0] );
-	qglVertex3fv( points[1] );
-	qglVertex3fv( points[2] );
-	qglVertex3fv( points[3] );
+    qglNormal3f_convertFloat( normals[2] );
+    qglVertex3f_convertFloat( points[0] );
+    qglVertex3f_convertFloat( points[1] );
+    qglVertex3f_convertFloat( points[2] );
+    qglVertex3f_convertFloat( points[3] );
 
-	qglNormal3fv( normals[3] );
-	qglVertex3fv( points[3] );
-	qglVertex3fv( points[7] );
-	qglVertex3fv( points[4] );
-	qglVertex3fv( points[0] );
+    qglNormal3f_convertFloat( normals[3] );
+    qglVertex3f_convertFloat( points[3] );
+    qglVertex3f_convertFloat( points[7] );
+    qglVertex3f_convertFloat( points[4] );
+    qglVertex3f_convertFloat( points[0] );
 
-	qglNormal3fv( normals[4] );
-	qglVertex3fv( points[3] );
-	qglVertex3fv( points[2] );
-	qglVertex3fv( points[6] );
-	qglVertex3fv( points[7] );
+    qglNormal3f_convertFloat( normals[4] );
+    qglVertex3f_convertFloat( points[3] );
+    qglVertex3f_convertFloat( points[2] );
+    qglVertex3f_convertFloat( points[6] );
+    qglVertex3f_convertFloat( points[7] );
 
-	qglNormal3fv( normals[5] );
-	qglVertex3fv( points[7] );
-	qglVertex3fv( points[6] );
-	qglVertex3fv( points[5] );
-	qglVertex3fv( points[4] );
+    qglNormal3f_convertFloat( normals[5] );
+    qglVertex3f_convertFloat( points[7] );
+    qglVertex3f_convertFloat( points[6] );
+    qglVertex3f_convertFloat( points[5] );
+    qglVertex3f_convertFloat( points[4] );
 
 	qglEnd();
 

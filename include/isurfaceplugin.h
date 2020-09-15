@@ -102,9 +102,9 @@ typedef void ( *PFN_GETTWOSELECTEDPATCH )( patchMesh_t **p1, patchMesh_t **p2 );
 
 
 // leo FIXME: hacks uglier than the ones above
-typedef void ( *PFN_TEXMATTOFAKETEXCOORDS )( vec_t texMat[2][3], float shift[2], float *rot, float scale[2] );
+typedef void ( *PFN_TEXMATTOFAKETEXCOORDS )( vec_t texMat[2][3], vec_t shift[2], vec_t *rot, vec_t scale[2] );
 typedef void ( *PFN_CONVERTTEXMATWITHQTEXTURE )( brushprimit_texdef_t *texMat1, qtexture_t *qtex1, brushprimit_texdef_t *texMat2, qtexture_t *qtex2 );
-typedef void ( *PFN_FAKETEXCOORDSTOTEXMAT )( float shift[2], float rot, float scale[2], vec_t texMat[2][3] );
+typedef void ( *PFN_FAKETEXCOORDSTOTEXMAT )( vec_t shift[2], vec_t rot, vec_t scale[2], vec_t texMat[2][3] );
 typedef void ( *PFN_PATCH_RESETTEXTURING )( float fx, float fy );
 typedef void ( *PFN_PATCH_FITTEXTURING )();
 typedef void ( *PFN_PATCH_NATURALIZESELECTED )( bool bCap );

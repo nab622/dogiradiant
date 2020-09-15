@@ -24,7 +24,6 @@
 #include <gtk/gtk.h>
 
 #include "qerplugin.h"
-//#include "qertypes.h"
 
 #include "igl.h"
 #include "iui_gtk.h"
@@ -239,7 +238,7 @@ bool OpenBitmap();
 void GenerateBitmapMapping();
 //--------------- face.c -------------------------------
 void PlaneFromPoints( float *, float *, float *, PLANE * );
-void CrossProduct( vec3 v1, vec3 v2, vec3 cross );
+void genSurfCrossProduct( vec3 v1, vec3 v2, vec3 cross );
 vec VectorNormalize( vec3 in, vec3 out );
 //--------------- gendlg.c -----------------------------
 GtkWidget* create_main_dialog();

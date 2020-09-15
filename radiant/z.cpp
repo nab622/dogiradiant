@@ -297,7 +297,7 @@ void Z_Draw( void ){
 	float w, h;
 	double start, end;
 	qtexture_t  *q;
-	float top, bottom;
+    vec_t top, bottom;
 	vec3_t org_top, org_bottom, dir_up, dir_down;
 	int xCam = z.width / 3;
 

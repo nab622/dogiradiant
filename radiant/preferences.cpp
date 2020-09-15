@@ -386,22 +386,22 @@ void CXMLPropertyBag::GetPref( const char *name, float *pV, float V ){
 }
 
 void CXMLPropertyBag::GetPref( const char *name, float* pV, float* V ){
-	xmlNodePtr pNode;
-	if ( ( pNode = EpairForName( name ) ) && pNode->children && pNode->children->content ) {
-		sscanf( (char *)pNode->children->content, "%f %f %f", &pV[0], &pV[1], &pV[2] );
-	}
-	else
-	{
-		char s[128];
-		sprintf( s, "%f %f %f", V[0], V[1], V[2] );
-		pNode = xmlNewChild( mpDocNode, NULL, (xmlChar *)"epair", (xmlChar *)s );
-		xmlSetProp( pNode, (xmlChar *)"name", (xmlChar *)name );
-		pV[0] = V[0];
-		pV[1] = V[1];
-		pV[2] = V[2];
-	}
-	// push the pref assignment if needed
-	PushAssignment( name, PREF_VEC3, pV );
+    xmlNodePtr pNode;
+    if ( ( pNode = EpairForName( name ) ) && pNode->children && pNode->children->content ) {
+        sscanf( (char *)pNode->children->content, "%f %f %f", &pV[0], &pV[1], &pV[2] );
+    }
+    else
+    {
+        char s[128];
+        sprintf( s, "%f %f %f", V[0], V[1], V[2] );
+        pNode = xmlNewChild( mpDocNode, NULL, (xmlChar *)"epair", (xmlChar *)s );
+        xmlSetProp( pNode, (xmlChar *)"name", (xmlChar *)name );
+        pV[0] = V[0];
+        pV[1] = V[1];
+        pV[2] = V[2];
+    }
+    // push the pref assignment if needed
+    PushAssignment( name, PREF_VEC3, pV );
 }
 
 void CXMLPropertyBag::GetPref( const char *name, window_position_t* pV, window_position_t V ){
@@ -3142,20 +3142,28 @@ void PrefsDlg::LoadTexdefPref( texdef_t* pTexdef, const char* pName ){
 
 	memset( pTexdef, 0, sizeof( texdef_t ) );
 
+    float defaultScale = 0.25f;
+    float temp = 0;
+
 	sprintf( buffer, "%s%s", pName, TD_SCALE1_KEY );
-	mLocalPrefs.GetPref( buffer, &pTexdef->scale[0],   0.5f );
+    mLocalPrefs.GetPref( buffer, &temp,   defaultScale );
+    pTexdef->scale[0] = (vec_t) temp;
 
 	sprintf( buffer, "%s%s", pName, TD_SCALE2_KEY );
-	mLocalPrefs.GetPref( buffer, &pTexdef->scale[1],   0.5f );
+    mLocalPrefs.GetPref( buffer, &temp,   defaultScale );
+    pTexdef->scale[1] = (vec_t) temp;
 
 	sprintf( buffer, "%s%s", pName, TD_SHIFT1_KEY );
-	mLocalPrefs.GetPref( buffer, &pTexdef->shift[0],   8.f );
+    mLocalPrefs.GetPref( buffer, &temp,   0.0f );
+    pTexdef->shift[0] = (vec_t) temp;
 
 	sprintf( buffer, "%s%s", pName, TD_SHIFT2_KEY );
-	mLocalPrefs.GetPref( buffer, &pTexdef->shift[1],   8.f );
+    mLocalPrefs.GetPref( buffer, &temp,   0.0f );
+    pTexdef->shift[1] = (vec_t) temp;
 
 	sprintf( buffer, "%s%s", pName, TD_ROTATE_KEY );
-	mLocalPrefs.GetPref( buffer, &pTexdef->rotate,     45 );
+    mLocalPrefs.GetPref( buffer, &temp,     0.0f );
+    pTexdef->rotate = (vec_t) temp;
 }
 
 void PrefsDlg::UpdateTextureCompression(){
@@ -3501,7 +3509,7 @@ void PrefsDlg::LoadPrefs(){
 #endif
 
 
-	vec3_t vDefaultAxisColours[3] = {
+    vecFloat3_t vDefaultAxisColours[3] = {
         {0.3f,  1.0f,   0.3f},
         {0.3f,  0.3f,   1.0f},
         {1.0f,  0.3f,   0.3f},
@@ -3513,7 +3521,7 @@ void PrefsDlg::LoadPrefs(){
         mLocalPrefs.GetPref( buf,                g_qeglobals.d_savedinfo.AxisColors[i],            vDefaultAxisColours[i] );
 	}
 
-	vec3_t vDefaultColours[COLOR_LAST] = {
+    vecFloat3_t vDefaultColours[COLOR_LAST] = {
         {0.25f, 0.25f,  0.25f},
         {0.2f,  0.2f,   0.2f},
         {0.3f,  0.3f,   0.3f},

@@ -127,7 +127,7 @@ void DTrainDrawer::Draw3D() {
 
 		g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 		for ( list<DPoint >::const_iterator v = pSP->m_vertexList.begin(); v != pSP->m_vertexList.end(); v++ ) {
-            g_QglTable.m_pfn_qglVertex3fv( v->_pnt );
+            qglVertex3f_convertFloat( v->_pnt );
 		}
 		g_QglTable.m_pfn_qglEnd();
 
@@ -179,7 +179,7 @@ void DTrainDrawer::Draw2D( VIEWTYPE vt ) {
 
 		g_QglTable.m_pfn_qglBegin( GL_LINE_STRIP );
 		for ( list<DPoint >::const_iterator v = pSP->m_vertexList.begin(); v != pSP->m_vertexList.end(); v++ ) {
-            g_QglTable.m_pfn_qglVertex3fv( v->_pnt );
+            qglVertex3f_convertFloat( v->_pnt );
 		}
 		g_QglTable.m_pfn_qglEnd();
 

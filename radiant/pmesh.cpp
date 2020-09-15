@@ -31,6 +31,8 @@
 
 #include "gtkr_list.h"
 
+#include "iglInterpolate.h"
+
 // externs
 extern void MemFile_fprintf( MemStream* pMemFile, const char* pText, ... );
 extern face_t *Face_Alloc( void );
@@ -1440,7 +1442,7 @@ brush_t* Patch_GenericMesh( int nWidth, int nHeight, int nOrientation, bool bDel
    PointInMoveList
    ==================
  */
-int PointInMoveList( float *pf ){
+int PointInMoveList( vec_t *pf ){
 	for ( int i = 0; i < g_qeglobals.d_num_move_points; i++ )
 	{
 		if ( pf == &g_qeglobals.d_move_points[i][0] ) {
@@ -1758,8 +1760,8 @@ void Patch_DrawNormals( patchMesh_t *patch ){
 		for ( row = 0; row < patch->height; row++ )
 		{
 			VectorAdd( patch->ctrl[col][row].xyz, patch->ctrl[col][row].normal, vNormal );
-			qglVertex3fv( patch->ctrl[col][row].xyz );
-			qglVertex3fv( vNormal );
+            qglVertex3f_convertFloat( patch->ctrl[col][row].xyz );
+            qglVertex3f_convertFloat( vNormal );
 		}
 	}
 	qglEnd();
@@ -3062,20 +3064,20 @@ void Patch_DrawLODPatchMesh( patchMesh_t *patch ){
 		for ( iterList = ( *iterLists )->begin(), iterListNext = ( *iterListsNext )->begin(); iterList != ( *iterLists )->end() && iterListNext != ( *iterListsNext )->end(); iterList++, iterListNext++ )
 		{
 			//if (g_PrefsDlg.m_bGLLighting)
-			qglNormal3fv( ( *iterList ).normal );
+            qglNormal3f_convertFloat( ( *iterList ).normal );
 			//else if (bShade && !g_PrefsDlg.m_bDisplayLists)
 			//	qglColor3f((*iterList).lightmap[0], (*iterList).lightmap[0], (*iterList).lightmap[0]);
 
-			qglTexCoord2fv( ( *iterList ).st );
-			qglVertex3fv( ( *iterList ).xyz );
+            qglTexCoord2f_convertFloat( ( *iterList ).st );
+            qglVertex3f_convertFloat( ( *iterList ).xyz );
 
 			//if (g_PrefsDlg.m_bGLLighting)
-			qglNormal3fv( ( *iterListNext ).normal );
+            qglNormal3f_convertFloat( ( *iterListNext ).normal );
 			//else if (bShade && !g_PrefsDlg.m_bDisplayLists)
 			//	qglColor3f((*iterListNext).lightmap[0], (*iterListNext).lightmap[0], (*iterListNext).lightmap[0]);
 
-			qglTexCoord2fv( ( *iterListNext ).st );
-			qglVertex3fv( ( *iterListNext ).xyz );
+            qglTexCoord2f_convertFloat( ( *iterListNext ).st );
+            qglVertex3f_convertFloat( ( *iterListNext ).xyz );
 		}
 		qglEnd();
 	}
@@ -3089,8 +3091,8 @@ void Patch_DrawLODPatchMesh( patchMesh_t *patch ){
         for (iterList=(*iterLists)->begin(); iterList != (*iterLists)->end(); iterList++)
         {
             VectorAdd((*iterList).xyz, (*iterList).normal, vNormal);
-            qglVertex3fv ((*iterList).xyz);
-            qglVertex3fv (vNormal);
+            qglVertex3f_convertFloat ((*iterList).xyz);
+            qglVertex3f_convertFloat (vNormal);
         }
         qglEnd ();
    }
@@ -3180,10 +3182,10 @@ void Patch_DrawLODPatchMesh( patchMesh_t *patch ){
    }
  */
 
-int Triangle_Ray( float orig[3], float dir[3], bool bCullBack,
-				  float vert0[3], float vert1[3], float vert2[3],
+int Triangle_Ray( vec_t orig[3], vec_t dir[3], bool bCullBack,
+                  vec_t vert0[3], vec_t vert1[3], vec_t vert2[3],
 				  double *t, double *u, double *v ){
-	float edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
+    vec_t edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
 	double det,inv_det;
 
 	/* find vectors for two edges sharing vert0 */
@@ -3379,7 +3381,7 @@ void DrawPatchControls( patchMesh_t *pm ){
 			qglBegin( GL_POINTS );
 			for ( i = 0; i < pm->width; i++ )
 			{
-				qglVertex3fv( pm->ctrl[i][g_nPatchAxisIndex].xyz );
+                qglVertex3f_convertFloat( pm->ctrl[i][g_nPatchAxisIndex].xyz );
 			}
 			qglEnd();
 
@@ -3387,7 +3389,7 @@ void DrawPatchControls( patchMesh_t *pm ){
 				qglColor3f( 0, 0, 1 );
 				qglBegin( GL_POINTS );
 				if ( g_nPatchBendState == BEND_SELECT_ORIGIN ) {
-					qglVertex3fv( g_vBendOrigin );
+                    qglVertex3f_convertFloat( g_vBendOrigin );
 				}
 				else
 				{
@@ -3395,12 +3397,12 @@ void DrawPatchControls( patchMesh_t *pm ){
 					{
 						if ( g_bPatchLowerEdge ) {
 							for ( j = 0; j < g_nPatchAxisIndex; j++ )
-								qglVertex3fv( pm->ctrl[i][j].xyz );
+                                qglVertex3f_convertFloat( pm->ctrl[i][j].xyz );
 						}
 						else
 						{
 							for ( j = pm->height - 1; j > g_nPatchAxisIndex; j-- )
-								qglVertex3fv( pm->ctrl[i][j].xyz );
+                                qglVertex3f_convertFloat( pm->ctrl[i][j].xyz );
 						}
 					}
 				}
@@ -3413,7 +3415,7 @@ void DrawPatchControls( patchMesh_t *pm ){
 			qglBegin( GL_POINTS );
 			for ( i = 0; i < pm->height; i++ )
 			{
-				qglVertex3fv( pm->ctrl[g_nPatchAxisIndex][i].xyz );
+                qglVertex3f_convertFloat( pm->ctrl[g_nPatchAxisIndex][i].xyz );
 			}
 			qglEnd();
 
@@ -3423,18 +3425,18 @@ void DrawPatchControls( patchMesh_t *pm ){
 				for ( i = 0; i < pm->height; i++ )
 				{
 					if ( g_nPatchBendState == BEND_SELECT_ORIGIN ) {
-						qglVertex3fv( pm->ctrl[g_nBendOriginIndex][i].xyz );
+                        qglVertex3f_convertFloat( pm->ctrl[g_nBendOriginIndex][i].xyz );
 					}
 					else
 					{
 						if ( g_bPatchLowerEdge ) {
 							for ( j = 0; j < g_nPatchAxisIndex; j++ )
-								qglVertex3fv( pm->ctrl[j][i].xyz );
+                                qglVertex3f_convertFloat( pm->ctrl[j][i].xyz );
 						}
 						else
 						{
 							for ( j = pm->width - 1; j > g_nPatchAxisIndex; j-- )
-								qglVertex3fv( pm->ctrl[j][i].xyz );
+                                qglVertex3f_convertFloat( pm->ctrl[j][i].xyz );
 						}
 					}
 				}
@@ -3459,8 +3461,8 @@ void DrawPatchControls( patchMesh_t *pm ){
 			qglBegin( GL_QUAD_STRIP );
 			for ( j = 0 ; j < pm->height ; j++ )
 			{
-				qglVertex3fv( pm->ctrl[i][j].xyz );
-				qglVertex3fv( pm->ctrl[i + 1][j].xyz );
+                qglVertex3f_convertFloat( pm->ctrl[i][j].xyz );
+                qglVertex3f_convertFloat( pm->ctrl[i + 1][j].xyz );
 			}
 			qglEnd();
 		}
@@ -3487,7 +3489,7 @@ void DrawPatchControls( patchMesh_t *pm ){
 					else{
 						qglColor3f( 0, 1, 0 );
 					}
-					qglVertex3fv( pm->ctrl[i][j].xyz );
+                    qglVertex3f_convertFloat( pm->ctrl[i][j].xyz );
 				}
 			}
 		}
@@ -3497,7 +3499,7 @@ void DrawPatchControls( patchMesh_t *pm ){
 			for ( j = 0 ; j < pm->height ; j++ )
 			{
 				if ( bSelectedPoints[i][j] ) {
-					qglVertex3fv( pm->ctrl[i][j].xyz );
+                    qglVertex3f_convertFloat( pm->ctrl[i][j].xyz );
 				}
 			}
 		}
@@ -3516,7 +3518,7 @@ void DrawPatchControls( patchMesh_t *pm ){
 				else{
 					qglColor3f( 0, 1, 0 );
 				}
-				qglVertex3fv( pm->ctrl[i][j].xyz );
+                qglVertex3f_convertFloat( pm->ctrl[i][j].xyz );
 			}
 		}
 		qglEnd();

@@ -231,7 +231,7 @@ void SelectVertexByRay( vec3_t org, vec3_t dir ){
 // TTimo: NOTE: we should not have to put extern funcs like that
 //   those should be defined in qe3.h
 extern void AddPatchMovePoint( vec3_t v, bool bMulti, bool bFull );
-extern int PointInMoveList( float *pf );
+extern int PointInMoveList( vec_t *pf );
 void SelectCurvePointByRay( vec3_t org, vec3_t dir, int buttons ){
 	int i, j;
 	float d, bestd = VEC_MAX;

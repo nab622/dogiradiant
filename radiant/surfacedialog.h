@@ -31,9 +31,9 @@
 class SurfaceDlg : public Dialog {
   bool m_bPatchMode;
   // brush primitive fake shift scale rot coords
-  float m_shift[2];
-  float m_rotate;
-  float m_scale[2];
+  vec_t m_shift[2];
+  vec_t m_rotate;
+  vec_t m_scale[2];
 
 public:
   SurfaceDlg();

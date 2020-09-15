@@ -45,7 +45,7 @@ bool        performBrushMove( brush_t *b, const vec3_t move, bool bSnap, bool ap
 void        Brush_Move( brush_t *b, const vec3_t move, bool bSnap = true );
 bool        Brush_MoveVertex( brush_t *b, vec3_t vertex, vec3_t delta, vec3_t end, bool bSnap = true );
 void        Brush_ResetFaceOriginals( brush_t *b );
-face_t*     Brush_Ray( vec3_t origin, vec3_t dir, brush_t *b, float *dist, int nFlags = 0 );
+face_t*     Brush_Ray( vec3_t origin, vec3_t dir, brush_t *b, vec_t *dist, int nFlags = 0 );
 void        Brush_RemoveFromList( brush_t *b );
 // bCaulk means the faces created during the operation will be caulked, this is used in conjunction with g_PrefsDlg.m_bClipCaulk
 void        Brush_SplitBrushByFace( brush_t *in, face_t *f, brush_t **front, brush_t **back, qboolean bCaulk = false );
@@ -62,7 +62,7 @@ winding_t*  Brush_MakeFaceWinding( brush_t *b, face_t *face );
 
 void Brush_RefreshShader( brush_t *b );
 
-int         AddPlanept( float *f );
+int         AddPlanept( vec_t *f );
 float       SetShadeForPlane( plane_t *p );
 
 face_t* Face_Alloc( void );

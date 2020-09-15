@@ -666,4 +666,7 @@ struct _QERFuncTable_1
 IFileTypeRegistry* GetFileTypeRegistry();
 #endif
 
+#include "iglInterpolate.h"
+
 #endif
+

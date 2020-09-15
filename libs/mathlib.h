@@ -142,7 +142,7 @@ typedef vec_t m3x3_t[9];
 /*!NOTE
    m4x4 looks like this..
 
-                x  y  z
+                   x  y  z
    x axis        ( 0  1  2)
    y axis        ( 4  5  6)
    z axis        ( 8  9 10)

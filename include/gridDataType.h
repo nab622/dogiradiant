@@ -26,7 +26,7 @@
 
 
 // The data type used on this line will be propogated through the vectors and other precision values in the code, keeping it all uniform
-typedef float gridUnits_t;
+typedef long double gridUnits_t;
 
 
 typedef gridUnits_t vec_t;
@@ -46,3 +46,4 @@ typedef vecFloat_t vecFloat3_t[3];
 typedef vecFloat_t vecFloat4_t[4];
 typedef vecFloat_t vecFloat5_t[5];
 
+typedef vecFloat_t m4x4Float_t[16];

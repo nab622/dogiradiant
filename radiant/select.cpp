@@ -39,7 +39,7 @@ CPtrArray& g_ptrSelectedFaceBrushes = g_SelectedFaceBrushes;
 trace_t Test_Ray( vec3_t origin, vec3_t dir, int flags ){
 	brush_t *brush;
 	face_t  *face;
-	float dist;
+    vec_t dist;
 	trace_t t;
 
 	memset( &t, 0, sizeof( t ) );
@@ -1759,9 +1759,9 @@ void Select_ScaleTexture( float x, float y ) {
 		{
 			if ( g_qeglobals.m_bBrushPrimitMode ) {
 				// apply same scale as the spinner button of the surface inspector
-				float shift[2];
-				float rotate;
-				float scale[2];
+                vec_t shift[2];
+                vec_t rotate;
+                vec_t scale[2];
 				brushprimit_texdef_t bp;
 				// compute normalized texture matrix
 				ConvertTexMatWithQTexture( &f->brushprimit_texdef, f->d_texture, &bp, NULL );
@@ -1793,9 +1793,9 @@ void Select_ScaleTexture( float x, float y ) {
 			face_t *selFace = reinterpret_cast<face_t*>( g_ptrSelectedFaces.GetAt( i ) );
 			brush_t *selBrush = reinterpret_cast<brush_t*>( g_ptrSelectedFaceBrushes.GetAt( i ) );
 			if ( g_qeglobals.m_bBrushPrimitMode ) {
-				float shift[2];
-				float rotate;
-				float scale[2];
+                vec_t shift[2];
+                vec_t rotate;
+                vec_t scale[2];
 				brushprimit_texdef_t bp;
 				ConvertTexMatWithQTexture( &selFace->brushprimit_texdef, selFace->d_texture, &bp, NULL );
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
@@ -1836,9 +1836,9 @@ void Select_RotateTexture( int amt ){
 		{
             if ( g_qeglobals.m_bBrushPrimitMode ) {
 				// apply same scale as the spinner button of the surface inspector
-				float shift[2];
-				float rotate;
-				float scale[2];
+                vec_t shift[2];
+                vec_t rotate;
+                vec_t scale[2];
 				brushprimit_texdef_t bp;
 				// compute normalized texture matrix
 				ConvertTexMatWithQTexture( &f->brushprimit_texdef, f->d_texture, &bp, NULL );
@@ -1874,9 +1874,9 @@ void Select_RotateTexture( int amt ){
 			face_t *selFace = reinterpret_cast<face_t*>( g_ptrSelectedFaces.GetAt( i ) );
 			brush_t *selBrush = reinterpret_cast<brush_t*>( g_ptrSelectedFaceBrushes.GetAt( i ) );
 			if ( g_qeglobals.m_bBrushPrimitMode ) {
-				float shift[2];
-				float rotate;
-				float scale[2];
+                vec_t shift[2];
+                vec_t rotate;
+                vec_t scale[2];
 				brushprimit_texdef_t bp;
 				ConvertTexMatWithQTexture( &selFace->brushprimit_texdef, selFace->d_texture, &bp, NULL );
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );

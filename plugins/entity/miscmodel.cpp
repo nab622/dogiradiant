@@ -57,7 +57,7 @@ void CEntityMiscModel::Draw( int state, int rflags ) const {
 	// or avoid recursion of opengl matrix stack
 	g_QglTable.m_pfn_qglPushMatrix();
 	// apply the parent-to-local transform
-	g_QglTable.m_pfn_qglMultMatrixf( m_transform );
+    qglMultMatrixf_convertFloat( m_transform );
 
 	pivot_draw( m_pivot );
 

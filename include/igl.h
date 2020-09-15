@@ -26,6 +26,8 @@
 // all purpose OpenGL interface for Q3Radiant plugins
 //
 
+#pragma once
+
 #ifndef __IGL_H__
 #define __IGL_H__
 

@@ -865,7 +865,7 @@ extern void Select_Scale( float x, float y, float z );
 extern void TextureAxisFromPlane( plane_t *pln, vec3_t xv, vec3_t yv );
 extern qboolean QE_SaveProject( const char* pProjectFile );
 extern void RunTools( char* pCommandLine, GtkWidget* hwnd, const char* pPAKFile );
-extern void Clamp( float& f, int nClamp );
+extern void Clamp( vec_t& f, int nClamp );
 extern void MemFile_fprintf( MemStream* pMemFile, const char* pText, ... );
 extern qboolean ConfirmModified( void );
 extern void DoPatchInspector();

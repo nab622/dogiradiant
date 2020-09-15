@@ -905,7 +905,7 @@ void CamWnd::ProjectCamera( const vec3_t A, vec_t B[2] ){
 //     depending on the situation, we might bump into precision issues with that
 //   2) possible to compute the projected direction independently?
 //     this solution would be better but right now I don't see how to do it..
-void CamWnd::MatchViewAxes( const vec3_t P, const vec3_t vec, int &axis, float &sgn ){
+void CamWnd::MatchViewAxes( const vec3_t P, const vec3_t vec, int &axis, vec_t &sgn ){
 
 	vec_t A[2],B[2],V[2];
 	ProjectCamera( P,A );
@@ -1395,7 +1395,8 @@ void CamWnd::Cam_Draw(){
     qgluPerspective( yfov,  screenaspect,  8,  g_PrefsDlg.m_nRenderDistance );
 
 	// we're too lazy to calc projection matrix ourselves!!!
-	qglGetFloatv( GL_PROJECTION_MATRIX, &m_Camera.projection[0][0] );
+    float temp = (float) m_Camera.projection[0][0];
+    qglGetFloatv( GL_PROJECTION_MATRIX, &temp );
 
 	vec3_t vec;
 
@@ -1416,7 +1417,8 @@ void CamWnd::Cam_Draw(){
 	qglMatrixMode( GL_MODELVIEW );
 	qglLoadIdentity();
 
-	qglMultMatrixf( &m_Camera.modelview[0][0] );
+    float temp2 = (float) m_Camera.modelview[0][0];
+    qglMultMatrixf( &temp2 );
 
 	// grab the GL_PROJECTION and GL_MODELVIEW matrixes
 	//   used in GetRelativeAxes

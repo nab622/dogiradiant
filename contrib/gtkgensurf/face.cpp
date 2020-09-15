@@ -61,7 +61,7 @@ void VectorMA( vec3 va, vec scale, vec3 vb, vec3 vc ){
 	vc[2] = va[2] + scale * vb[2];
 }
 
-void CrossProduct( vec3 v1, vec3 v2, vec3 cross ){
+void genSurfCrossProduct( vec3 v1, vec3 v2, vec3 cross ){
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
 	cross[2] = v1[0] * v2[1] - v1[1] * v2[0];
@@ -144,7 +144,7 @@ MY_WINDING *BaseWindingForPlane( vec3 normal, vec dist ){
 
 	VectorScale( normal, dist, org );
 
-	CrossProduct( vup, normal, vright );
+    genSurfCrossProduct( vup, normal, vright );
 
 	VectorScale( vup, 65536, vup );
 	VectorScale( vright, 65536, vright );

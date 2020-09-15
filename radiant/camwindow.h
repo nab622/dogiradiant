@@ -93,7 +93,7 @@ GdkGC* m_gc;
 class CamWnd : public GLWindow
 {
 public:
-void MatchViewAxes( const vec3_t P, const vec3_t vec, int &axis, float &sgn );
+void MatchViewAxes( const vec3_t P, const vec3_t vec, int &axis, vec_t &sgn );
 void ReInitGL();
 void BenchMark();
 CamWnd();

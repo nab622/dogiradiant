@@ -88,24 +88,24 @@ void pivot_draw( const vec3_t pivot ){
 	g_QglTable.m_pfn_qglPointSize( 4 );
 
 	g_QglTable.m_pfn_qglBegin( GL_POINTS );
-	g_QglTable.m_pfn_qglVertex3fv( vCenter );
+    qglVertex3f_convertFloat( vCenter );
 	g_QglTable.m_pfn_qglEnd();
 
 	g_QglTable.m_pfn_qglBegin( GL_LINES );
 	vCenter[0] -= 8;
-	g_QglTable.m_pfn_qglVertex3fv( vCenter );
+    qglVertex3f_convertFloat( vCenter );
 	vCenter[0] += 16;
-	g_QglTable.m_pfn_qglVertex3fv( vCenter );
+    qglVertex3f_convertFloat( vCenter );
 	vCenter[0] -= 8;
 	vCenter[1] -= 8;
-	g_QglTable.m_pfn_qglVertex3fv( vCenter );
+    qglVertex3f_convertFloat( vCenter );
 	vCenter[1] += 16;
-	g_QglTable.m_pfn_qglVertex3fv( vCenter );
+    qglVertex3f_convertFloat( vCenter );
 	vCenter[1] -= 8;
 	vCenter[2] -= 8;
-	g_QglTable.m_pfn_qglVertex3fv( vCenter );
+    qglVertex3f_convertFloat( vCenter );
 	vCenter[2] += 16;
-	g_QglTable.m_pfn_qglVertex3fv( vCenter );
+    qglVertex3f_convertFloat( vCenter );
 	vCenter[2] -= 8;
 	g_QglTable.m_pfn_qglEnd();
 

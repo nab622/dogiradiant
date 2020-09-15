@@ -58,7 +58,7 @@ void CPointfile::GenerateDisplayList(){
 	for ( i = 0; i < s_num_points; i++ )
 	{
 		if ( s_num_points < MAX_POINTFILE ) {
-			qglVertex3fv( s_pointvecs[i] );
+            qglVertex3f_convertFloat( s_pointvecs[i] );
 		}
 	}
 	qglEnd();
@@ -197,7 +197,7 @@ void Pointfile_Draw( void ){
 		for ( i = 0; i < s_num_points; i++ )
 		{
 			if ( s_num_points < MAX_POINTFILE ) {
-				qglVertex3fv( s_pointvecs[i] );
+                qglVertex3f_convertFloat( s_pointvecs[i] );
 			}
 		}
 		qglEnd();

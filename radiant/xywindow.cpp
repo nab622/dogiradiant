@@ -31,6 +31,8 @@
 #include <assert.h>
 #include <GL/gl.h>
 
+#include "iglInterpolate.h"
+
 // =============================================================================
 // variables
 
@@ -332,8 +334,8 @@ void DrawPathLines( void ){
 			qglColor3f( se->eclass->color[0], se->eclass->color[1], se->eclass->color[2] );
 
 			qglBegin( GL_LINES );
-			qglVertex3fv( mid );
-			qglVertex3fv( mid1 );
+            qglVertex3f_convertFloat( mid );
+            qglVertex3f_convertFloat( mid1 );
 
 			arrows = (int)( len / 256 ) + 1;
 
@@ -343,9 +345,9 @@ void DrawPathLines( void ){
 
 				for ( j = 0 ; j < 3 ; j++ )
 					mid1[j] = mid[j] + f * dir[j];
-				qglVertex3fv( mid1 );
+                qglVertex3f_convertFloat( mid1 );
 				qglVertex3f( mid1[0] + s1[0], mid1[1] + s1[1], mid1[2] );
-				qglVertex3fv( mid1 );
+                qglVertex3f_convertFloat( mid1 );
 				qglVertex3f( mid1[0] + s2[0], mid1[1] + s2[1], mid1[2] );
 			}
 
@@ -2483,7 +2485,7 @@ void XYWnd::XY_DrawGrid(){
 
     // draw coordinate text if needed
 	if ( g_qeglobals.d_savedinfo.show_coordinates ) {
-		qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_GRIDTEXT] );
+        qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_GRIDTEXT] );
 
 		// Pixels between top of label for vertical grid line and top of grid view window.
 		// Note: There is currently a bug where the top few pixels of the grid view are hidden
@@ -2561,7 +2563,7 @@ void XYWnd::XY_DrawGrid(){
 		}
 
 		if ( Active() ) {
-			qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_VIEWNAME] );
+            qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_VIEWNAME] );
 		}
 
 		// We do this part (the old way) only if show_axis is disabled
@@ -2590,12 +2592,12 @@ void XYWnd::XY_DrawGrid(){
 		qglLineWidth( 2 );
 		
 		qglBegin( GL_LINES );
-		qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim1] );
+        g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim1] );
 		qglVertex2f( m_vOrigin[nDim1] - w + 40 / m_fScale, m_vOrigin[nDim2] + h - 45 / m_fScale );
 		qglVertex2f( m_vOrigin[nDim1] - w + 65 / m_fScale, m_vOrigin[nDim2] + h - 45 / m_fScale );
 		qglVertex2f( 0, 0 );
 		qglVertex2f( 32 / m_fScale, 0 );
-		qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim2] );
+        g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim2] );
 		qglVertex2f( m_vOrigin[nDim1] - w + 40 / m_fScale, m_vOrigin[nDim2] + h - 45 / m_fScale );
 		qglVertex2f( m_vOrigin[nDim1] - w + 40 / m_fScale, m_vOrigin[nDim2] + h - 20 / m_fScale );
 		qglVertex2f( 0, 0 );
@@ -2605,13 +2607,13 @@ void XYWnd::XY_DrawGrid(){
 		qglLineWidth( 1 );
 
 		// Now print axis symbols
-		qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim1] );
+        g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim1] );
 		qglRasterPos2f( m_vOrigin[nDim1] - w + 57 / m_fScale, m_vOrigin[nDim2] + h - 60 / m_fScale );
 		gtk_glwidget_print_char( g_AxisName[nDim1] );
 		qglRasterPos2f( 25 / m_fScale, -15 / m_fScale );
 		gtk_glwidget_print_char( g_AxisName[nDim1] );
 
-		qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim2] );
+        g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim2] );
 		qglRasterPos2f( m_vOrigin[nDim1] - w + 30 / m_fScale, m_vOrigin[nDim2] + h - 30 / m_fScale );
 		gtk_glwidget_print_char( g_AxisName[nDim2] );
 		qglRasterPos2f( -10 / m_fScale, 20 / m_fScale );
@@ -2693,7 +2695,7 @@ void XYWnd::XY_DrawBlockGrid(){
 
 	// draw major blocks
 
-	qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_GRIDBLOCK] );
+    qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_GRIDBLOCK] );
 	qglLineWidth( 2 );
 
 	qglBegin( GL_LINES );
@@ -3142,15 +3144,15 @@ void XYWnd::XY_Draw(){
 		drawn++;
 
 		if ( brush->owner != e && brush->owner ) {
-			qglColor3fv( brush->owner->eclass->color );
+            qglColor3f_convertFloat( brush->owner->eclass->color );
         }
 		else if ( brush->brush_faces->texdef.contents & CONTENTS_DETAIL )
 		{
-			qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_DETAIL] );
+            qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_DETAIL] );
 		}
 		else
 		{
-			qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_BRUSHES] );
+            qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_BRUSHES] );
 		}
 
 #ifdef DBG_SCENEDUMP
@@ -3189,7 +3191,7 @@ void XYWnd::XY_Draw(){
 		qglColor3f( 0.1f, 0.8f, 0.1f );
 	}
 	else{
-		qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES] );
+        qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES] );
 	}
 
 
@@ -3259,7 +3261,7 @@ void XYWnd::XY_Draw(){
 		qglColor3f( 0,1,0 );
 		qglBegin( GL_POINTS );
 		for ( i = 0 ; i < g_qeglobals.d_numpoints ; i++ )
-			qglVertex3fv( g_qeglobals.d_points[i] );
+            qglVertex3f_convertFloat( g_qeglobals.d_points[i] );
 		qglEnd();
 
 		if ( g_qeglobals.d_num_move_points ) {
@@ -3268,13 +3270,13 @@ void XYWnd::XY_Draw(){
 			qglColor3f( 0,0,1 );
 			qglBegin( GL_POINTS );
 			for ( i = 0; i < g_qeglobals.d_num_move_points; i++ )
-				qglVertex3fv( g_qeglobals.d_move_points[i] );
+                qglVertex3f_convertFloat( g_qeglobals.d_move_points[i] );
 			qglEnd();
 		}
 		qglPointSize( 1 );
 	}
 	else if ( g_qeglobals.d_select_mode == sel_edge ) {
-		float   *v1, *v2;
+        vec_t   *v1, *v2;
 		qglPointSize( 4 );
 		qglColor3f( 0,0,1 );
 		qglBegin( GL_POINTS );
@@ -3331,10 +3333,10 @@ void XYWnd::XY_Draw(){
 
 			// four view mode doesn't colorize
 			if ( g_pParentWnd->CurrentStyle() == MainFrame::eSplit ) {
-				qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_VIEWNAME] );
+                qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_VIEWNAME] );
 			}
 			else{
-				qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[m_nViewType] );
+                g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[m_nViewType] );
 			}
 			qglBegin( GL_LINE_LOOP );
 			qglVertex2i( 0, 0 );
@@ -3451,13 +3453,13 @@ void XYWnd::OnExpose(){
 		if ( ClipMode() ) {
 			// Draw clip points
 			if ( g_Clip1.Set() ) {
-				g_Clip1.Draw( m_fScale, 1 ); // qglVertex3fv (g_Clip1);
+                g_Clip1.Draw( m_fScale, 1 ); // qglVertex3f_convertFloat (g_Clip1);
 			}
 			if ( g_Clip2.Set() ) {
-				g_Clip2.Draw( m_fScale, 2 ); // qglVertex3fv (g_Clip2);
+                g_Clip2.Draw( m_fScale, 2 ); // qglVertex3f_convertFloat (g_Clip2);
 			}
 			if ( g_Clip3.Set() ) {
-				g_Clip3.Draw( m_fScale, 3 ); // qglVertex3fv (g_Clip3);
+                g_Clip3.Draw( m_fScale, 3 ); // qglVertex3f_convertFloat (g_Clip3);
 			}
 			if ( g_Clip1.Set() && g_Clip2.Set() ) {
 				ProduceSplitLists();
@@ -3477,7 +3479,7 @@ void XYWnd::OnExpose(){
 						// draw the polygon
 						qglBegin( GL_LINE_LOOP );
 						for ( int i = 0 ; i < w->numpoints ; i++ )
-							qglVertex3fv( w->points[i] );
+                            qglVertex3f_convertFloat( w->points[i] );
 						qglEnd();
 					}
 				}
@@ -3487,7 +3489,7 @@ void XYWnd::OnExpose(){
 		if ( PathMode() ) {
 			int n;
 			for ( n = 0; n < g_nPathCount; n++ )
-				g_PathPoints[n].Draw( m_fScale, n + 1 );  // qglVertex3fv(g_PathPoints[n]);
+                g_PathPoints[n].Draw( m_fScale, n + 1 );  // qglVertex3f_convertFloat(g_PathPoints[n]);
 		}
 		if ( m_nViewType != XY ) {
 			qglPopMatrix();
@@ -3569,9 +3571,9 @@ void ClipPoint::Draw( float fScale, int num ){
 void ClipPoint::Draw( float fScale, const char *label ){
 	// draw point
 	qglPointSize( 4 );
-	qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_CLIPPER] );
+    qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_CLIPPER] );
 	qglBegin( GL_POINTS );
-	qglVertex3fv( m_ptClip );
+    qglVertex3f_convertFloat( m_ptClip );
 	qglEnd();
 	qglPointSize( 1 );
 
