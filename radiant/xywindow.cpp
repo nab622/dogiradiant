@@ -2592,12 +2592,12 @@ void XYWnd::XY_DrawGrid(){
 		qglLineWidth( 2 );
 		
 		qglBegin( GL_LINES );
-        g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim1] );
+        qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim1] );
 		qglVertex2f( m_vOrigin[nDim1] - w + 40 / m_fScale, m_vOrigin[nDim2] + h - 45 / m_fScale );
 		qglVertex2f( m_vOrigin[nDim1] - w + 65 / m_fScale, m_vOrigin[nDim2] + h - 45 / m_fScale );
 		qglVertex2f( 0, 0 );
 		qglVertex2f( 32 / m_fScale, 0 );
-        g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim2] );
+        qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim2] );
 		qglVertex2f( m_vOrigin[nDim1] - w + 40 / m_fScale, m_vOrigin[nDim2] + h - 45 / m_fScale );
 		qglVertex2f( m_vOrigin[nDim1] - w + 40 / m_fScale, m_vOrigin[nDim2] + h - 20 / m_fScale );
 		qglVertex2f( 0, 0 );
@@ -2607,13 +2607,13 @@ void XYWnd::XY_DrawGrid(){
 		qglLineWidth( 1 );
 
 		// Now print axis symbols
-        g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim1] );
+        qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim1] );
 		qglRasterPos2f( m_vOrigin[nDim1] - w + 57 / m_fScale, m_vOrigin[nDim2] + h - 60 / m_fScale );
 		gtk_glwidget_print_char( g_AxisName[nDim1] );
 		qglRasterPos2f( 25 / m_fScale, -15 / m_fScale );
 		gtk_glwidget_print_char( g_AxisName[nDim1] );
 
-        g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim2] );
+        qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[nDim2] );
 		qglRasterPos2f( m_vOrigin[nDim1] - w + 30 / m_fScale, m_vOrigin[nDim2] + h - 30 / m_fScale );
 		gtk_glwidget_print_char( g_AxisName[nDim2] );
 		qglRasterPos2f( -10 / m_fScale, 20 / m_fScale );
@@ -3336,7 +3336,7 @@ void XYWnd::XY_Draw(){
                 qglColor3fv( g_qeglobals.d_savedinfo.colors[COLOR_VIEWNAME] );
 			}
 			else{
-                g_QglTable.m_pfn_qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[m_nViewType] );
+                qglColor3fv( g_qeglobals.d_savedinfo.AxisColors[m_nViewType] );
 			}
 			qglBegin( GL_LINE_LOOP );
 			qglVertex2i( 0, 0 );

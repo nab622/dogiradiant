@@ -53,6 +53,8 @@ extern _QERBrushTable __BRUSHTABLENAME;
 extern _QERUndoTable __UNDOTABLENAME;
 extern _EClassManagerTable __ECLASSMANAGERTABLENAME;
 
+#include "iglInterpolatePlugin.h"
+
 #define Error g_FuncTable.m_pfnError
 
 #endif // _PLUGIN_H_

@@ -54,11 +54,11 @@ bool areWeOutOfBounds( vec3_t inputVectors ) {
     return false;
 }
 
-float clampBoundaries( float input ) {
+vec_t clampBoundaries( vec_t input ) {
     return CLAMP( input, g_MinWorldCoord, g_MaxWorldCoord );
 }
 
-float clampCameraBoundaries( float input ) {
+vec_t clampCameraBoundaries( vec_t input ) {
     // NAB622: This cushion multiplier will allow the camera outside the grid, just slightly
     float cushion = 1.015;
     return CLAMP( input, g_MinWorldCoord * cushion, g_MaxWorldCoord * cushion );

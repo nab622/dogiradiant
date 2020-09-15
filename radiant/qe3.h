@@ -75,8 +75,6 @@ void debug_free( void *buf, const char* file, int line );
 void CheckWatchit( char *msg );
 #endif
 
-#include "globalDefines.h"
-
 // synapse is our utility lib for dynamic shared objects management
 #include "synapse.h"
 

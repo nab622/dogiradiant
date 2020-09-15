@@ -27,7 +27,7 @@ int         Plane_Equal( plane_t *a, plane_t *b, int flip );
 //returns false if the points are colinear
 int         Plane_FromPoints( vec3_t p1, vec3_t p2, vec3_t p3, plane_t *plane );
 //returns true if the points are equal
-int         Point_Equal( vec3_t p1, vec3_t p2, float epsilon );
+int         Point_Equal( vec3_t p1, vec3_t p2, vec_t epsilon );
 
 //allocate a winding
 winding_t*  Winding_Alloc( int points );

@@ -1035,7 +1035,7 @@ void MakeBrushes( int NumTris, NODE *Node, TRI *Tri,bool surf,
 		if ( CheckAngle ) {
 			XYZVectorSubtract( brush.face[0].v[2],brush.face[0].v[0],t[0] );
 			XYZVectorSubtract( brush.face[0].v[1],brush.face[0].v[2],t[1] );
-			CrossProduct( t[0],t[1],SurfNormal );
+            genSurfCrossProduct( t[0],t[1],SurfNormal );
 			VectorNormalize( SurfNormal,SurfNormal );
 			if ( DotProduct( SurfNormal,PlaneNormal ) < Steep ) {
 				strcpy( brush.face[0].texture,texture2 );

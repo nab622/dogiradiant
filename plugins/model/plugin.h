@@ -49,6 +49,8 @@ extern _QERQglTable g_QglTable;
 extern _QERShadersTable g_ShadersTable;
 extern _QERFileSystemTable g_FileSystemTable;
 
+#include "iglInterpolatePlugin.h"
+
 #define vfsLoadFile g_FileSystemTable.m_pfnLoadFile
 #define vfsFreeFile g_FileSystemTable.m_pfnFreeFile
 #define vfsBasePromptPath g_FileSystemTable.m_pfnBasePromptPath

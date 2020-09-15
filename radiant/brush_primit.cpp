@@ -216,7 +216,7 @@ void TexMatToFakeTexCoords( vec_t texMat[2][3], vec_t shift[2], vec_t *rot, vec_
 
 // compute back the texture matrix from fake shift scale rot
 // the matrix returned must be understood as a qtexture_t with width=2 height=2 ( the default one )
-void FakeTexCoordsToTexMat( float shift[2], float rot, float scale[2], vec_t texMat[2][3] ){
+void FakeTexCoordsToTexMat( vec_t shift[2], vec_t rot, vec_t scale[2], vec_t texMat[2][3] ){
 	texMat[0][0] = scale[0] * 1.0L * cos( DEG2RAD( 1.0L * rot ) );
 	texMat[1][0] = scale[0] * 1.0L * sin( DEG2RAD( 1.0L * rot ) );
 	texMat[0][1] = -scale[1] * 1.0L * sin( DEG2RAD( 1.0L * rot ) );
@@ -279,7 +279,7 @@ void ShiftTextureGeometric_BrushPrimit( face_t *f, vec3_t delta ){
 // shift a texture (texture adjustments) along it's current texture axes
 // x and y are geometric values, which we must compute as ST increments
 // this depends on the texture size and the pixel/texel ratio
-void ShiftTextureRelative_BrushPrimit( face_t *f, float x, float y ){
+void ShiftTextureRelative_BrushPrimit( face_t *f, vec_t x, vec_t y ){
 	float s,t;
 	// as a ratio against texture size
 	// the scale of the texture is not relevant here (we work directly on a transformation from the base vectors)
@@ -321,7 +321,7 @@ void ComputeBest2DVector( vec3_t v, vec3_t X, vec3_t Y, int &x, int &y ){
 // can be improved .. bug #107311
 // mins and maxs are the face bounding box
 //++timo fixme: we use the face info, mins and maxs are irrelevant
-void Face_FitTexture_BrushPrimit( face_t *f, vec3_t mins, vec3_t maxs, float nHeight, float nWidth ){
+void Face_FitTexture_BrushPrimit( face_t *f, vec3_t mins, vec3_t maxs, vec_t nHeight, vec_t nWidth ){
 	vec3_t BBoxSTMin, BBoxSTMax;
 	winding_t *w;
 	int i,j;
@@ -520,7 +520,7 @@ void TextureLockTransformation_BrushPrimit( face_t *f ){
 
 // texture locking
 // called before the points on the face are actually rotated
-void RotateFaceTexture_BrushPrimit( face_t *f, int nAxis, float fDeg, vec3_t vOrigin ){
+void RotateFaceTexture_BrushPrimit( face_t *f, int nAxis, vec_t fDeg, vec3_t vOrigin ){
 	// this is a placeholder to call the general texture locking algorithm
 	txlock_bRotation = true;
 	txl_nAxis = nAxis;

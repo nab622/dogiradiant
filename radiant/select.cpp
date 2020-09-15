@@ -24,6 +24,8 @@
 #include <assert.h>
 #include "filters.h"
 
+#include "iglInterpolate.h"
+
 // externs
 CPtrArray g_SelectedFaces;
 CPtrArray g_SelectedFaceBrushes;

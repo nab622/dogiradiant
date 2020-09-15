@@ -21,6 +21,8 @@
 
 #include "stdafx.h"
 
+#include "iglInterpolate.h"
+
 #define MAX_POINTFILE   8192
 static vec3_t s_pointvecs[MAX_POINTFILE];
 static int s_num_points, s_check_point;

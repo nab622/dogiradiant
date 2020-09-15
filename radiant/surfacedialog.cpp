@@ -44,6 +44,8 @@
 #include "surfacedialog.h"
 #include <glib/gi18n.h>
 
+#include "iglInterpolate.h"
+
 SurfaceDlg g_dlgSurface;
 
 /////////////////////////////////////////////////////////////////////////////

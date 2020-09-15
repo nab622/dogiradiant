@@ -418,7 +418,7 @@ void MapBrushes(){
 			if ( CheckAngle && ( Plane == PLANE_XZ0 || Plane == PLANE_XZ1 ) ) {
 				XYZVectorSubtract( v[4].p,v[3].p,t[0] );
 				XYZVectorSubtract( v[5].p,v[4].p,t[1] );
-				CrossProduct( t[0],t[1],SurfNormal );
+                genSurfCrossProduct( t[0],t[1],SurfNormal );
 				VectorNormalize( SurfNormal,SurfNormal );
 				if ( DotProduct( SurfNormal,PlaneNormal ) < Steep ) {
 					strcpy( surft,surftext2 );
@@ -453,7 +453,7 @@ void MapBrushes(){
 			if ( CheckAngle && Plane != PLANE_XZ0 && Plane != PLANE_XZ1 ) {
 				XYZVectorSubtract( v[2].p,v[0].p,t[0] );
 				XYZVectorSubtract( v[1].p,v[2].p,t[1] );
-				CrossProduct( t[0],t[1],SurfNormal );
+                genSurfCrossProduct( t[0],t[1],SurfNormal );
 				VectorNormalize( SurfNormal,SurfNormal );
 				if ( DotProduct( SurfNormal,PlaneNormal ) < Steep ) {
 					strcpy( surft,surftext2 );
@@ -586,7 +586,7 @@ void MapBrushes(){
 			if ( CheckAngle && ( Plane == PLANE_XZ0 || Plane == PLANE_XZ1 ) ) {
 				XYZVectorSubtract( v[4].p,v[3].p,t[0] );
 				XYZVectorSubtract( v[5].p,v[4].p,t[1] );
-				CrossProduct( t[0],t[1],SurfNormal );
+                genSurfCrossProduct( t[0],t[1],SurfNormal );
 				VectorNormalize( SurfNormal,SurfNormal );
 				if ( DotProduct( SurfNormal,PlaneNormal ) < Steep ) {
 					strcpy( surft,surftext2 );
@@ -620,7 +620,7 @@ void MapBrushes(){
 			if ( CheckAngle && Plane != PLANE_XZ0 && Plane != PLANE_XZ1 ) {
 				XYZVectorSubtract( v[2].p,v[0].p,t[0] );
 				XYZVectorSubtract( v[1].p,v[2].p,t[1] );
-				CrossProduct( t[0],t[1],SurfNormal );
+                genSurfCrossProduct( t[0],t[1],SurfNormal );
 				VectorNormalize( SurfNormal,SurfNormal );
 				if ( DotProduct( SurfNormal,PlaneNormal ) < Steep ) {
 					strcpy( surft,surftext2 );
