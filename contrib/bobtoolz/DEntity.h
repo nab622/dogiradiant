@@ -53,7 +53,7 @@ DEPair* FindEPairByKey( const char* keyname );
 //	---------------------------------------------
 
 //	random functions........
-bool ResetTextures( const char* textureName, float fScale[2], float fShift[2], int rotation, const char* newTextureName, int bResetTextureName, int bResetScale[2], int bResetShift[2], int bResetRotation, bool rebuild );
+bool ResetTextures( const char* textureName, vec_t fScale[2], vec_t fShift[2], vec_t rotation, const char* newTextureName, int bResetTextureName, int bResetScale[2], int bResetShift[2], int bResetRotation, bool rebuild );
 void SaveToFile( FILE* pFile );
 void SetClassname( const char* classname );
 int GetIDMax();

@@ -204,7 +204,7 @@ static void RadClipWindingEpsilon( radWinding_t *in, vec3_t normal, vec_t dist,
  */
 
 qboolean RadSampleImage( byte *pixels, int width, int height, float st[ 2 ], float color[ 4 ] ){
-	float sto[ 2 ];
+    float sto[ 2 ];
 	int x, y;
 
 

@@ -421,8 +421,8 @@ void Map_ImportEntities( CPtrArray *ents, bool bAddSelected = false ){
 			vec3_t mins, maxs;
 			VectorAdd( e->eclass->mins, e->origin, mins );
 			VectorAdd( e->eclass->maxs, e->origin, maxs );
-			b = Brush_Create( mins, maxs, &e->eclass->texdef );
-			Entity_LinkBrush( e, b );
+            b = Brush_Create( mins, maxs, &e->eclass->texdef );
+            Entity_LinkBrush( e, b );
 			Brush_Build( b );
 		}
 

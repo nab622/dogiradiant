@@ -125,10 +125,10 @@ void CamWnd::OnSize( int cx, int cy ){
 }
 
 rectangle_t rectangle_from_area_cam(){
-	const float left = MIN( g_qeglobals.d_vAreaTL[0], g_qeglobals.d_vAreaBR[0] );
-	const float top = MAX( g_qeglobals.d_vAreaTL[1], g_qeglobals.d_vAreaBR[1] );
-	const float right = MAX( g_qeglobals.d_vAreaTL[0], g_qeglobals.d_vAreaBR[0] );
-	const float bottom = MIN( g_qeglobals.d_vAreaTL[1], g_qeglobals.d_vAreaBR[1] );
+    const vec_t left = MIN( g_qeglobals.d_vAreaTL[0], g_qeglobals.d_vAreaBR[0] );
+    const vec_t top = MAX( g_qeglobals.d_vAreaTL[1], g_qeglobals.d_vAreaBR[1] );
+    const vec_t right = MAX( g_qeglobals.d_vAreaTL[0], g_qeglobals.d_vAreaBR[0] );
+    const vec_t bottom = MIN( g_qeglobals.d_vAreaTL[1], g_qeglobals.d_vAreaBR[1] );
 	return rectangle_t( left, bottom, right - left, top - bottom );
 }
 
@@ -176,7 +176,7 @@ int CamWnd::calculateSpeed() {
 */
 
     // NAB622: Camera speed is now tied to grid size for easier movement
-    int min = 2;
+    int min = 1;
     int max = 2048;
 
     float newSpeed = g_qeglobals.d_gridsize;
@@ -448,7 +448,7 @@ void CamWnd::Cam_MouseControl( float dtime ){
 	{
 		int xl, xh;
 		int yl, yh;
-		float xf, yf;
+        vec_t xf, yf;
 
 		if ( g_PrefsDlg.m_nMouseButtons == 2 ) {
 			if ( m_nCambuttonstate != ( MK_RBUTTON | MK_SHIFT ) ) {
@@ -462,8 +462,8 @@ void CamWnd::Cam_MouseControl( float dtime ){
 			}
 		}
 
-        xf = (float)( m_ptButtonX - m_Camera.width / 2 ) / ( m_Camera.width / 2 );
-		yf = (float)( m_ptButtonY - m_Camera.height / 2 ) / ( m_Camera.height / 2 );
+        xf = (vec_t)( m_ptButtonX - m_Camera.width / 2 ) / ( m_Camera.width / 2 );
+        yf = (vec_t)( m_ptButtonY - m_Camera.height / 2 ) / ( m_Camera.height / 2 );
 
 		xl = m_Camera.width / 3;
 		xh = xl * 2;
@@ -627,15 +627,15 @@ void CamWnd::ToggleFreeMove(){
 
 void CamWnd::Cam_MouseDown( int x, int y, int buttons ){
 	vec3_t dir;
-	float f, r, u;
+    vec_t f, r, u;
 	int i;
 
 
 	//
 	// calc ray direction
 	//
-	u = (float)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
-	r = (float)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
+    u = (vec_t)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
+    r = (vec_t)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
 	f = 1;
 
 	for ( i = 0 ; i < 3 ; i++ )
@@ -720,14 +720,14 @@ void CamWnd::Cam_MouseMoved( int x, int y, int buttons ){
 
 			if ( bDoDragMultiSelect ) {
 				vec3_t dir;
-				float f, r, u;
+                vec_t f, r, u;
 				int i;
 
 				//
 				// calc ray direction
 				//
-				u = (float)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
-				r = (float)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
+                u = (vec_t)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
+                r = (vec_t)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
 				f = 1;
 
 				for ( i = 0 ; i < 3 ; i++ )
@@ -753,14 +753,14 @@ void CamWnd::Cam_MouseMoved( int x, int y, int buttons ){
 		else if ( g_qeglobals.d_select_mode == sel_facets_on || g_qeglobals.d_select_mode == sel_facets_off ) {
 			if ( buttons == ( MK_LBUTTON | MK_CONTROL | MK_SHIFT ) ) {
 				vec3_t dir;
-				float f, r, u;
+                vec_t f, r, u;
 				int i;
 
 				//
 				// calc ray direction
 				//
-				u = (float)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
-				r = (float)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
+                u = (vec_t)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
+                r = (vec_t)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
 				f = 1;
 
 				for ( i = 0 ; i < 3 ; i++ )
@@ -830,7 +830,7 @@ void CamWnd::InitCull(){
 qboolean CamWnd::CullBrush( brush_t *b ){
 	int i;
 	vec3_t point;
-	float d;
+    float d;
 
 	if ( g_PrefsDlg.m_bCubicClipping ) {
         float fLevel = g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement;
@@ -885,8 +885,8 @@ void CamWnd::ProjectCamera( const vec3_t A, vec_t B[2] ){
 	GLMatMul( m_Camera.projection, P2, P3 );
 
 	// we ASSUME that the view port is 0 0 m_Camera.width m_Camera.height (you can check in Cam_Draw)
-	B[0] = (float)m_Camera.width  * ( P3[0] + 1.0 ) / 2.0;
-	B[1] = (float)m_Camera.height * ( P3[1] + 1.0 ) / 2.0;
+    B[0] = (vec_t)m_Camera.width  * ( P3[0] + 1.0 ) / 2.0;
+    B[1] = (vec_t)m_Camera.height * ( P3[1] + 1.0 ) / 2.0;
 
 }
 

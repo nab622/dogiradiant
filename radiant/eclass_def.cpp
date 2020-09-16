@@ -143,7 +143,7 @@ eclass_t *Eclass_InitFromText( char *text ){
 	debugname = e->name;
 
 	// grab the color, reformat as texture name
-	r = sscanf( text," (%f %f %f)", &e->color[0], &e->color[1], &e->color[2] );
+    r = sscanf( text," (%lf %lf %lf)", &e->color[0], &e->color[1], &e->color[2] );
 	if ( r != 3 ) {
 		return e;
 	}
@@ -165,7 +165,7 @@ eclass_t *Eclass_InitFromText( char *text ){
 	if ( Get_COM_Token()[0] == '(' ) { // parse the size as two vectors
                 text = t;
 		e->fixedsize = true;
-		r = sscanf( text,"%f %f %f) (%f %f %f)", &e->mins[0], &e->mins[1], &e->mins[2],
+        r = sscanf( text,"%lf %lf %lf) (%lf %lf %lf)", &e->mins[0], &e->mins[1], &e->mins[2],
 					&e->maxs[0], &e->maxs[1], &e->maxs[2] );
 		if ( r != 6 ) {
 			return e;

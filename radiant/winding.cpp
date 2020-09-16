@@ -174,7 +174,7 @@ winding_t *Winding_BaseForPlane( plane_t *p ){
 }
 
 // macro to compute winding size
-#define WINDING_SIZE( pt ) ( sizeof( int )*2 + sizeof( float )*5*( pt ) )
+#define WINDING_SIZE( pt ) ( sizeof( int )*2 + sizeof( vec_t )*5*( pt ) )
 
 /*
    ==================

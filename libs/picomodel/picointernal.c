@@ -1022,26 +1022,46 @@ int _pico_parse_int_def( picoParser_t *p, int *out, int def ){
 }
 
 int _pico_parse_float( picoParser_t *p, float *out ){
-	char *token;
+    char *token;
 
-	/* sanity checks */
-	if ( p == NULL || out == NULL ) {
-		return 0;
-	}
+    /* sanity checks */
+    if ( p == NULL || out == NULL ) {
+        return 0;
+    }
 
-	/* get token and turn it into a float */
-	*out = 0.0f;
-	token = _pico_parse( p,0 );
-	if ( token == NULL ) {
-		return 0;
-	}
-	*out = (float) atof( token );
+    /* get token and turn it into a float */
+    *out = 0.0f;
+    token = _pico_parse( p,0 );
+    if ( token == NULL ) {
+        return 0;
+    }
+    *out = (float) atof( token );
 
-	/* success */
-	return 1;
+    /* success */
+    return 1;
 }
 
-int _pico_parse_float_def( picoParser_t *p, float *out, float def ){
+int _pico_parse_vec_t( picoParser_t *p, vec_t *out ){
+    char *token;
+
+    /* sanity checks */
+    if ( p == NULL || out == NULL ) {
+        return 0;
+    }
+
+    /* get token and turn it into a float */
+    *out = 0.0f;
+    token = _pico_parse( p,0 );
+    if ( token == NULL ) {
+        return 0;
+    }
+    *out = (vec_t) atof( token );
+
+    /* success */
+    return 1;
+}
+
+int _pico_parse_vec_t_def( picoParser_t *p, vec_t *out, vec_t def ){
 	char *token;
 
 	/* sanity checks */
@@ -1055,7 +1075,7 @@ int _pico_parse_float_def( picoParser_t *p, float *out, float def ){
 	if ( token == NULL ) {
 		return 0;
 	}
-	*out = (float) atof( token );
+    *out = (vec_t) atof( token );
 
 	/* success */
 	return 1;

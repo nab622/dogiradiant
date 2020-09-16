@@ -283,9 +283,9 @@ struct _QERFaceData
 	int m_nContents;
 	int m_nFlags;
 	int m_nValue;
-	float m_fShift[2];
-	float m_fRotate;
-	float m_fScale[2];
+    vec_t m_fShift[2];
+    vec_t m_fRotate;
+    vec_t m_fScale[2];
 	vec3_t m_v1, m_v2, m_v3;
 	// brush primitive additions
 	qboolean m_bBPrimit;

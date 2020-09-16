@@ -236,7 +236,7 @@
 
 
 //Setting this up here so it can be used several places
-int maximumRenderDistance = abs( ( g_MaxWorldCoord - g_MinWorldCoord ) * sqrt(3) );
+int maximumRenderDistance = abs( (int) ceil( ( g_MaxWorldCoord - g_MinWorldCoord ) * sqrt(3) ) );
 
 
 // Declaring these up here...
@@ -1582,7 +1582,7 @@ void PrefsDlg::BuildDialog(){
 	GtkWidget *check, *label, *scale, *hbox2, *combo,
     *table, *spin,  *entry, *pixmap,
     *radio, *button, *pageframe, *vbox,
-    *cubicClippingTable;
+    *cubicClippingTable, *recentTable;
 	GtkSizeGroup *size_group;
 	GList *combo_list = (GList*)NULL;
 	GList *lst;
@@ -1833,10 +1833,10 @@ void PrefsDlg::BuildDialog(){
 	gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
 	gtk_widget_show( vbox );
 
-        table = gtk_table_new( 5, 1, FALSE );
+        table = gtk_table_new( 1, 5, FALSE );
         gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
-        gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
-        gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+//        gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
+        gtk_table_set_col_spacings( GTK_TABLE( table ), 6 );
         gtk_widget_show( table );
 
         label = gtk_label_new( _( "Maximum Render Distance:" ) );
@@ -1886,7 +1886,7 @@ void PrefsDlg::BuildDialog(){
         gtk_box_pack_start( GTK_BOX( vbox ), cubicClippingCheckbox, FALSE, FALSE, 0 );
         g_signal_connect( (gpointer) cubicClippingCheckbox, "toggled", G_CALLBACK( cubicClippingToggled ), NULL );
 
-        cubicClippingTable = gtk_table_new( 3, 9, FALSE );
+        cubicClippingTable = gtk_table_new( 1, 6, FALSE );
         gtk_table_set_col_spacings( GTK_TABLE( cubicClippingTable ), 6 );
         gtk_table_set_row_spacings( GTK_TABLE( cubicClippingTable ), 6 );
         gtk_box_pack_start( GTK_BOX( vbox ), cubicClippingTable, FALSE, FALSE, 0 );
@@ -1895,7 +1895,7 @@ void PrefsDlg::BuildDialog(){
 
             // Cubic clipping distance
             label = gtk_label_new( _( "Cubic Clip Distance:" ) );
-            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 1, 2, 1, 2,
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 0, 1, 0, 1,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( label );
@@ -1907,14 +1907,14 @@ void PrefsDlg::BuildDialog(){
             gtk_entry_set_alignment( GTK_ENTRY( cubicClippingSpin ), 1.0 ); //right
             gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( cubicClippingSpin ), GTK_UPDATE_ALWAYS );
             g_object_set( cubicClippingSpin, "xalign", 1.0, (char*)NULL );
-            gtk_table_attach( GTK_TABLE( cubicClippingTable ), cubicClippingSpin, 2, 3, 1, 2,
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), cubicClippingSpin, 1, 2, 0, 1,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( cubicClippingSpin );
             AddDialogData( cubicClippingSpin, &m_nCubicScale, DLG_SPIN_INT );
 
             label = gtk_label_new( _( "x" ) );
-            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 3, 4, 1, 2,
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 2, 3, 0, 1,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( label );
@@ -1922,13 +1922,13 @@ void PrefsDlg::BuildDialog(){
             char temp[20];
             sprintf( temp, "%i", g_PrefsDlg.m_nCubicIncrement );
             label = gtk_label_new( temp );
-            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 4, 5, 1, 2,
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 3, 4, 0, 1,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( label );
 
             label = gtk_label_new( _( "=" ) );
-            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 5, 6, 1, 2,
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), label, 4, 5, 0, 1,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( label );
@@ -1936,7 +1936,7 @@ void PrefsDlg::BuildDialog(){
             char temp2[20];
             sprintf( temp2, "%i grid units", g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement );
             cubicClippingCalculatedDistanceLabel = gtk_label_new( temp2 );
-            gtk_table_attach( GTK_TABLE( cubicClippingTable ), cubicClippingCalculatedDistanceLabel, 6, 7, 1, 2,
+            gtk_table_attach( GTK_TABLE( cubicClippingTable ), cubicClippingCalculatedDistanceLabel, 5, 6, 0, 1,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( cubicClippingCalculatedDistanceLabel );
@@ -2688,13 +2688,6 @@ void PrefsDlg::BuildDialog(){
 	gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
 	gtk_widget_show( vbox );
 
-    // container
-    table = gtk_table_new( 2, 1, FALSE );
-    gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
-    gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
-    gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
-    gtk_widget_show( table );
-
 /*
 // NAB622: No idea what this does
     // Snapshots
@@ -2716,7 +2709,40 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( check );
 	AddDialogData( check, &m_bLoadLastMap, DLG_CHECK_BOOL );
 
+    // Recent files
+    recentTable = gtk_table_new( 1, 2, FALSE );
+    gtk_widget_set_tooltip_text( recentTable, _( "This is the number of recent maps to display in the File menu" ) );
+    gtk_table_set_row_spacings( GTK_TABLE( recentTable ), 6 );
+    gtk_box_pack_start( GTK_BOX( vbox ), recentTable, FALSE, FALSE, 0 );
+    gtk_widget_show( recentTable );
+
+
+        label = gtk_label_new( _( "Recent files:" ) );
+        gtk_table_attach( GTK_TABLE( recentTable ), label, 0, 1, 0, 1,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( label );
+
+        spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( m_nMRUCount, 0, MAX_RECENT_FILES, 1, 5, 0 ) ), 1, 0 );
+        gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
+        gtk_widget_set_sensitive( GTK_WIDGET( spin ), TRUE );
+        gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
+        gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( spin ), GTK_UPDATE_ALWAYS );
+        g_object_set( spin, "xalign", 1.0, (char*)NULL );
+        gtk_table_attach( GTK_TABLE( recentTable ), spin, 1, 2, 0, 1,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_widget_show( spin );
+        AddDialogData( spin, &m_nMRUCount, DLG_SPIN_INT );
+
     // Startup shaders
+    // container
+    table = gtk_table_new( 2, 1, FALSE );
+    gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
+    gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+    gtk_widget_show( table );
+
     // label
     label = gtk_label_new( _( "Startup Shaders:" ) );
     gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
@@ -3470,8 +3496,8 @@ void PrefsDlg::LoadPrefs(){
     mLocalPrefs.GetPref( TEXDIRLISTWIDTH_KEY,    &mWindowInfo.nTextureDirectoryListWidth,      50 );
 
 	// menu stuff
-	mLocalPrefs.GetPref( COUNT_KEY,              &m_nMRUCount,                   0 );
-	for ( i = 0; i < 4; i++ )
+    mLocalPrefs.GetPref( COUNT_KEY,              &m_nMRUCount,                   10 );
+    for ( i = 0; i < m_nMRUCount; i++ )
 	{
 		char buf[64];
 		sprintf( buf, "%s%d", FILE_KEY, i );

@@ -146,7 +146,7 @@ void WINAPI Pointfile_Check( void ){
 
 	while ( *data )
 	{
-		if ( sscanf( data,"%f %f %f", &v[0], &v[1], &v[2] ) != 3 ) {
+        if ( sscanf( data,"%lf %lf %lf", &v[0], &v[1], &v[2] ) != 3 ) {
 			Sys_Printf( "Corrupt point file, line %d\n",line );
 			break;
 		}
@@ -160,7 +160,7 @@ void WINAPI Pointfile_Check( void ){
 		}
 		// deal with zhlt style point files.
 		if ( *data == '-' ) {
-			if ( sscanf( data,"- %f %f %f", &v[0], &v[1], &v[2] ) != 3 ) {
+            if ( sscanf( data,"- %lf %lf %lf", &v[0], &v[1], &v[2] ) != 3 ) {
 				Sys_Printf( "Corrupt point file, line %d\n",line );
 				break;
 			}
@@ -245,7 +245,7 @@ void CPointfile::saxEndElement( message_info_t *ctx, const xmlChar *name ){
 void CPointfile::saxCharacters( message_info_t *ctx, const xmlChar *ch, int len ){
 	vec3_t v;
 
-	sscanf( (char *)ch, "%f %f %f\n", &v[0], &v[1], &v[2] );
+    sscanf( (char *)ch, "%lf %lf %lf\n", &v[0], &v[1], &v[2] );
 	PushPoint( v );
 }
 

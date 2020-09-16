@@ -409,7 +409,7 @@ gint HandleCommand( GtkWidget *widget, gpointer data ){
 	else if ( id >= CMD_BSPCOMMAND && id <= CMD_BSPCOMMAND_END ) {
 		g_pParentWnd->OnBspCommand( id );
 	}
-	else if ( id >= ID_FILE_RECENT1 && id <= ID_FILE_RECENT4 ) {
+    else if ( id >= ID_FILE_RECENT1 && id <= ID_FILE_RECENT20 ) {
 		g_pParentWnd->OnMru( id );
 	}
 	else if ( id >= ID_VIEW_NEAREST && id <= ID_TEXTURES_FLATSHADE ) {
@@ -1060,11 +1060,76 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
 										   G_CALLBACK( HandleCommand ), ID_FILE_RECENT3 );
 	gtk_widget_hide( item );
 	MRU_AddWidget( item, 2 );
-	item = create_menu_item_with_mnemonic( menu, "4",
-										   G_CALLBACK( HandleCommand ), ID_FILE_RECENT4 );
-	gtk_widget_hide( item );
-	MRU_AddWidget( item, 3 );
-	menu_separator( menu );
+    item = create_menu_item_with_mnemonic( menu, "4",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT4 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 3 );
+    item = create_menu_item_with_mnemonic( menu, "5",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT5 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 4 );
+    item = create_menu_item_with_mnemonic( menu, "6",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT6 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 5 );
+    item = create_menu_item_with_mnemonic( menu, "7",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT7 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 6 );
+    item = create_menu_item_with_mnemonic( menu, "8",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT8 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 7 );
+    item = create_menu_item_with_mnemonic( menu, "9",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT9 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 8 );
+    item = create_menu_item_with_mnemonic( menu, "10",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT10 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 9 );
+    item = create_menu_item_with_mnemonic( menu, "11",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT11 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 10 );
+    item = create_menu_item_with_mnemonic( menu, "12",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT12 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 11 );
+    item = create_menu_item_with_mnemonic( menu, "13",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT13 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 12 );
+    item = create_menu_item_with_mnemonic( menu, "14",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT14 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 13 );
+    item = create_menu_item_with_mnemonic( menu, "15",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT15 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 14 );
+    item = create_menu_item_with_mnemonic( menu, "16",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT16 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 15 );
+    item = create_menu_item_with_mnemonic( menu, "17",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT17 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 16 );
+    item = create_menu_item_with_mnemonic( menu, "18",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT18 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 17 );
+    item = create_menu_item_with_mnemonic( menu, "19",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT19 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 18 );
+    item = create_menu_item_with_mnemonic( menu, "20",
+                                           G_CALLBACK( HandleCommand ), ID_FILE_RECENT20 );
+    gtk_widget_hide( item );
+    MRU_AddWidget( item, 19 );
+
+    menu_separator( menu );
 	item = create_menu_item_with_mnemonic( menu, _( "Check for GtkRadiant update (web)" ),
 										   G_CALLBACK( HandleCommand ), ID_FILE_CHECKUPDATE );
 	// disable, the functionality is no longer available
@@ -4940,6 +5005,7 @@ void MainFrame::OnPrefs() {
     int nRenderDistance = g_PrefsDlg.m_nRenderDistance;
     bool bCubicClipping = g_PrefsDlg.m_bCubicClipping;
     int nCubicScale = g_PrefsDlg.m_nCubicScale;
+    int nMRUCount = g_PrefsDlg.m_nMRUCount;
 
     g_PrefsDlg.LoadPrefs();
 
@@ -4958,6 +5024,14 @@ void MainFrame::OnPrefs() {
                               MB_OK | MB_ICONINFORMATION);
         }
 
+        if(m_pTexWnd) {
+            m_pTexWnd->UpdatePrefs();
+        }
+
+        if( g_PrefsDlg.m_nMRUCount != nMRUCount ) {
+            // NAB622: FIXME: Add code here to refresh the recent files list
+        }
+
 /*
 // NAB622: Disabling the Z window. It serves no purpose
         // if the view mode was switched to floating, set the Z window on by
@@ -4970,10 +5044,6 @@ void MainFrame::OnPrefs() {
         }
 */
 
-        if(m_pTexWnd) {
-            m_pTexWnd->UpdatePrefs();
-        }
-
 /*
 // NAB622: This option was removed from the menu, so don't touch it
         GtkWidget *item = GTK_WIDGET(g_object_get_data(G_OBJECT(m_pWidget),
@@ -4984,6 +5054,13 @@ void MainFrame::OnPrefs() {
         g_bIgnoreCommands--;
 */
     } else {
+        //NAB622: If prefs changes were canceled, end up here
+
+
+        if( g_PrefsDlg.m_nMRUCount != nMRUCount ) {
+            g_PrefsDlg.m_nMRUCount = nMRUCount;
+        }
+
         // NAB622: If the renderer settings were touched and the changes were canceled, we need to restore the original settings and redraw the camera window
         if ( g_PrefsDlg.m_nRenderDistance != nRenderDistance ||
              g_PrefsDlg.m_bCubicClipping != bCubicClipping ||
@@ -4995,6 +5072,7 @@ void MainFrame::OnPrefs() {
 
             Sys_UpdateWindows( W_CAMERA );
         }
+
     }
 
     g_bIgnoreCommands++;

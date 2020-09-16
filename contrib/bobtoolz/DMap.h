@@ -35,7 +35,7 @@ class DMap
 public:
 static void RebuildEntity( DEntity* ent );
 
-void ResetTextures( const char* textureName, float fScale[2],      float fShift[2],      int rotation, const char* newTextureName, int bResetTextureName,  int bResetScale[2],  int bResetShift[2],  int bResetRotation );
+void ResetTextures( const char* textureName, vec_t fScale[2],      vec_t fShift[2],      vec_t rotation, const char* newTextureName, int bResetTextureName,  int bResetScale[2],  int bResetShift[2],  int bResetRotation );
 void LoadAll( bool bLoadPatches = FALSE );
 void BuildInRadiant( bool bAllowDestruction );
 int m_nNextEntity;

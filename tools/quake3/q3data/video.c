@@ -459,13 +459,13 @@ static void ResampleFrame( cblock_t *in, unsigned char *out, int method, int out
 	}
 }
 
-static float BTCDistanceSquared( float a[3], float b[3] ){
+static float BTCDistanceSquared( vec_t a[3], vec_t b[3] ){
 	return ( b[0] - a[0] ) * ( b[0] - a[0] ) +
 		   ( b[1] - a[1] ) * ( b[1] - a[1] ) +
 		   ( b[2] - a[2] ) * ( b[2] - a[2] );
 }
 
-static void BTCFindEndpoints( float inBlock[4][4][3], unsigned int endPoints[2][2] ){
+static void BTCFindEndpoints( vec_t inBlock[4][4][3], unsigned int endPoints[2][2] ){
 	float longestDistance = -1;
 
 	int bX, bY;
@@ -514,13 +514,13 @@ static void BTCFindEndpoints( float inBlock[4][4][3], unsigned int endPoints[2][
 	}
 }
 
-static float BTCQuantizeBlock( float inBlock[4][4][3], unsigned long endPoints[2][2], int btcQuantizedBlock[4][4], float bestError ){
+static float BTCQuantizeBlock( vec_t inBlock[4][4][3], unsigned long endPoints[2][2], int btcQuantizedBlock[4][4], float bestError ){
 	int i;
 	int blockY, blockX;
 	float dR, dG, dB;
 	float R, G, B;
 	float error = 0;
-	float colorLine[4][3];
+    vec_t colorLine[4][3];
 
 	//
 	// build the color line
@@ -592,7 +592,7 @@ static float BTCQuantizeBlock( float inBlock[4][4][3], unsigned long endPoints[2
 /*
 ** float BTCCompressBlock
 */
-static float BTCCompressBlock( float inBlock[4][4][3], unsigned long out[2] ){
+static float BTCCompressBlock( vec_t inBlock[4][4][3], unsigned long out[2] ){
 	int i;
 	int btcQuantizedBlock[4][4];    // values should be [0..3]
 	unsigned long encodedEndPoints, encodedBitmap;
@@ -606,7 +606,7 @@ static float BTCCompressBlock( float inBlock[4][4][3], unsigned long out[2] ){
 	//
 	// find the "ideal" end points for the color vector
 	//
-	BTCFindEndpoints( inBlock, endPoints );
+    BTCFindEndpoints( inBlock, endPoints );
 	error = BTCQuantizeBlock( inBlock, endPoints, btcQuantizedBlock );
 	memcpy( bestEndPoints, endPoints, sizeof( bestEndPoints ) );
 #else
@@ -802,7 +802,7 @@ static void BTCDecompressFrame( unsigned long *src, unsigned char *dst ){
 static float BTCCompressFrame( unsigned char *src, unsigned long *dst ){
 	int x, y;
 	int bX, bY;
-	float btcBlock[4][4][3];
+    vec_t btcBlock[4][4][3];
 
 	float error = 0;
 

@@ -1959,7 +1959,7 @@ void _pico_vertices_combine_shared_normals(picoVec3_t* xyz, picoIndex_t* smoothi
 			size_t size = UniqueIndices_size(&vertices);
 			picoIndex_t index = UniqueIndices_insert(&vertices, i);
 			if ((size_t)index != size) {
-				float* normal = normals[vertices.indices.data[index]];
+                vec_t* normal = normals[vertices.indices.data[index]];
 				_pico_add_vec(normal, normals[i], normal);
 			}
 			indexarray_push_back(&indices, index);
@@ -1996,9 +1996,9 @@ void _pico_triangles_generate_weighted_normals(picoIndexIter_t first, picoIndexI
 #if (THE_CROSSPRODUCTS_OF_ANY_PAIR_OF_EDGES_OF_A_GIVEN_TRIANGLE_ARE_EQUAL)
 		picoVec3_t weightedNormal;
 		{
-			float* a = xyz[*(first + 0)];
-			float* b = xyz[*(first + 1)];
-			float* c = xyz[*(first + 2)];
+            vec_t* a = xyz[*(first + 0)];
+            vec_t* b = xyz[*(first + 1)];
+            vec_t* c = xyz[*(first + 2)];
 			picoVec3_t ba, ca;
 			_pico_subtract_vec(b, a, ba);
 			_pico_subtract_vec(c, a, ca);
@@ -2009,7 +2009,7 @@ void _pico_triangles_generate_weighted_normals(picoIndexIter_t first, picoIndexI
 			int j = 0;
 			for (; j < 3; ++j)
 			{
-				float* normal = normals[*(first + j)];
+                vec_t* normal = normals[*(first + j)];
 #if ( !THE_CROSSPRODUCTS_OF_ANY_PAIR_OF_EDGES_OF_A_GIVEN_TRIANGLE_ARE_EQUAL )
 				picoVec3_t weightedNormal;
 				{

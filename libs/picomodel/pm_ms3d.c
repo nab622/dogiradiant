@@ -87,7 +87,7 @@ TMsHeader;
 typedef struct SMsVertex
 {
 	unsigned char flags;                /* sel, sel2, or hidden */
-	float xyz[3];
+    vec_t xyz[3];
 	char boneID;                        /* -1 means 'no bone' */
 	unsigned char refCount;
 }
@@ -98,9 +98,9 @@ typedef struct SMsTriangle
 {
 	unsigned short flags;               /* sel, sel2, or hidden */
 	unsigned short vertexIndices[3];
-	float vertexNormals[3][3];
-	float s[3];
-	float t[3];
+    vec_t vertexNormals[3][3];
+    vec_t s[3];
+    vec_t t[3];
 	unsigned char smoothingGroup;       /* 1 - 32 */
 	unsigned char groupIndex;
 }

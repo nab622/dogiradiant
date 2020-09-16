@@ -32,13 +32,13 @@ struct ResetTextureRS {
 	char newTextureName[256];
 
 	int bResetScale[2];
-	float fScale[2];
+    vec_t fScale[2];
 
 	int bResetShift[2];
-	float fShift[2];
+    vec_t fShift[2];
 
 	int bResetRotation;
-	int rotation;
+    vec_t rotation;
 };
 
 struct TrainThingRS {

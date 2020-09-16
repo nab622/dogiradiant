@@ -32,6 +32,9 @@
 // If you fork the project, please change this so it doesn't conflict with others
 #define PREFS_SUBDIRECTORY "upgRadiant"
 
+// NAB622: This is the maximum number of recent files that can display in the file menu
+#define MAX_RECENT_FILES 20
+
 
 // This has to be here for the functions below
 #include <math.h>

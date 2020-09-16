@@ -842,7 +842,7 @@ qtexture_t *WINAPI QERApp_Texture_ForName2( const char *filename ){
 
 void CShader::CreateColor( const char *name ){
 	// parse
-	sscanf( name, "(%g %g %g)", m_vColor, m_vColor + 1, m_vColor + 2 );
+    sscanf( name, "(%lg %lg %lg)", m_vColor, m_vColor + 1, m_vColor + 2 );
 	m_strTextureName = name;
 	setName( "color" );
 	// create the qtexture_t

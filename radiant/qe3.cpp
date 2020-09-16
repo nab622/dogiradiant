@@ -1396,11 +1396,10 @@ void Sys_Status( const char *psz, int part ){
 // =============================================================================
 // MRU
 
-#define MRU_MAX 4
-static GtkWidget *MRU_items[MRU_MAX];
-static int MRU_used;
+static GtkWidget *MRU_items[MAX_RECENT_FILES];
+static int MRU_used = 0;
 typedef char MRU_filename_t[PATH_MAX];
-MRU_filename_t MRU_filenames[MRU_MAX];
+MRU_filename_t MRU_filenames[MAX_RECENT_FILES];
 
 static char* MRU_GetText( int index ){
 	return MRU_filenames[index];
@@ -1421,35 +1420,38 @@ void buffer_write_escaped_mnemonic( char* buffer, const char* string ){
 static void MRU_SetText( int index, const char *filename ){
 	strcpy( MRU_filenames[index], filename );
 
-	char mnemonic[PATH_MAX * 2 + 4];
-	mnemonic[0] = '_';
-	sprintf( mnemonic + 1, "%d", index + 1 );
-	mnemonic[2] = '-';
-	mnemonic[3] = ' ';
-	buffer_write_escaped_mnemonic( mnemonic + 4, filename );
-	gtk_menu_item_set_label( GTK_MENU_ITEM( MRU_items[index] ), mnemonic );
+    char mnemonic[PATH_MAX * 2 + 6];
+    if( index < 9 ) {
+        sprintf( mnemonic, "_%i  -  ", index + 1 );
+    } else {
+        sprintf( mnemonic, "%i  -  ", index + 1 );
+    }
+
+    buffer_write_escaped_mnemonic( mnemonic + 7, filename );
+    gtk_menu_item_set_label( GTK_MENU_ITEM( MRU_items[index] ), mnemonic );
 }
 
 void MRU_Load(){
 	int i = g_PrefsDlg.m_nMRUCount;
 
-	if ( i > 4 ) {
-		i = 4; //FIXME: make this a define
+    if ( i > MAX_RECENT_FILES ) {
+        i = MAX_RECENT_FILES;
 
-	}
+    }
 	for (; i > 0; i-- )
 		MRU_AddFile( g_PrefsDlg.m_strMRUFiles[i - 1].GetBuffer() );
 }
 
 void MRU_Save(){
-	g_PrefsDlg.m_nMRUCount = MRU_used;
+//  NAB622: Decoupling this from it's original purpose. It is now a value the user can set in the prefs
+//	g_PrefsDlg.m_nMRUCount = MRU_used;
 
-	for ( int i = 0; i < MRU_used; i++ )
+    for ( int i = 0; i < MRU_used; i++ )
 		g_PrefsDlg.m_strMRUFiles[i] = MRU_GetText( i );
 }
 
 void MRU_AddWidget( GtkWidget *widget, int pos ){
-	if ( pos < MRU_MAX ) {
+    if ( pos < MAX_RECENT_FILES ) {
 		MRU_items[pos] = widget;
 	}
 }
@@ -1462,8 +1464,7 @@ void MRU_AddFile( const char *str ){
 	for ( i = 0; i < MRU_used; i++ )
 	{
 		text = MRU_GetText( i );
-
-		if ( strcmp( text, str ) == 0 ) {
+        if ( strcmp( text, str ) == 0 ) {
 			// reorder menu
 			for (; i > 0; i-- )
 				MRU_SetText( i, MRU_GetText( i - 1 ) );
@@ -1474,17 +1475,17 @@ void MRU_AddFile( const char *str ){
 		}
 	}
 
-	if ( MRU_used < MRU_MAX ) {
-		MRU_used++;
+    if ( MRU_used < g_PrefsDlg.m_nMRUCount ) {
+        MRU_used++;
 	}
 
 	// move items down
 	for ( i = MRU_used - 1; i > 0; i-- )
 		MRU_SetText( i, MRU_GetText( i - 1 ) );
 
-	MRU_SetText( 0, str );
+    MRU_SetText( 0, str );
 	gtk_widget_set_sensitive( MRU_items[0], TRUE );
-	gtk_widget_show( MRU_items[MRU_used - 1] );
+    gtk_widget_show( MRU_items[MRU_used - 2] );
 }
 
 void MRU_Activate( int index ){

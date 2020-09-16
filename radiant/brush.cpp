@@ -1608,7 +1608,7 @@ brush_t *Brush_Create( vec3_t mins, vec3_t maxs, texdef_t *texdef ){
 	for ( i = 0 ; i < 3 ; i++ )
 	{
 		if ( maxs[i] < mins[i] ) {
-			Error( "Brush_InitSolid: backwards" );
+            Error( "Brush_InitSolid: backwards" );
 		}
 	}
 
@@ -1690,7 +1690,7 @@ brush_t *Brush_CreatePyramid( vec3_t mins, vec3_t maxs, texdef_t *texdef ){
 
 	for ( i = 0 ; i < 3 ; i++ )
 		if ( maxs[i] < mins[i] ) {
-			Error( "Brush_InitSolid: backwards" );
+            Error( "Brush_InitSolid: backwards" );
 		}
 
 	brush_t* b = Brush_Alloc();

@@ -364,9 +364,9 @@ void FillDefaultTexture( _QERFaceData* faceData, vec3_t va, vec3_t vb, vec3_t vc
 	VectorCopy( vc, faceData->m_v3 );
 }
 
-float Determinant3x3( float a1, float a2, float a3,
-					  float b1, float b2, float b3,
-					  float c1, float c2, float c3 ){
+float Determinant3x3( vec_t a1, vec_t a2, vec_t a3,
+                      vec_t b1, vec_t b2, vec_t b3,
+                      vec_t c1, vec_t c2, vec_t c3 ){
 	return a1 * ( b2 * c3 - b3 * c2 ) - a2 * ( b1 * c3 - b3 * c1 ) + a3 * ( b1 * c2 - b2 * c1 );
 }
 

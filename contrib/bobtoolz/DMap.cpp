@@ -138,7 +138,7 @@ int DMap::FixBrushes( bool rebuild ){
 	return count;
 }
 
-void DMap::ResetTextures( const char* textureName, float fScale[2],      float fShift[2],      int rotation, const char* newTextureName,
+void DMap::ResetTextures( const char* textureName, vec_t fScale[2],      vec_t fShift[2],      vec_t rotation, const char* newTextureName,
 						  int bResetTextureName,  int bResetScale[2],  int bResetShift[2],  int bResetRotation ){
 	for ( list<DEntity *>::const_iterator texEntity = entityList.begin(); texEntity != entityList.end(); texEntity++ )
 	{

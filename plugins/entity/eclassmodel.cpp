@@ -100,7 +100,7 @@ void CEntityEclassModel::Rotate( const vec3_t pivot, const vec3_t rotation ){
 
 void CEntityEclassModel::OnKeyValueChanged( entity_t *e, const char *key, const char* value ){
 	if ( strcmp( key,"origin" ) == 0 ) {
-		sscanf( value, "%f %f %f", &m_translate[0], &m_translate[1], &m_translate[2] );
+        sscanf( value, "%lf %lf %lf", &m_translate[0], &m_translate[1], &m_translate[2] );
 		UpdateCachedData();
 	}
 	else if ( strcmp( key,"angle" ) == 0 ) {

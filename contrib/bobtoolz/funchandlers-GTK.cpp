@@ -581,8 +581,8 @@ void DoTrainPathPlot() {
 void DoCaulkSelection( void ) {
 	DEntity world;
 
-	float fScale[2] = { 0.5f, 0.5f };
-	float fShift[2] = { 0.0f, 0.0f };
+    vec_t fScale[2] = { 0.5f, 0.5f };
+    vec_t fShift[2] = { 0.0f, 0.0f };
 
 	int bResetScale[2] = { false, false };
 	int bResetShift[2] = { false, false };

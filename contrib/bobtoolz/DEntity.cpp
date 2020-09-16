@@ -527,7 +527,7 @@ void DEntity::LoadEPairList( epair_t *epl ){
 	}
 }
 
-bool DEntity::ResetTextures( const char* textureName, float fScale[2],     float fShift[2],    int rotation, const char* newTextureName,
+bool DEntity::ResetTextures( const char* textureName, vec_t fScale[2],     vec_t fShift[2],    vec_t rotation, const char* newTextureName,
 							 int bResetTextureName,    int bResetScale[2], int bResetShift[2], int bResetRotation, bool rebuild ){
 	g_FuncTable.m_pfnDeselectAllBrushes();
 
@@ -626,10 +626,10 @@ void DEntity::SpawnFloat( const char* key, const char* defaultstring, float* out
 void DEntity::SpawnVector( const char* key, const char* defaultstring, vec_t* out ){
 	DEPair* pEP = FindEPairByKey( key );
 	if ( pEP ) {
-		sscanf( pEP->value, "%f %f %f", &out[0], &out[1], &out[2] );
+        sscanf( pEP->value, "%lf %lf %lf", &out[0], &out[1], &out[2] );
 	}
 	else {
-		sscanf( defaultstring, "%f %f %f", &out[0], &out[1], &out[2] );
+        sscanf( defaultstring, "%lf %lf %lf", &out[0], &out[1], &out[2] );
 	}
 }
 

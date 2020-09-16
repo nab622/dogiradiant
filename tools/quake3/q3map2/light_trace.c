@@ -1185,7 +1185,7 @@ static void PopulateTraceNodes( void ){
 		}
 		value = ValueForKey( e, "modelscale_vec" );
 		if ( value[ 0 ] != '\0' ) {
-			sscanf( value, "%f %f %f", &scale[ 0 ], &scale[ 1 ], &scale[ 2 ] );
+            sscanf( value, "%lf %lf %lf", &scale[ 0 ], &scale[ 1 ], &scale[ 2 ] );
 		}
 
 		/* get "angle" (yaw) or "angles" (pitch yaw roll) */
@@ -1193,7 +1193,7 @@ static void PopulateTraceNodes( void ){
 		angles[ 2 ] = FloatForKey( e, "angle" );
 		value = ValueForKey( e, "angles" );
 		if ( value[ 0 ] != '\0' ) {
-			sscanf( value, "%f %f %f", &angles[ 1 ], &angles[ 2 ], &angles[ 0 ] );
+            sscanf( value, "%lf %lf %lf", &angles[ 1 ], &angles[ 2 ], &angles[ 0 ] );
 		}
 
 		/* set transform matrix (thanks spog) */

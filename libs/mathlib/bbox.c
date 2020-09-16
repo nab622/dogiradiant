@@ -168,8 +168,8 @@ int aabb_intersect_ray( const aabb_t *aabb, const ray_t *ray, vec_t *dist ){
 	double candidatePlane[NUMDIM];
 	vec3_t coord, segment;
 
-	const float *origin = ray->origin;
-	const float *direction = ray->direction;
+    const vec_t *origin = ray->origin;
+    const vec_t *direction = ray->direction;
 
 	/* Find candidate planes; this loop can be avoided if
 	   rays cast all from the eye(assume perpsective view) */

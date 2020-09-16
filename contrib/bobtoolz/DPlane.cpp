@@ -67,27 +67,27 @@ vec_t DPlane::DistanceToPoint( vec3_t pnt ){
 }
 
 bool DPlane::PlaneIntersection( DPlane *pl1, DPlane *pl2, vec3_t out ){
-	float a1, a2, a3;
-	float b1, b2, b3;
-	float c1, c2, c3;
+    vec_t a1, a2, a3;
+    vec_t b1, b2, b3;
+    vec_t c1, c2, c3;
 
 	a1 = normal[0];         a2 = normal[1];         a3 = normal[2];
 	b1 = pl1->normal[0];    b2 = pl1->normal[1];    b3 = pl1->normal[2];
 	c1 = pl2->normal[0];    c2 = pl2->normal[1];    c3 = pl2->normal[2];
 
-	float d = Determinant3x3( a1, a2, a3, b1, b2, b3, c1, c2, c3 );
+    vec_t d = Determinant3x3( a1, a2, a3, b1, b2, b3, c1, c2, c3 );
 
 	if ( d == 0 ) {
 		return FALSE;
 	}
 
-	float v1 = _d;
-	float v2 = pl1->_d;
-	float v3 = pl2->_d;
+    vec_t v1 = _d;
+    vec_t v2 = pl1->_d;
+    vec_t v3 = pl2->_d;
 
-	float d1 = Determinant3x3( v1, a2, a3, v2, b2, b3, v3, c2, c3 );
-	float d2 = Determinant3x3( a1, v1, a3, b1, v2, b3, c1, v3, c3 );
-	float d3 = Determinant3x3( a1, a2, v1, b1, b2, v2, c1, c2, v3 );
+    vec_t d1 = Determinant3x3( v1, a2, a3, v2, b2, b3, v3, c2, c3 );
+    vec_t d2 = Determinant3x3( a1, v1, a3, b1, v2, b3, c1, v3, c3 );
+    vec_t d3 = Determinant3x3( a1, a2, v1, b1, b2, v2, c1, c2, v3 );
 
 	out[0] = d1 / d;
 	out[1] = d2 / d;

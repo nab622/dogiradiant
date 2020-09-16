@@ -338,7 +338,7 @@ static int _obj_mtl_load( picoModel_t *model ){
 
 
 			/* get dissolve factor */
-			if ( !_pico_parse_float( p,&value ) ) {
+			if ( !_pico_parse_vec_t( p,&value ) ) {
 				_obj_mtl_error_return;
 			}
 
@@ -372,7 +372,7 @@ static int _obj_mtl_load( picoModel_t *model ){
 			}
 
 			/* get totally screwed up shininess (a random value in fact ;) */
-			if ( !_pico_parse_float( p,&value ) ) {
+			if ( !_pico_parse_vec_t( p,&value ) ) {
 				_obj_mtl_error_return;
 			}
 

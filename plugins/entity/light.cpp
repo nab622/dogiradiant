@@ -251,7 +251,7 @@ void Light_OnIntensityChanged( entity_t* e ){
 
 void Light_OnKeyValueChanged( entity_t *e, const char *key, const char* value ){
 	if ( strcmp( key,"_color" ) == 0 ) {
-		if ( sscanf( ValueForKey( e, "_color" ),"%f %f %f",
+        if ( sscanf( ValueForKey( e, "_color" ),"%lf %lf %lf",
 					 &e->color[0], &e->color[1], &e->color[2] ) != 3 ) {
 			VectorSet( e->color, 1, 1, 1 );
 		}

@@ -1050,7 +1050,7 @@ int     WindingOnPlaneSide( winding_t *w, vec3_t normal, vec_t dist ){
 #define MAX_HULL_POINTS     128
 void    AddWindingToConvexHull( winding_t *w, winding_t **hull, vec3_t normal ) {
 	int i, j, k;
-	float       *p, *copy;
+    vec_t       *p, *copy;
 	vec3_t dir;
 	float d;
 	int numHullPoints, numNew;

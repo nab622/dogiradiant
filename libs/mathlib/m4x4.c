@@ -614,7 +614,7 @@ void m4x4_transform_vec4( const m4x4_t matrix, vec4_t vector ){
 
 void m4x4_transpose( m4x4_t matrix ){
 	int i, j;
-	float temp, *p1, *p2;
+    vec_t temp, *p1, *p2;
 
 	for ( i = 1; i < 4; i++ ) {
 		for ( j = 0; j < i; j++ ) {
@@ -628,7 +628,7 @@ void m4x4_transpose( m4x4_t matrix ){
 }
 
 void m4x4_orthogonal_invert( m4x4_t matrix ){
-	float temp;
+    vec_t temp;
 
 	temp = -matrix[3];
 	matrix[3] = matrix[12];
@@ -661,8 +661,8 @@ void m4x4_orthogonal_invert( m4x4_t matrix ){
 	 */
 }
 
-float m3_det( m3x3_t mat ){
-	float det;
+vec_t m3_det( m3x3_t mat ){
+    vec_t det;
 
 	det = mat[0] * ( mat[4] * mat[8] - mat[7] * mat[5] )
 		  - mat[1] * ( mat[3] * mat[8] - mat[6] * mat[5] )

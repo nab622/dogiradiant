@@ -82,7 +82,7 @@ bool CBspPortal::Build( char *def, unsigned int pointCnt, bool bInverse ){
 			x = n;
 		}
 
-		sscanf( c, "%f %f %f", &point[x].p[0], &point[x].p[1], &point[x].p[2] );
+        sscanf( c, "%lf %lf %lf", &point[x].p[0], &point[x].p[1], &point[x].p[2] );
 
         ClampVector( &point[x].p[0] );
         ClampVector( &point[x].p[1] );

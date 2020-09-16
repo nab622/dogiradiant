@@ -103,7 +103,7 @@ void CPointMsg::saxCharacters( message_info_t *ctx, const xmlChar *ch, int len )
 	else
 	{
 		assert( EPointState == POINT_POINT );
-		sscanf( (char *)ch, "%g %g %g", &( pt[0] ), &( pt[1] ), &( pt[2] ) );
+        sscanf( (char *)ch, "%lg %lg %lg", &( pt[0] ), &( pt[1] ), &( pt[2] ) );
 	}
 }
 
@@ -181,7 +181,7 @@ void CWindingMsg::saxCharacters( message_info_t *ctx, const xmlChar *ch, int len
 		{
 			c = strchr( ++c, '(' );
 			if ( c ) { // even if we are given the number of points when the cycle begins .. don't trust it too much
-				sscanf( c, "(%g %g %g)", &wt[i][0], &wt[i][1], &wt[i][2] );
+                sscanf( c, "(%lg %lg %lg)", &wt[i][0], &wt[i][1], &wt[i][2] );
 			}
 			else{
 				break;

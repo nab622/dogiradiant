@@ -88,7 +88,7 @@ lwVMap *lwGetVMap( picoMemStream_t *fp, int cksize, int ptoffset, int poloffset,
 		if ( perpoly ) {
 			i = sgetVX( &bp );
 		}
-		bp += vmap->dim * sizeof( float );
+        bp += vmap->dim * sizeof( vec_t );
 		++npts;
 	}
 
@@ -107,11 +107,11 @@ lwVMap *lwGetVMap( picoMemStream_t *fp, int cksize, int ptoffset, int poloffset,
 	}
 
 	if ( vmap->dim > 0 ) {
-		vmap->val = _pico_calloc( npts, sizeof( float * ) );
+        vmap->val = _pico_calloc( npts, sizeof( vec_t * ) );
 		if ( !vmap->val ) {
 			goto Fail;
 		}
-		f = _pico_alloc( npts * vmap->dim * sizeof( float ) );
+        f = _pico_alloc( npts * vmap->dim * sizeof( vec_t ) );
 		if ( !f ) {
 			goto Fail;
 		}

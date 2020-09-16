@@ -729,12 +729,12 @@ static picoModel_t *_ase_load( PM_PARAMS_LOAD ){
 			}
 
 			/* get uv vertex s */
-			if ( !_pico_parse_float( p,&texcoords[index].texcoord[0] ) ) {
+            if ( !_pico_parse_vec_t( p,&texcoords[index].texcoord[0] ) ) {
 				_ase_error_return( "Texture vertex parse error" );
 			}
 
 			/* get uv vertex t */
-			if ( !_pico_parse_float( p,&texcoords[index].texcoord[1] ) ) {
+            if ( !_pico_parse_vec_t( p,&texcoords[index].texcoord[1] ) ) {
 				_ase_error_return( "Texture vertex parse error" );
 			}
 
@@ -777,7 +777,7 @@ static picoModel_t *_ase_load( PM_PARAMS_LOAD ){
 		/* model color vertex */
 		else if ( !_pico_stricmp( p->token,"*mesh_vertcol" ) ) {
 			int index;
-			float colorInput;
+            vec_t colorInput;
 
 			if ( numVertices == 0 ) {
 				_ase_error_return( "Color Vertex parse error" );
@@ -789,19 +789,19 @@ static picoModel_t *_ase_load( PM_PARAMS_LOAD ){
 			}
 
 			/* get R component */
-			if ( !_pico_parse_float( p,&colorInput ) ) {
+            if ( !_pico_parse_vec_t( p,&colorInput ) ) {
 				_ase_error_return( "Color vertex parse error" );
 			}
 			colors[index].color[0] = (picoByte_t)( colorInput * 255 );
 
 			/* get G component */
-			if ( !_pico_parse_float( p,&colorInput ) ) {
+            if ( !_pico_parse_vec_t( p,&colorInput ) ) {
 				_ase_error_return( "Color vertex parse error" );
 			}
 			colors[index].color[1] = (picoByte_t)( colorInput * 255 );
 
 			/* get B component */
-			if ( !_pico_parse_float( p,&colorInput ) ) {
+            if ( !_pico_parse_vec_t( p,&colorInput ) ) {
 				_ase_error_return( "Color vertex parse error" );
 			}
 			colors[index].color[2] = (picoByte_t)( colorInput * 255 );
@@ -851,7 +851,7 @@ static picoModel_t *_ase_load( PM_PARAMS_LOAD ){
 			picoShader_t        *shader = NULL;
 			int level = 1, index;
 			char materialName[ 1024 ];
-			float transValue = 0.0f, shineValue = 1.0f;
+            float transValue = 0.0f, shineValue = 1.0f;
 			picoColor_t ambientColor, diffuseColor, specularColor;
 			char                *mapname = NULL;
 			int subMtlId, subMaterialLevel = -1;
@@ -945,7 +945,7 @@ static picoModel_t *_ase_load( PM_PARAMS_LOAD ){
 				/* parse material transparency */
 				else if ( !_pico_stricmp( p->token,"*material_transparency" ) ) {
 					/* get transparency value from ase */
-					if ( !_pico_parse_float( p,&transValue ) ) {
+                    if ( !_pico_parse_float( p,&transValue ) ) {
 						_ase_error_return( "Material transparency parse error" );
 					}
 
@@ -960,7 +960,7 @@ static picoModel_t *_ase_load( PM_PARAMS_LOAD ){
 					 *   need to use '*material_shinestrength' */
 
 					/* get shine value from ase */
-					if ( !_pico_parse_float( p,&shineValue ) ) {
+                    if ( !_pico_parse_float( p,&shineValue ) ) {
 						_ase_error_return( "Material shine parse error" );
 					}
 

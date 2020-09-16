@@ -26,7 +26,7 @@
 
 
 // The data type used on this line will be propogated through the vectors and other precision values in the code, keeping it all uniform
-typedef long double gridUnits_t;
+typedef double gridUnits_t;
 
 
 typedef gridUnits_t vec_t;

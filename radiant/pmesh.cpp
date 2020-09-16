@@ -4884,9 +4884,9 @@ void Patch_InvertTexture( bool bY ){
 				{
 					for ( int j = 0; j < p->width / 2; j++ )
 					{
-						memcpy( fTemp, &p->ctrl[p->width - 1 - j][i].st[0], sizeof( float[2] ) );
-						memcpy( &p->ctrl[p->width - 1 - j][i].st[0], &p->ctrl[j][i].st[0], sizeof( float[2] ) );
-						memcpy( &p->ctrl[j][i].st[0], fTemp, sizeof( float[2] ) );
+                        memcpy( fTemp, &p->ctrl[p->width - 1 - j][i].st[0], sizeof( vec_t[2] ) );
+                        memcpy( &p->ctrl[p->width - 1 - j][i].st[0], &p->ctrl[j][i].st[0], sizeof( vec_t[2] ) );
+                        memcpy( &p->ctrl[j][i].st[0], fTemp, sizeof( vec_t[2] ) );
 					}
 				}
 			}
@@ -4896,9 +4896,9 @@ void Patch_InvertTexture( bool bY ){
 				{
 					for ( int j = 0; j < p->height / 2; j++ )
 					{
-						memcpy( fTemp, &p->ctrl[i][p->height - 1 - j].st[0], sizeof( float[2] ) );
-						memcpy( &p->ctrl[i][p->height - 1 - j].st[0], &p->ctrl[i][j].st[0], sizeof( float[2] ) );
-						memcpy( &p->ctrl[i][j].st[0], fTemp, sizeof( float[2] ) );
+                        memcpy( fTemp, &p->ctrl[i][p->height - 1 - j].st[0], sizeof( vec_t[2] ) );
+                        memcpy( &p->ctrl[i][p->height - 1 - j].st[0], &p->ctrl[i][j].st[0], sizeof( vec_t[2] ) );
+                        memcpy( &p->ctrl[i][j].st[0], fTemp, sizeof( vec_t[2] ) );
 					}
 				}
 			}

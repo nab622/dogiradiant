@@ -26,6 +26,8 @@
 #include "gtkr_list.h"
 //#include "profile.h"
 
+#include "globalDefines.h"
+
 #ifdef _WIN32
 #define NVIDIA_AERO_HACK
 #endif
@@ -725,7 +727,7 @@ bool m_bPatchBBoxSelect;
 // with the editor.
 MainFrame::EViewStyle m_nLatchedView;
 int m_nMRUCount;
-Str m_strMRUFiles[4];
+Str m_strMRUFiles[MAX_RECENT_FILES];
 
 windowPosInfo_t mWindowInfo;
 

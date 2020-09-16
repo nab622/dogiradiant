@@ -134,7 +134,7 @@ void TRI_LoadPolysets( const char *filename, polyset_t **ppPSET, int *numpsets )
 	*ppPSET = pPSET;
 
 	while ( feof( input ) == 0 ) {
-		if ( fread( &start,  sizeof( float ), 1, input ) < 1 ) {
+        if ( fread( &start,  sizeof( vec_t ), 1, input ) < 1 ) {
 			break;
 		}
 		*(int *)&start = BigLong( *(int *)&start );

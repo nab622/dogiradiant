@@ -686,7 +686,7 @@ qboolean FloodEntities( tree_t *tree ){
 			VectorSet( scale, 64.0f, 64.0f, 64.0f );
 			value = ValueForKey( e, "_scale" );
 			if ( value[ 0 ] != '\0' ) {
-				s = sscanf( value, "%f %f %f", &scale[ 0 ], &scale[ 1 ], &scale[ 2 ] );
+                s = sscanf( value, "%lf %lf %lf", &scale[ 0 ], &scale[ 1 ], &scale[ 2 ] );
 				if ( s == 1 ) {
 					scale[ 1 ] = scale[ 0 ];
 					scale[ 2 ] = scale[ 0 ];
@@ -698,7 +698,7 @@ qboolean FloodEntities( tree_t *tree ){
 			angles[ 2 ] = FloatForKey( e, "angle" );
 			value = ValueForKey( e, "angles" );
 			if ( value[ 0 ] != '\0' ) {
-				sscanf( value, "%f %f %f", &angles[ 1 ], &angles[ 2 ], &angles[ 0 ] );
+                sscanf( value, "%lf %lf %lf", &angles[ 1 ], &angles[ 2 ], &angles[ 0 ] );
 			}
 
 			/* set transform matrix (thanks spog) */

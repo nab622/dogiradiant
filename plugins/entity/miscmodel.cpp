@@ -127,7 +127,7 @@ void CEntityMiscModel::OnKeyValueChanged( entity_t *e, const char *key, const ch
 	else if ( strcmp( key, "angles" ) == 0 ) {
 		VectorSet( m_euler, 0.f, 0.f, 0.f );
 		if ( value[0] != '\0' ) {
-			sscanf( value, "%f %f %f", &m_euler[1], &m_euler[2], &m_euler[0] );
+            sscanf( value, "%lf %lf %lf", &m_euler[1], &m_euler[2], &m_euler[0] );
 		}
 		UpdateCachedData();
 	}
@@ -146,7 +146,7 @@ void CEntityMiscModel::OnKeyValueChanged( entity_t *e, const char *key, const ch
 		}
 		s = ValueForKey( e,"modelscale_vec" );
 		if ( s[0] != '\0' ) {
-			sscanf( s, "%f %f %f", &m_scale[0], &m_scale[1], &m_scale[2] );
+            sscanf( s, "%lf %lf %lf", &m_scale[0], &m_scale[1], &m_scale[2] );
 			if ( m_scale[0] == 0.0 && m_scale[1] == 0.0 && m_scale[2] == 0.0 ) {
 				VectorSet( m_scale, 1,1,1 );
 				Sys_FPrintf( SYS_WRN, "WARNING: ignoring 0 0 0 modelscale_vec key\n" );
@@ -155,7 +155,7 @@ void CEntityMiscModel::OnKeyValueChanged( entity_t *e, const char *key, const ch
 		UpdateCachedData();
 	}
 	else if ( strcmp( key, "origin" ) == 0 ) {
-		sscanf( value, "%f %f %f", &m_translate[0], &m_translate[1], &m_translate[2] );
+        sscanf( value, "%lf %lf %lf", &m_translate[0], &m_translate[1], &m_translate[2] );
 		UpdateCachedData();
 	}
 	else if ( strncmp( key,"_remap",6 ) == 0 ) {

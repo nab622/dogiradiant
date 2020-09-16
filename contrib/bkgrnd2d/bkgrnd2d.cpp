@@ -222,10 +222,10 @@ bool CBackgroundImage::SetExtentsMM(){
 		return false;
 	}
 	//might do sanity check before we commit
-	m_xmin = (float)xmin;
-	m_ymin = (float)ymin;
-	m_xmax = (float)xmax;
-	m_ymax = (float)ymax;
+    m_xmin = (vec_t)xmin;
+    m_ymin = (vec_t)ymin;
+    m_xmax = (vec_t)xmax;
+    m_ymax = (vec_t)ymax;
 
 	g_FuncTable.m_pfnSysUpdateWindows( W_XY );
 	return true;

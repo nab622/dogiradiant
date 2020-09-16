@@ -218,7 +218,7 @@ void    GetVectorForKey( entity_t *ent, const char *key, vec3_t vec ){
 	const char  *k;
 
 	k = ValueForKey( ent, key );
-	sscanf( k, "%f %f %f", &vec[0], &vec[1], &vec[2] );
+    sscanf( k, "%lf %lf %lf", &vec[0], &vec[1], &vec[2] );
 }
 
 /*

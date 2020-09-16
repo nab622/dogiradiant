@@ -70,7 +70,7 @@ typedef struct
 	md3Surface_t header;
 	md3Shader_t shaders[MD3_MAX_SHADERS];
 	// all verts (xyz_normal)
-	float   *verts[MD3_MAX_FRAMES];
+    vec_t   *verts[MD3_MAX_FRAMES];
 
 	baseTriangle_t baseTriangles[MD3_MAX_TRIANGLES];
 
@@ -170,7 +170,7 @@ void WriteModelSurface( FILE *modelouthandle, md3SurfaceData_t *pSurfData ){
 	md3Surface_t    *pSurf = &pSurfData->header;
 	md3Shader_t     *pShader = pSurfData->shaders;
 	baseVertex_t    *pBaseVertex = pSurfData->baseVertexes;
-	float           **verts = pSurfData->verts;
+    vec_t           **verts = pSurfData->verts;
 
 	short xyznormals[MD3_MAX_VERTS][4];
 
@@ -839,7 +839,7 @@ void Cmd_SpriteBase( void ){
 
 	printf( "---------------------\n" );
 
-	g_data.surfData[0].verts[0] = ( float * ) calloc( 1, sizeof( float ) * 6 * 4 );
+    g_data.surfData[0].verts[0] = ( vec_t * ) calloc( 1, sizeof( vec_t ) * 6 * 4 );
 
 	g_data.surfData[0].header.numVerts = 4;
 
@@ -920,8 +920,8 @@ void GrabFrame( const char *frame ){
 	char file1[1024];
 	md3Frame_t      *fr;
 	md3Tag_t tagParent;
-	float       *frameXyz;
-	float       *frameNormals;
+    vec_t       *frameXyz;
+    vec_t       *frameNormals;
 	const char  *framefile;
 	polyset_t       *psets;
 	qboolean parentTagExists = qfalse;
@@ -1005,9 +1005,9 @@ void GrabFrame( const char *frame ){
 						Error( "Multiple parent tags not allowed" );
 					}
 
-					memcpy( tri[0], psets[i].triangles[0].verts[0], sizeof( float ) * 3 );
-					memcpy( tri[1], psets[i].triangles[0].verts[1], sizeof( float ) * 3 );
-					memcpy( tri[2], psets[i].triangles[0].verts[2], sizeof( float ) * 3 );
+                    memcpy( tri[0], psets[i].triangles[0].verts[0], sizeof( vec_t ) * 3 );
+                    memcpy( tri[1], psets[i].triangles[0].verts[1], sizeof( vec_t ) * 3 );
+                    memcpy( tri[2], psets[i].triangles[0].verts[2], sizeof( vec_t ) * 3 );
 
 					MD3_ComputeTagFromTri( &tagParent, tri );
 					strcpy( tagParent.name, psets[i].name );
@@ -1082,9 +1082,9 @@ void GrabFrame( const char *frame ){
 
 			strcpy( pTag->name, psets[i].name );
 
-			memcpy( tri[0], pTris[0].verts[0], sizeof( float ) * 3 );
-			memcpy( tri[1], pTris[0].verts[1], sizeof( float ) * 3 );
-			memcpy( tri[2], pTris[0].verts[2], sizeof( float ) * 3 );
+            memcpy( tri[0], pTris[0].verts[0], sizeof( vec_t ) * 3 );
+            memcpy( tri[1], pTris[0].verts[1], sizeof( vec_t ) * 3 );
+            memcpy( tri[2], pTris[0].verts[2], sizeof( vec_t ) * 3 );
 
 			MD3_ComputeTagFromTri( pTag, tri );
 			tagcount++;
@@ -1094,7 +1094,7 @@ void GrabFrame( const char *frame ){
 			if ( g_data.surfData[i].verts[g_data.model.numFrames] ) {
 				free( g_data.surfData[i].verts[g_data.model.numFrames] );
 			}
-			frameXyz = g_data.surfData[i].verts[g_data.model.numFrames] = calloc( 1, sizeof( float ) * 6 * g_data.surfData[i].header.numVerts );
+            frameXyz = g_data.surfData[i].verts[g_data.model.numFrames] = calloc( 1, sizeof( vec_t ) * 6 * g_data.surfData[i].header.numVerts );
 			frameNormals = frameXyz + 3;
 
 			for ( t = 0; t < psets[i].numtriangles; t++ )
@@ -1624,8 +1624,8 @@ static void WriteMD3( const char *_filename, ObjectAnimationFrame_t oanims[], in
 
 static void BuildAnimationFromOAFs( const char *filename, ObjectAnimationFrame_t oanims[], int numFrames, int type ){
 	int f, i, j, tagcount;
-	float *frameXyz;
-	float *frameNormals;
+    vec_t *frameXyz;
+    vec_t *frameNormals;
 
 	g_data.model.numSurfaces = oanims[0].numSurfaces;
 	g_data.model.numFrames = numFrames;
@@ -1700,9 +1700,9 @@ static void BuildAnimationFromOAFs( const char *filename, ObjectAnimationFrame_t
 						Error( "Multiple parent tags not allowed" );
 					}
 
-					memcpy( tri[0], pOAF->surfaces[i]->triangles[0].verts[0], sizeof( float ) * 3 );
-					memcpy( tri[1], pOAF->surfaces[i]->triangles[0].verts[1], sizeof( float ) * 3 );
-					memcpy( tri[2], pOAF->surfaces[i]->triangles[0].verts[2], sizeof( float ) * 3 );
+                    memcpy( tri[0], pOAF->surfaces[i]->triangles[0].verts[0], sizeof( vec_t ) * 3 );
+                    memcpy( tri[1], pOAF->surfaces[i]->triangles[0].verts[1], sizeof( vec_t ) * 3 );
+                    memcpy( tri[2], pOAF->surfaces[i]->triangles[0].verts[2], sizeof( vec_t ) * 3 );
 
 					MD3_ComputeTagFromTri( &tagParent, tri );
 					strcpy( tagParent.name, "tag_parent" );
@@ -1713,9 +1713,9 @@ static void BuildAnimationFromOAFs( const char *filename, ObjectAnimationFrame_t
 				{
 					float tri[3][3];
 
-					memcpy( tri[0], pOAF->surfaces[i]->triangles[0].verts[0], sizeof( float ) * 3 );
-					memcpy( tri[1], pOAF->surfaces[i]->triangles[0].verts[1], sizeof( float ) * 3 );
-					memcpy( tri[2], pOAF->surfaces[i]->triangles[0].verts[2], sizeof( float ) * 3 );
+                    memcpy( tri[0], pOAF->surfaces[i]->triangles[0].verts[0], sizeof( vec_t ) * 3 );
+                    memcpy( tri[1], pOAF->surfaces[i]->triangles[0].verts[1], sizeof( vec_t ) * 3 );
+                    memcpy( tri[2], pOAF->surfaces[i]->triangles[0].verts[2], sizeof( vec_t ) * 3 );
 
 					MD3_ComputeTagFromTri( &g_data.tags[f][numtags], tri );
 					strcpy( g_data.tags[f][numtags].name, pOAF->surfaces[i]->name );
@@ -1784,9 +1784,9 @@ static void BuildAnimationFromOAFs( const char *filename, ObjectAnimationFrame_t
 
 				strcpy( pTag->name, pOAF->surfaces[i]->name );
 
-				memcpy( tri[0], pTris[0].verts[0], sizeof( float ) * 3 );
-				memcpy( tri[1], pTris[0].verts[1], sizeof( float ) * 3 );
-				memcpy( tri[2], pTris[0].verts[2], sizeof( float ) * 3 );
+                memcpy( tri[0], pTris[0].verts[0], sizeof( vec_t ) * 3 );
+                memcpy( tri[1], pTris[0].verts[1], sizeof( vec_t ) * 3 );
+                memcpy( tri[2], pTris[0].verts[2], sizeof( vec_t ) * 3 );
 
 				MD3_ComputeTagFromTri( pTag, tri );
 				tagcount++;
@@ -1796,7 +1796,7 @@ static void BuildAnimationFromOAFs( const char *filename, ObjectAnimationFrame_t
 				if ( g_data.surfData[i].verts[f] ) {
 					free( g_data.surfData[i].verts[f] );
 				}
-				frameXyz = g_data.surfData[i].verts[f] = calloc( 1, sizeof( float ) * 6 * g_data.surfData[i].header.numVerts );
+                frameXyz = g_data.surfData[i].verts[f] = calloc( 1, sizeof( vec_t ) * 6 * g_data.surfData[i].header.numVerts );
 				frameNormals = frameXyz + 3;
 
 				for ( t = 0; t < pOAF->surfaces[i]->numtriangles; t++ )

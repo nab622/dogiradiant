@@ -200,7 +200,7 @@ void DTreePlanter::DropEntsToGround( void ) {
 		}
 
 		vec3_t vec, out;
-		sscanf( pEpair->value.GetBuffer(), "%f %f %f", &vec[0], &vec[1], &vec[2] );
+        sscanf( pEpair->value.GetBuffer(), "%lf %lf %lf", &vec[0], &vec[1], &vec[2] );
 
 		FindDropPoint( vec, out );
 

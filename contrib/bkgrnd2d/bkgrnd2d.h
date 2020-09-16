@@ -49,7 +49,7 @@ bool m_bActive;
 // shuffling.
 // units are world units.
 // TODO should be private
-float m_xmin,m_ymin,m_xmax,m_ymax;
+vec_t m_xmin,m_ymin,m_xmax,m_ymax;
 
 // load file, create new tex, cleanup old tex, set new tex
 bool Load( const char *filename );

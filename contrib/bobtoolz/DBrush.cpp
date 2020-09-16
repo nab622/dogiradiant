@@ -137,7 +137,7 @@ int DBrush::PointPosition( vec3_t pnt ){
 
 	for ( list<DPlane *>::const_iterator chkPlane = faceList.begin(); chkPlane != faceList.end(); chkPlane++ )
 	{
-		float dist = ( *chkPlane )->DistanceToPoint( pnt );
+        vec_t dist = ( *chkPlane )->DistanceToPoint( pnt );
 
 		if ( dist > MAX_ROUND_ERROR ) {
 			return POINT_OUT_BRUSH;     // if point is in front of plane, it CANT be in the brush
@@ -323,7 +323,7 @@ bool DBrush::IsCutByPlane( DPlane *cuttingPlane ){
 		return FALSE;
 	}
 
-	float dist = cuttingPlane->DistanceToPoint( ( *chkPnt )->_pnt );
+    vec_t dist = cuttingPlane->DistanceToPoint( ( *chkPnt )->_pnt );
 
 	if ( dist > MAX_ROUND_ERROR ) {
 		isInFront = FALSE;
@@ -719,7 +719,7 @@ void DBrush::RotateAboutCentre( vec3_t vRotation ){
 	Rotate( centre, vRotation );
 }
 
-bool DBrush::ResetTextures( const char* textureName, float fScale[2],    float fShift[2],    int rotation, const char* newTextureName,
+bool DBrush::ResetTextures( const char* textureName, vec_t fScale[2],    vec_t fShift[2],    vec_t rotation, const char* newTextureName,
 							int bResetTextureName,   int bResetScale[2], int bResetShift[2], int bResetRotation ){
 	if ( textureName ) {
 		bool changed = FALSE;

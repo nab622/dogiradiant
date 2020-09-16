@@ -406,7 +406,7 @@ void CreateEntityLights( void ){
 		/* set light color */
 		_color = ValueForKey( e, "_color" );
 		if ( _color && _color[ 0 ] ) {
-			sscanf( _color, "%f %f %f", &light->color[ 0 ], &light->color[ 1 ], &light->color[ 2 ] );
+            sscanf( _color, "%lf %lf %lf", &light->color[ 0 ], &light->color[ 1 ], &light->color[ 2 ] );
 			ColorNormalize( light->color, light->color );
 		}
 		else{
@@ -1594,7 +1594,7 @@ void SetupGrid( void ){
 	/* ydnar: set grid size */
 	value = ValueForKey( &entities[ 0 ], "gridsize" );
 	if ( value[ 0 ] != '\0' ) {
-		sscanf( value, "%f %f %f", &gridSize[ 0 ], &gridSize[ 1 ], &gridSize[ 2 ] );
+        sscanf( value, "%lf %lf %lf", &gridSize[ 0 ], &gridSize[ 1 ], &gridSize[ 2 ] );
 	}
 
 	/* quantize it */
