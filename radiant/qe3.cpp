@@ -1436,16 +1436,12 @@ void MRU_Load(){
 
     if ( i > MAX_RECENT_FILES ) {
         i = MAX_RECENT_FILES;
-
     }
 	for (; i > 0; i-- )
 		MRU_AddFile( g_PrefsDlg.m_strMRUFiles[i - 1].GetBuffer() );
 }
 
 void MRU_Save(){
-//  NAB622: Decoupling this from it's original purpose. It is now a value the user can set in the prefs
-//	g_PrefsDlg.m_nMRUCount = MRU_used;
-
     for ( int i = 0; i < MRU_used; i++ )
 		g_PrefsDlg.m_strMRUFiles[i] = MRU_GetText( i );
 }
@@ -1501,6 +1497,11 @@ void MRU_Activate( int index ){
 	{
 		MRU_used--;
 
+        // NAB622: If the value was changed in the prefs, we need to account for that
+        if( MRU_used > g_PrefsDlg.m_nMRUCount ) {
+            MRU_used = g_PrefsDlg.m_nMRUCount;
+        }
+
 		for ( int i = index; i < MRU_used; i++ )
 			MRU_SetText( i, MRU_GetText( i + 1 ) );
 
@@ -1513,6 +1514,32 @@ void MRU_Activate( int index ){
 			gtk_widget_hide( MRU_items[MRU_used] );
 		}
 	}
+}
+
+void MRU_Update() {
+    // NAB622: If the value was changed in the prefs, we need to update the list
+    if( MRU_used >= g_PrefsDlg.m_nMRUCount ) {
+        MRU_used = g_PrefsDlg.m_nMRUCount - 1;
+    }
+
+    if ( MRU_used <= 0 ) {
+        // In case this was less than zero, make sure it remains at zero
+        MRU_used = 0;
+
+        gtk_menu_item_set_label( GTK_MENU_ITEM( MRU_items[0] ), _( "Recent Files" ) );
+        gtk_widget_set_sensitive( MRU_items[0], FALSE );
+        gtk_widget_show( MRU_items[0] );
+
+        // Hide ALL other entries, they aren't going to hide themselves!
+        for( int i = 1; i < MAX_RECENT_FILES; i++ ) {
+            gtk_widget_hide( MRU_items[i] );
+        }
+    } else {
+        // Hide ALL other entries, they aren't going to hide themselves!
+        for( int i = MRU_used; i < MAX_RECENT_FILES; i++ ) {
+            gtk_widget_hide( MRU_items[i] );
+        }
+    }
 }
 
 /*

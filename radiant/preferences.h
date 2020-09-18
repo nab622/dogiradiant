@@ -648,6 +648,7 @@ int m_nUndoLevels;
 bool m_bVertexSplit;
 
 int m_nMouseButtons;
+bool m_nAttachCameraToGrid;
 int m_nAngleSpeed;
 int m_nMoveSpeed;
 int m_nAutoSave;

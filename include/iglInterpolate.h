@@ -27,10 +27,15 @@
 #include "mathlib.h"
 #endif
 
-// Only include this if it hasn't already been run...
+// Only include these if they haven't already been run...
 #ifndef __IGL_H__
 #include "igl.h"
 #endif
+
+#ifndef __QGL_H__
+#include "qgl.h"
+#endif
+
 
 // NAB622: These functions are used at the entry points to the OpenGL functions.
 // They convert the higher-precision data types back to floats for OpenGL
@@ -72,4 +77,32 @@ inline void qglMultMatrixf_convertFloat( m4x4_t const input ) {
         temp[i] = (float) input[i];
     }
     qglMultMatrixf( temp );
+}
+
+
+// projection matrix
+inline void qglGetProjectionMatrixAsVec_t( vec_t *output ) {
+    float temp[4][4];
+
+    qglGetFloatv( GL_PROJECTION_MATRIX, &temp[0][0] );
+
+    for( int i = 0; i < 4; i++ ) {
+        for( int j = 0; j < 4; j++ ) {
+            output[4 * i + j] = (vec_t) temp[i][j];
+        }
+    }
+}
+
+
+// multMatrix for camwindow
+inline void qglMultMatrixAsVec_t( vec_t *input ) {
+    float temp[4][4];
+
+    for( int i = 0; i < 4; i++ ) {
+        for( int j = 0; j < 4; j++ ) {
+            temp[i][j] = (float) input[4 * i + j];
+        }
+    }
+
+    qglMultMatrixf( &temp[0][0] );
 }

@@ -25,11 +25,10 @@
 // NAB622: The purpose of this header is to put all the vector declarations in one location for easy precision changes later
 
 
-// The data type used on this line will be propogated through the vectors and other precision values in the code, keeping it all uniform
-typedef double gridUnits_t;
+// The data type used on this line will be propogated through the vectors and other precision values in the code, keeping it all the same type
+typedef double vec_t;
 
 
-typedef gridUnits_t vec_t;
 typedef vec_t vec2_t[2];
 typedef vec_t vec3_t[3];
 typedef vec_t vec4_t[4];

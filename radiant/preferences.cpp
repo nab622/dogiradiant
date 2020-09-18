@@ -75,6 +75,7 @@
 #define TINYBRUSH_KEY           "CleanTinyBrushes"
 #define TINYSIZE_KEY            "CleanTinyBrusheSize"
 #define SNAPSHOT_KEY            "Snapshots"
+#define ATTACH_CAM_TO_GRID_KEY  "AttachCameraMovementToGrid"
 #define MOVESPEED_KEY           "MoveSpeed"
 #define ANGLESPEED_KEY          "AngleSpeed"
 #define SETGAME_KEY             "UseSetGame"
@@ -240,14 +241,14 @@ int maximumRenderDistance = abs( (int) ceil( ( g_MaxWorldCoord - g_MinWorldCoord
 
 
 // Declaring these up here...
-GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox;
+GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox, *cameraMovementSlider;
 
 static void resetRenderDistanceSpin();
 static void renderDistanceSpinChanged();
 static void cubicClippingToggled();
 static void setCubicClippingRange();
 static void updateCubicClippingDistance();
-
+static void updateCameraMovementVelocity();
 
 void WindowPosition_Parse( window_position_t& m_value, const CString& value ){
 	if ( sscanf( value.GetBuffer(), "%d %d %d %d", &m_value.x, &m_value.y, &m_value.w, &m_value.h ) != 4 ) {
@@ -619,6 +620,7 @@ PrefsDlg::PrefsDlg (){
 	m_bLoadLastMap = FALSE;
     m_bTextureWindow = TRUE;
     m_bSnapShots = FALSE;
+    m_nAttachCameraToGrid = TRUE;
 	m_fTinySize = 0.5;
 	m_bCleanTiny = FALSE;
 	m_bCamXYUpdate = TRUE;
@@ -1579,10 +1581,10 @@ void PrefsDlg::BuildDialog(){
 
 	GtkWidget *ftw_label, *fth_label;
 	// Widgets on notebook pages
-	GtkWidget *check, *label, *scale, *hbox2, *combo,
+    GtkWidget *check, *label, *scale, *hbox2, *combo,
     *table, *spin,  *entry, *pixmap,
     *radio, *button, *pageframe, *vbox,
-    *cubicClippingTable, *recentTable;
+    *cubicClippingTable, *recentTable, *attachCameraMovementToGridCheck;
 	GtkSizeGroup *size_group;
 	GList *combo_list = (GList*)NULL;
 	GList *lst;
@@ -2016,16 +2018,13 @@ void PrefsDlg::BuildDialog(){
     }
     g_list_free( combo_list );
 
-#ifdef ATIHACK_812
-    // ATI bugs
-    check = gtk_check_button_new_with_label( _( "Enable workaround for ATI and Intel cards with buggy drivers\n(disappearing polygons)" ) );
-    gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
-    gtk_widget_show( check );
-    AddDialogData( check, &m_bGlATIHack, DLG_CHECK_BOOL );
-#endif
+    // Attach camera to grid
+    attachCameraMovementToGridCheck = gtk_check_button_new_with_label( _( "Attach camera movement speed to current grid size" ) );
+    gtk_box_pack_start( GTK_BOX( vbox ), attachCameraMovementToGridCheck, FALSE, FALSE, 0 );
+    gtk_widget_show( attachCameraMovementToGridCheck );
+    AddDialogData( attachCameraMovementToGridCheck, &m_nAttachCameraToGrid, DLG_CHECK_BOOL );
+    g_signal_connect( G_OBJECT( attachCameraMovementToGridCheck ), "changed", G_CALLBACK( updateCameraMovementVelocity ), NULL );
 
-/*
-// NAB622: This is no longer an option, as the camera speed has been attached to the grid size
     // Directional velocity (Movement Velocity)
 	// label container
 	hbox2 = gtk_hbox_new( FALSE, 0 );
@@ -2033,7 +2032,7 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( hbox2 );
 
 	// label
-	label = gtk_label_new( _( "Movement Velocity" ) );
+    label = gtk_label_new( _( "Camera Movement Velocity" ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), label, FALSE, FALSE, 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
@@ -2043,11 +2042,12 @@ void PrefsDlg::BuildDialog(){
 	AddDialogData( G_OBJECT( adj ), &m_nMoveSpeed, DLG_ADJ_INT );
 
     // scale
-	scale = gtk_hscale_new( GTK_ADJUSTMENT( adj ) );
-	gtk_box_pack_start( GTK_BOX( vbox ), scale, FALSE, TRUE, 2 );
-	gtk_widget_show( scale );
+    cameraMovementSlider = gtk_hscale_new( GTK_ADJUSTMENT( adj ) );
+    gtk_box_pack_start( GTK_BOX( vbox ), cameraMovementSlider, FALSE, TRUE, 2 );
+    gtk_widget_show( cameraMovementSlider );
 
-	gtk_scale_set_draw_value( GTK_SCALE( scale ), TRUE );
+    gtk_scale_set_draw_value( GTK_SCALE( cameraMovementSlider ), TRUE );
+    gtk_widget_set_sensitive( GTK_WIDGET( cameraMovementSlider ), m_nAttachCameraToGrid );
 
 	// Angular velocity (Rotational Velocity)
 	// label container
@@ -2056,7 +2056,7 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( hbox2 );
 
 	// label
-	label = gtk_label_new( _( "Rotational Velocity" ) );
+    label = gtk_label_new( _( "Camera Rotational Velocity" ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), label, FALSE, FALSE, 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
@@ -2089,6 +2089,8 @@ void PrefsDlg::BuildDialog(){
 	gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
 	gtk_widget_show( label );
 
+/*
+// NAB622: Disabling these options
     // Allow drag to select multiple faces/brushes
 	// container
 	table = gtk_table_new( 2, 1, FALSE );
@@ -2155,6 +2157,14 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( check );
 	AddDialogData( check, &m_bCamXYUpdate, DLG_CHECK_BOOL );
 */
+
+#ifdef ATIHACK_812
+    // ATI bugs
+    check = gtk_check_button_new_with_label( _( "Enable workaround for ATI and Intel cards with buggy drivers\n(disappearing polygons)" ) );
+    gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
+    gtk_widget_show( check );
+    AddDialogData( check, &m_bGlATIHack, DLG_CHECK_BOOL );
+#endif
 
     // Add the page to the notebook
     page_index = gtk_notebook_append_page( GTK_NOTEBOOK( notebook ), pageframe, preflabel );
@@ -3163,6 +3173,10 @@ static void updateCubicClippingDistance() {
     Sys_UpdateWindows( W_CAMERA_IFON );
 }
 
+static void updateCameraMovementVelocity() {
+    gtk_widget_set_sensitive( GTK_WIDGET( cameraMovementSlider ), g_PrefsDlg.m_nAttachCameraToGrid );
+}
+
 void PrefsDlg::LoadTexdefPref( texdef_t* pTexdef, const char* pName ){
 	char buffer[256];
 
@@ -3337,6 +3351,7 @@ void PrefsDlg::LoadPrefs(){
     mLocalPrefs.GetPref( AUTOSAVETIME_KEY,       &m_nAutoSave,                   5 );
     mLocalPrefs.GetPref( SAVEBEEP_KEY,           &m_bSaveBeep,                   TRUE );
     mLocalPrefs.GetPref( SNAPSHOT_KEY,           &m_bSnapShots,                  FALSE );
+    mLocalPrefs.GetPref( ATTACH_CAM_TO_GRID_KEY, &m_nAttachCameraToGrid,         TRUE );
     mLocalPrefs.GetPref( MOVESPEED_KEY,          &m_nMoveSpeed,                  100 );
     mLocalPrefs.GetPref( ANGLESPEED_KEY,         &m_nAngleSpeed,                 3 );
     mLocalPrefs.GetPref( SETGAME_KEY,            &m_bSetGame,                    FALSE );

@@ -248,7 +248,7 @@ void MRU_Save();
 void MRU_AddWidget( GtkWidget *widget, int pos );
 void MRU_AddFile( const char *str );
 void MRU_Activate( int index );
-
+void MRU_Update();
 
 void FillBSPMenu( void );
 void ClearGSList( GSList *lst );

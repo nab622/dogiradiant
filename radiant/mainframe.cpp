@@ -5029,7 +5029,7 @@ void MainFrame::OnPrefs() {
         }
 
         if( g_PrefsDlg.m_nMRUCount != nMRUCount ) {
-            // NAB622: FIXME: Add code here to refresh the recent files list
+            MRU_Update();
         }
 
 /*
@@ -5056,10 +5056,6 @@ void MainFrame::OnPrefs() {
     } else {
         //NAB622: If prefs changes were canceled, end up here
 
-
-        if( g_PrefsDlg.m_nMRUCount != nMRUCount ) {
-            g_PrefsDlg.m_nMRUCount = nMRUCount;
-        }
 
         // NAB622: If the renderer settings were touched and the changes were canceled, we need to restore the original settings and redraw the camera window
         if ( g_PrefsDlg.m_nRenderDistance != nRenderDistance ||

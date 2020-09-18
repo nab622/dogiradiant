@@ -29,6 +29,8 @@
 #include <gtk/gtk.h>
 #include <GL/gl.h>
 
+#include "iglInterpolate.h"
+
 extern void DrawPathLines();
 extern void Select_ShiftTexture( int x, int y, qtexture_t *tex );
 extern void Select_RotateTexture( int amt );
@@ -1395,10 +1397,9 @@ void CamWnd::Cam_Draw(){
     qgluPerspective( yfov,  screenaspect,  8,  g_PrefsDlg.m_nRenderDistance );
 
 	// we're too lazy to calc projection matrix ourselves!!!
-    float temp = (float) m_Camera.projection[0][0];
-    qglGetFloatv( GL_PROJECTION_MATRIX, &temp );
+    qglGetProjectionMatrixAsVec_t( &m_Camera.projection[0][0] );
 
-	vec3_t vec;
+    vec3_t vec;
 
 	m4x4_identity( &m_Camera.modelview[0][0] );
 	VectorSet( vec, -90, 0, 0 );
@@ -1417,8 +1418,7 @@ void CamWnd::Cam_Draw(){
 	qglMatrixMode( GL_MODELVIEW );
 	qglLoadIdentity();
 
-    float temp2 = (float) m_Camera.modelview[0][0];
-    qglMultMatrixf( &temp2 );
+    qglMultMatrixAsVec_t( &m_Camera.modelview[0][0] );
 
 	// grab the GL_PROJECTION and GL_MODELVIEW matrixes
 	//   used in GetRelativeAxes
