@@ -528,6 +528,8 @@ void Map_LoadFile( const char *filename ){
 	double elapsed_time;
 	start = clock();
 
+    g_bIgnoreCommands++;
+
 	Sys_BeginWait();
 	Select_Deselect();
 	/*!
@@ -576,6 +578,7 @@ void Map_LoadFile( const char *filename ){
 		Sys_Printf( "Map_LoadFile canceled\n" );
 		Map_New();
 		Sys_EndWait();
+        g_bIgnoreCommands--;
 		return;
 	}
 
@@ -583,7 +586,8 @@ void Map_LoadFile( const char *filename ){
 		Sys_Printf( "No worldspawn in map.\n" );
 		Map_New();
 		Sys_EndWait();
-		return;
+        g_bIgnoreCommands--;
+        return;
 	}
 	finish = clock();
 	elapsed_time = (double)( finish - start ) / CLOCKS_PER_SEC;
@@ -613,6 +617,8 @@ void Map_LoadFile( const char *filename ){
 	QERApp_SortActiveShaders();
 
 	Sys_UpdateWindows( W_ALL );
+
+    g_bIgnoreCommands--;
 }
 
 /*!

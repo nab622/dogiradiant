@@ -40,8 +40,9 @@ enum PrefTypes_t
 	PREF_INT,
 	PREF_BOOL,
 	PREF_FLOAT,
-	PREF_VEC3,
-	PREF_WNDPOS,
+    PREF_VEC,
+    PREF_VEC3,
+    PREF_WNDPOS,
 };
 
 /*!
@@ -120,6 +121,7 @@ void GetPref( const char *name, int *pV, int V );
 void GetPref( const char *name, bool *pV, bool V );
 void GetPref( const char *name, float *pV, float V );
 void GetPref( const char *name, float *pV, float* V );
+void GetPref( const char *name, vec_t *pV, vec_t V );
 void GetPref( const char *name, window_position_t* pV, window_position_t V );
 
 /*!

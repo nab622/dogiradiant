@@ -168,14 +168,10 @@ void CamWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
 }
 
 int CamWnd::calculateSpeed() {
-/*
-    // NAB622: When a preference for camera movement speed being attached to the grid is added, this is where the check should go
-    // If movement speed is not attached to the grid, return this value
-
-    if(g_PrefsDlg.preferenceName) {
-        return g_PrefsDlg.m_nMoveSpeed;
+    // If movement speed is not attached to the grid, return the normal movement speed
+    if(!g_PrefsDlg.m_nAttachCameraToGrid) {
+        return (int) ceil( g_PrefsDlg.m_nMoveSpeed );
     }
-*/
 
     // NAB622: Camera speed is now tied to grid size for easier movement
     int min = 1;
@@ -1397,7 +1393,7 @@ void CamWnd::Cam_Draw(){
     qgluPerspective( yfov,  screenaspect,  8,  g_PrefsDlg.m_nRenderDistance );
 
 	// we're too lazy to calc projection matrix ourselves!!!
-    qglGetProjectionMatrixAsVec_t( &m_Camera.projection[0][0] );
+    qglGetProjectionMatrixAsVec_t( m_Camera.projection );
 
     vec3_t vec;
 
@@ -1418,7 +1414,7 @@ void CamWnd::Cam_Draw(){
 	qglMatrixMode( GL_MODELVIEW );
 	qglLoadIdentity();
 
-    qglMultMatrixAsVec_t( &m_Camera.modelview[0][0] );
+    qglMultMatrixAsVec_t( m_Camera.modelview );
 
 	// grab the GL_PROJECTION and GL_MODELVIEW matrixes
 	//   used in GetRelativeAxes

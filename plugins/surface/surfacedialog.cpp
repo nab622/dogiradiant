@@ -731,10 +731,14 @@ GtkWidget* create_SurfaceInspector( void ){
     axial_size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
 
 	SurfaceInspector = gtk_window_new( GTK_WINDOW_TOPLEVEL );
-	gtk_window_set_transient_for( GTK_WINDOW( SurfaceInspector ), GTK_WINDOW( g_pMainWidget ) );
-	gtk_container_set_border_width( GTK_CONTAINER( SurfaceInspector ), 4 );
-	gtk_window_set_title( GTK_WINDOW( SurfaceInspector ), _( "Surface Inspector" ) );
-
+    gtk_window_set_title( GTK_WINDOW( SurfaceInspector ), _( "Surface Inspector" ) );
+    gtk_window_set_transient_for( GTK_WINDOW( SurfaceInspector ), GTK_WINDOW( g_pMainWidget ) );
+    /* NAB622: For some reason, being a transient is not keeping the surface inspector on top of everything else.
+    The SI cannot be set to 'modal' because then everything in Radiant becomes un-clickable.
+    So, for now, we'll have the SI stay on top of *ALL* other windows at the OS level, including windows outside of Radiant.
+    It's a hack, but until the right solution is found, at least it stops the SI from getting lost!! */
+    gtk_window_set_keep_above(GTK_WINDOW(SurfaceInspector), TRUE);
+    gtk_container_set_border_width( GTK_CONTAINER( SurfaceInspector ), 4 );
 	SetWinPos_from_Prefs( SurfaceInspector );
 
     viewport8 = gtk_viewport_new( NULL, NULL );

@@ -250,8 +250,8 @@ SCommandInfo g_Commands[] =
 	{"GridUp", GDK_KEY_bracketright, 0x00, ID_GRID_NEXT, "menu_grid_next"},
 	{"TexScaleLeft", GDK_KEY_Left, 0x04, ID_SELECTION_TEXTURE_SCALELEFT, "menu_selection_texture_scaleleft"},
 	{"TexScaleRight", GDK_KEY_Right, 0x04, ID_SELECTION_TEXTURE_SCALERIGHT, "menu_selection_texture_scaleright"},
-	{"CubicClipZoomOut", GDK_KEY_bracketright, 0x04, ID_VIEW_CUBEOUT, "menu_view_cubeout"},
-	{"CubicClipZoomIn", GDK_KEY_bracketleft, 0x04, ID_VIEW_CUBEIN, "menu_view_cubein"},
+    {"CubicClipZoomOut", GDK_KEY_bracketright, 0x04, ID_VIEW_CUBEOUT, "menu_view_cubeout"}, // NAB622:  FIXME: This throws an assert and I'm not sure why
+    {"CubicClipZoomIn", GDK_KEY_bracketleft, 0x04, ID_VIEW_CUBEIN, "menu_view_cubein"},     // NAB622:  FIXME: This throws an assert and I'm not sure why
 	{"ToggleCubicClip", GDK_KEY_backslash, 0x04, ID_VIEW_CUBICCLIPPING, "menu_view_cubicclipping"},
 	{"MoveSelectionDOWN", GDK_KEY_KP_Subtract, 0x00, ID_SELECTION_MOVEDOWN, "menu_selection_movedown"},
 	{"MoveSelectionUP", GDK_KEY_KP_Add, 0x00, ID_SELECTION_MOVEUP, "menu_selection_moveup"},

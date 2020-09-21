@@ -248,7 +248,6 @@ static void renderDistanceSpinChanged();
 static void cubicClippingToggled();
 static void setCubicClippingRange();
 static void updateCubicClippingDistance();
-static void updateCameraMovementVelocity();
 
 void WindowPosition_Parse( window_position_t& m_value, const CString& value ){
 	if ( sscanf( value.GetBuffer(), "%d %d %d %d", &m_value.x, &m_value.y, &m_value.w, &m_value.h ) != 4 ) {
@@ -370,20 +369,43 @@ void CXMLPropertyBag::GetPref( const char *name, bool *pV, bool V ){
 }
 
 void CXMLPropertyBag::GetPref( const char *name, float *pV, float V ){
-	xmlNodePtr pNode;
-	if ( ( pNode = EpairForName( name ) ) && pNode->children && pNode->children->content ) {
-		*pV = atof( (char *)pNode->children->content );
-	}
-	else
-	{
-		char s[10];
-		sprintf( s, "%f", V );
-		pNode = xmlNewChild( mpDocNode, NULL, (xmlChar *)"epair", (xmlChar *)s );
-		xmlSetProp( pNode, (xmlChar *)"name", (xmlChar *)name );
-		*pV = V;
-	}
-	// push the pref assignment if needed
-	PushAssignment( name, PREF_FLOAT, pV );
+
+Sys_Printf( "IN THE FLOAT PREFERENCE FUNCTION\n" );
+
+    xmlNodePtr pNode;
+    if ( ( pNode = EpairForName( name ) ) && pNode->children && pNode->children->content ) {
+        *pV = atof( (char *)pNode->children->content );
+    }
+    else
+    {
+        char s[10];
+        sprintf( s, "%f", V );
+        pNode = xmlNewChild( mpDocNode, NULL, (xmlChar *)"epair", (xmlChar *)s );
+        xmlSetProp( pNode, (xmlChar *)"name", (xmlChar *)name );
+        *pV = V;
+    }
+    // push the pref assignment if needed
+    PushAssignment( name, PREF_FLOAT, pV );
+}
+
+void CXMLPropertyBag::GetPref( const char *name, vec_t *pV, vec_t V ){
+
+Sys_Printf( "IN THE VEC_T PREFERENCE FUNCTION\n" );
+
+    xmlNodePtr pNode;
+    if ( ( pNode = EpairForName( name ) ) && pNode->children && pNode->children->content ) {
+        *pV = atof( (char *)pNode->children->content );
+    }
+    else
+    {
+        char s[10];
+        sprintf( s, "%lf", V );
+        pNode = xmlNewChild( mpDocNode, NULL, (xmlChar *)"epair", (xmlChar *)s );
+        xmlSetProp( pNode, (xmlChar *)"name", (xmlChar *)name );
+        *pV = V;
+    }
+    // push the pref assignment if needed
+    PushAssignment( name, PREF_VEC, pV );
 }
 
 void CXMLPropertyBag::GetPref( const char *name, float* pV, float* V ){
@@ -438,39 +460,43 @@ void CXMLPropertyBag::UpdatePrefTree(){
 		if ( !pNode ) {
 			Sys_FPrintf( SYS_ERR, "Unexpected EpairForName '%s' not found in UpdatePrefTree\n", pPref->mName.GetBuffer() );
 			return;
-		}
-		switch ( ( *iPref ).mType )
-		{
-		case PREF_STR:
-			xmlNodeSetContent( pNode, (const xmlChar *)( (Str *)pPref->mVal )->GetBuffer() );
-			break;
-		case PREF_INT:
-			sprintf( s, "%d", *(int *)pPref->mVal );
-			xmlNodeSetContent( pNode, (xmlChar *)s );
-			break;
-		case PREF_FLOAT:
-			sprintf( s, "%f", *(float *)pPref->mVal );
-			xmlNodeSetContent( pNode, (xmlChar *)s );
-			break;
-		case PREF_BOOL:
-			*(bool *)pPref->mVal ? strcpy( s, "true" ) : strcpy( s, "false" );
-			xmlNodeSetContent( pNode, (xmlChar *)s );
-			break;
-		case PREF_VEC3:
-		{
-			float* v = (float*)pPref->mVal;
-			sprintf( s, "%f %f %f", v[0], v[1], v[2] );
-			xmlNodeSetContent( pNode, (xmlChar *)s );
-		}
-		break;
-		case PREF_WNDPOS:
-		{
-			CString str;
-			WindowPosition_Write( *(window_position_t*)pPref->mVal, str );
-			xmlNodeSetContent( pNode, (xmlChar*)str.GetBuffer() );
-		}
-		break;
-		}
+        }
+        switch ( ( *iPref ).mType )
+        {
+        case PREF_STR:
+            xmlNodeSetContent( pNode, (const xmlChar *)( (Str *)pPref->mVal )->GetBuffer() );
+            break;
+        case PREF_INT:
+            sprintf( s, "%d", *(int *)pPref->mVal );
+            xmlNodeSetContent( pNode, (xmlChar *)s );
+            break;
+        case PREF_FLOAT:
+            sprintf( s, "%f", *(float *)pPref->mVal );
+            xmlNodeSetContent( pNode, (xmlChar *)s );
+            break;
+        case PREF_BOOL:
+            *(bool *)pPref->mVal ? strcpy( s, "true" ) : strcpy( s, "false" );
+            xmlNodeSetContent( pNode, (xmlChar *)s );
+            break;
+        case PREF_VEC:
+            sprintf( s, "%lf", *(vec_t *)pPref->mVal );
+            xmlNodeSetContent( pNode, (xmlChar *)s );
+            break;
+        case PREF_VEC3:
+        {
+            float* v = (float*)pPref->mVal;
+            sprintf( s, "%f %f %f", v[0], v[1], v[2] );
+            xmlNodeSetContent( pNode, (xmlChar *)s );
+        }
+        break;
+        case PREF_WNDPOS:
+        {
+            CString str;
+            WindowPosition_Write( *(window_position_t*)pPref->mVal, str );
+            xmlNodeSetContent( pNode, (xmlChar*)str.GetBuffer() );
+        }
+        break;
+        }
 	}
 }
 
@@ -1804,7 +1830,7 @@ void PrefsDlg::BuildDialog(){
 	check = gtk_check_button_new_with_label( _( "Solid selection boxes" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
 	gtk_widget_show( check );
-	AddDialogData( check, &m_bNoStipple, DLG_CHECK_BOOL );
+    AddDialogData( check, &m_bNoStipple, DLG_CHECK_BOOL );
 */
 
     // Display size info
@@ -1825,9 +1851,9 @@ void PrefsDlg::BuildDialog(){
 
 
     /******** 3D Camera / rendering view group *********/
-    preflabel = gtk_label_new( _( "3D View" ) );
+    preflabel = gtk_label_new( _( "3D Camera View" ) );
 	gtk_widget_show( preflabel );
-	pageframe = gtk_frame_new( _( "3D View" ) );
+    pageframe = gtk_frame_new( _( "3D Camera View" ) );
 	gtk_container_set_border_width( GTK_CONTAINER( pageframe ), 5 );
 	gtk_widget_show( pageframe );
 	vbox = gtk_vbox_new( FALSE, 5 );
@@ -2023,7 +2049,6 @@ void PrefsDlg::BuildDialog(){
     gtk_box_pack_start( GTK_BOX( vbox ), attachCameraMovementToGridCheck, FALSE, FALSE, 0 );
     gtk_widget_show( attachCameraMovementToGridCheck );
     AddDialogData( attachCameraMovementToGridCheck, &m_nAttachCameraToGrid, DLG_CHECK_BOOL );
-    g_signal_connect( G_OBJECT( attachCameraMovementToGridCheck ), "changed", G_CALLBACK( updateCameraMovementVelocity ), NULL );
 
     // Directional velocity (Movement Velocity)
 	// label container
@@ -2047,7 +2072,6 @@ void PrefsDlg::BuildDialog(){
     gtk_widget_show( cameraMovementSlider );
 
     gtk_scale_set_draw_value( GTK_SCALE( cameraMovementSlider ), TRUE );
-    gtk_widget_set_sensitive( GTK_WIDGET( cameraMovementSlider ), m_nAttachCameraToGrid );
 
 	// Angular velocity (Rotational Velocity)
 	// label container
@@ -2160,7 +2184,7 @@ void PrefsDlg::BuildDialog(){
 
 #ifdef ATIHACK_812
     // ATI bugs
-    check = gtk_check_button_new_with_label( _( "Enable workaround for ATI and Intel cards with buggy drivers\n(disappearing polygons)" ) );
+    check = gtk_check_button_new_with_label( _( "Enable workaround for ATI and Intel cards with buggy drivers\n(Disappearing polygons)" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
     gtk_widget_show( check );
     AddDialogData( check, &m_bGlATIHack, DLG_CHECK_BOOL );
@@ -3173,17 +3197,14 @@ static void updateCubicClippingDistance() {
     Sys_UpdateWindows( W_CAMERA_IFON );
 }
 
-static void updateCameraMovementVelocity() {
-    gtk_widget_set_sensitive( GTK_WIDGET( cameraMovementSlider ), g_PrefsDlg.m_nAttachCameraToGrid );
-}
-
 void PrefsDlg::LoadTexdefPref( texdef_t* pTexdef, const char* pName ){
 	char buffer[256];
 
 	memset( pTexdef, 0, sizeof( texdef_t ) );
 
+    // NAB622: These have to be floats here - we'll turn them into vec_t below
     float defaultScale = 0.25f;
-    float temp = 0;
+    float temp;
 
 	sprintf( buffer, "%s%s", pName, TD_SCALE1_KEY );
     mLocalPrefs.GetPref( buffer, &temp,   defaultScale );
@@ -3639,6 +3660,8 @@ void PrefsDlg::SavePrefs(){
 		Sys_FPrintf( SYS_ERR, "Error occured while saving local prefs file '%s'\n", m_inipath->str );
 	}
 
+    // NAB622: Force to a 3 button mouse
+    m_nMouseButtons = 3;
 /*
 // NAB622: Force to a 3 button mouse
     if ( m_nMouse == 0 ) {
@@ -3648,7 +3671,6 @@ void PrefsDlg::SavePrefs(){
 		m_nMouseButtons = 3;
 	}
 */
-    m_nMouseButtons = 3;
 }
 
 void PrefsDlg::PostModal( int code ){
