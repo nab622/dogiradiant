@@ -230,12 +230,12 @@ singleselect:
 		UpdateSurfaceDialog();
 	}
 
-	if ( bStatus ) {
+    if ( bStatus ) {
 		vec3_t vMin, vMax, vSize;
 		Select_GetBounds( vMin, vMax );
 		VectorSubtract( vMax, vMin, vSize );
 		CString strStatus;
-		strStatus.Format( "Selection X:: %.1f  Y:: %.1f  Z:: %.1f", vSize[0], vSize[1], vSize[2] );
+        strStatus.Format( "Selection X: %.1f   Y: %.1f   Z: %.1f", vSize[0], vSize[1], vSize[2] );
 		g_pParentWnd->SetStatusText( 2, strStatus );
 	}
 }
@@ -448,14 +448,14 @@ void Select_Deselect( bool bDeselectFaces ){
 	g_qeglobals.d_num_move_points = 0;
 	b = selected_brushes.next;
 
-	if ( b == &selected_brushes ) {
+    if ( b == &selected_brushes ) {
 		if ( bDeselectFaces ) {
 			g_ptrSelectedFaces.RemoveAll();
 			g_ptrSelectedFaceBrushes.RemoveAll();
 		}
 		PerformFiltering();
 		UpdateSurfaceDialog();
-		Sys_UpdateWindows( W_ALL );
+        Sys_UpdateWindows( W_ALL );
 		return;
 	}
 
@@ -508,10 +508,10 @@ void Select_Move( vec3_t delta, bool bSnap ){
     vec3_t vMin, vMax;
 	Select_GetBounds( vMin, vMax );
 	CString strStatus;
-	strStatus.Format( "Origin X:: %.1f  Y:: %.1f  Z:: %.1f", vMin[0], vMax[1], vMax[2] );
+    strStatus.Format( "Origin X: %.1f   Y: %.1f   Z: %.1f", vMin[0], vMax[1], vMax[2] );
 	g_pParentWnd->SetStatusText( 2, strStatus );
 
-	//Sys_UpdateWindows (W_ALL);
+    //Sys_UpdateWindows (W_ALL);
 }
 
 /*
@@ -1703,8 +1703,8 @@ void Select_ShiftTexture( int x, int y ) {
                 f->texdef.shift[1] += y * multiplier;
 
                 // NAB622: Make sure these are within range of the resolution...no point exceeding it
-                f->texdef.shift[0] = calculateRotatingValueBeneathMax( f->texdef.shift[0], f->d_texture->width );
-                f->texdef.shift[1] = calculateRotatingValueBeneathMax( f->texdef.shift[1], f->d_texture->height );
+                f->texdef.shift[0] = calculateVecRotatingValueBeneathMax( f->texdef.shift[0], f->d_texture->width );
+                f->texdef.shift[1] = calculateVecRotatingValueBeneathMax( f->texdef.shift[1], f->d_texture->height );
             }
 		}
 		Brush_Build( b,true,true,false,false ); // don't filter
@@ -1728,8 +1728,8 @@ void Select_ShiftTexture( int x, int y ) {
                 selFace->texdef.shift[1] += y * multiplier;
 
                 // NAB622: Make sure these are within range of the resolution...no point exceeding it
-                selFace->texdef.shift[0] = calculateRotatingValueBeneathMax( selFace->texdef.shift[0], selFace->d_texture->width );
-                selFace->texdef.shift[1] = calculateRotatingValueBeneathMax( selFace->texdef.shift[1], selFace->d_texture->height );
+                selFace->texdef.shift[0] = calculateVecRotatingValueBeneathMax( selFace->texdef.shift[0], selFace->d_texture->width );
+                selFace->texdef.shift[1] = calculateVecRotatingValueBeneathMax( selFace->texdef.shift[1], selFace->d_texture->height );
             }
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}
@@ -1848,8 +1848,8 @@ void Select_RotateTexture( int amt ){
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
 				// update
                 rotate += amt * multiplier;
-                rotate = calculateRotatingValueBeneathMax( rotate, 360 );
-                // NAB622: FIXME: This needs to include calculateRotatingValueBeneathMax somehow
+                rotate = calculateVecRotatingValueBeneathMax( rotate, 360 );
+                // NAB622: FIXME: This needs to include calculateVecRotatingValueBeneathMax somehow
 				// compute new normalized texture matrix
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				// apply to face texture matrix
@@ -1859,7 +1859,7 @@ void Select_RotateTexture( int amt ){
 			{
                 f->texdef.rotate += amt * multiplier;
                 //If the rotation is out of reasonable bounds, push it back. Rotation cannot go beyond the range of 0-360, so anything else is pointless, even negative values
-                f->texdef.rotate = static_cast<float>( calculateRotatingValueBeneathMax( f->texdef.rotate, 360 ) );
+                f->texdef.rotate = static_cast<float>( calculateVecRotatingValueBeneathMax( f->texdef.rotate, 360 ) );
 			}
 		}
 		Brush_Build( b,true,true,false,false ); // don't filter
@@ -1883,14 +1883,14 @@ void Select_RotateTexture( int amt ){
 				ConvertTexMatWithQTexture( &selFace->brushprimit_texdef, selFace->d_texture, &bp, NULL );
 				TexMatToFakeTexCoords( bp.coords, shift, &rotate, scale );
                 rotate += amt * multiplier;
-                rotate = calculateRotatingValueBeneathMax( rotate, 360 );
+                rotate = calculateVecRotatingValueBeneathMax( rotate, 360 );
 				FakeTexCoordsToTexMat( shift, rotate, scale, bp.coords );
 				ConvertTexMatWithQTexture( &bp, NULL, &selFace->brushprimit_texdef, selFace->d_texture );
 			}
 			else
 			{
                 selFace->texdef.rotate += amt * multiplier;
-                selFace->texdef.rotate = static_cast<float>( calculateRotatingValueBeneathMax( selFace->texdef.rotate, 360 ) );
+                selFace->texdef.rotate = static_cast<float>( calculateVecRotatingValueBeneathMax( selFace->texdef.rotate, 360 ) );
 			}
 			Brush_Build( selBrush,true,true,false,false ); // don't filter
 		}

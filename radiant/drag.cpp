@@ -564,7 +564,8 @@ void MoveSelection( vec3_t move ){
 		}
 
 		g_pParentWnd->ActiveXY()->Rotation()[nAxis] += fAdj;
-		strStatus.Format( "%s x:: %.1f  y:: %.1f  z:: %.1f", ( g_bPatchBendMode ) ? "Bend angle" : "Rotation", g_pParentWnd->ActiveXY()->Rotation()[0], g_pParentWnd->ActiveXY()->Rotation()[1], g_pParentWnd->ActiveXY()->Rotation()[2] );
+
+        strStatus.Format( "%s X: %.1f   Y: %.1f  Z: %.1f", ( g_bPatchBendMode ) ? "Bend angle" : "Rotation", g_pParentWnd->ActiveXY()->Rotation()[0], g_pParentWnd->ActiveXY()->Rotation()[1], g_pParentWnd->ActiveXY()->Rotation()[2] );
 		g_pParentWnd->SetStatusText( 2, strStatus );
 
 		if ( g_bPatchBendMode ) {

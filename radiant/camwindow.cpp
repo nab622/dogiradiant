@@ -422,21 +422,19 @@ void CamWnd::Cam_MouseControl( float dtime ){
 
         m_Camera.angles[YAW] += dx * dtime * g_PrefsDlg.m_nAngleSpeed;
 
-		if ( m_Camera.angles[PITCH] > 90 ) {
-			m_Camera.angles[PITCH] = 90;
-		}
-		else if ( m_Camera.angles[PITCH] < -90 ) {
-			m_Camera.angles[PITCH] = -90;
+        m_Camera.angles[PITCH] = calculateVecRotatingValueBeneathMax( m_Camera.angles[PITCH], 360 );
+        m_Camera.angles[YAW] = calculateVecRotatingValueBeneathMax( m_Camera.angles[YAW], 360 );
+
+        // Lock the Y axis so the camera can't roll over
+        if ( m_Camera.angles[PITCH] > 90 && m_Camera.angles[PITCH] < 270 ) {
+            if( m_Camera.angles[PITCH] < 180 ) {
+                m_Camera.angles[PITCH] = 90;
+            } else {
+                m_Camera.angles[PITCH] = 270;
+            }
 		}
 
-		if ( m_Camera.angles[YAW] >= 360 ) {
-			m_Camera.angles[YAW] = 0;
-		}
-		else if ( m_Camera.angles[YAW] <= -360 ) {
-			m_Camera.angles[YAW] = 0;
-		}
-
-		if ( dx || dy || m_Camera.movementflags ) {
+        if ( dx || dy || m_Camera.movementflags ) {
 			int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
 			Sys_UpdateWindows( nUpdate );
 			g_pParentWnd->OnTimer();
@@ -680,7 +678,8 @@ void CamWnd::Cam_MouseDown( int x, int y, int buttons ){
     if ( buttons == MK_RBUTTON && !Sys_AltDown() ) {
 		if ( g_PrefsDlg.m_bCamFreeLook ) {
             ToggleFreeMove();
-		}
+Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
+        }
 		else{
             Cam_MouseControl( 0.1f );
 		}
@@ -695,11 +694,6 @@ void CamWnd::Cam_MouseUp( int x, int y, int buttons ){
 
 void CamWnd::Cam_MouseMoved( int x, int y, int buttons ){
     m_nCambuttonstate = buttons;
-
-    if ( m_bFreeMove ) {
-        // NAB622: Make sure to reset this
-        cameraFlipped = false;
-    }
 
     if ( !buttons ) {
 		return;
@@ -1344,6 +1338,7 @@ void CamWnd::Cam_DrawStuff(){
 
 }
 
+
 /*
    ==============
    Cam_Draw
@@ -1482,7 +1477,7 @@ void CamWnd::Cam_Draw(){
 		qglColor4f( g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES3D][0], g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES3D][1], g_qeglobals.d_savedinfo.colors[COLOR_SELBRUSHES3D][2], 0.3f );
 		qglEnable( GL_BLEND );
 		qglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		qglDepthFunc( GL_LEQUAL );
+        qglDepthFunc( GL_LEQUAL );
 		for ( brush = pList->next ; brush != pList ; brush = brush->next )
 		{
 			if ( brush->bCamCulled ) { // draw selected faces of filtered brushes to remind that there is a selection
@@ -1521,33 +1516,70 @@ void CamWnd::Cam_Draw(){
 	}
 
 	if ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle & OUTLINE_ZBUF ) {
-		// non-zbuffered outline
 		qglDisable( GL_BLEND );
-		qglDisable( GL_DEPTH_TEST );
-		qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-		qglColor3f( 1, 1, 1 );
-		for ( brush = pList->next ; brush != pList ; brush = brush->next )
-		{
-			if ( ( brush->patchBrush && ( g_qeglobals.d_select_mode == sel_curvepoint || g_qeglobals.d_select_mode == sel_area ) ) ) {
-				continue;
-			}
+        qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        qglColor3f( 1, 1, 1 );
 
-			if ( !g_PrefsDlg.m_bPatchBBoxSelect && brush->patchBrush ) {
-				DrawPatchMesh( brush->pPatch );
-			}
-			else if ( brush->owner->model.pRender && g_PrefsDlg.m_nEntityShowState != ENTITY_BOX ) {
-				brush->owner->model.pRender->Draw( DRAW_GL_WIRE, ( DRAW_RF_SEL_FILL | DRAW_RF_CAM ) );
+        if( g_PrefsDlg.m_bXraySelection ) {
+            // Stipple outline
+            qglEnable( GL_LINE_STIPPLE );
+            qglLineStipple( 1, 34952 );
+            glLineWidth( 1 );
+            qglDepthFunc( GL_GREATER );
 
-				// Hydra : always draw bbox outline!
-				aabb_draw( brush->owner->model.pRender->GetAABB(), DRAW_GL_WIRE );
-			}
-			else
-			{
-				for ( face = brush->brush_faces ; face ; face = face->next )
-					Brush_FaceDraw( face, DRAW_GL_WIRE );
-			}
-		}
-	}
+            for ( brush = pList->next ; brush != pList ; brush = brush->next )
+            {
+                if ( ( brush->patchBrush && ( g_qeglobals.d_select_mode == sel_curvepoint || g_qeglobals.d_select_mode == sel_area ) ) ) {
+                    continue;
+                }
+
+                if ( !g_PrefsDlg.m_bPatchBBoxSelect && brush->patchBrush ) {
+                    DrawPatchMesh( brush->pPatch );
+                }
+                else if ( brush->owner->model.pRender && g_PrefsDlg.m_nEntityShowState != ENTITY_BOX ) {
+                    brush->owner->model.pRender->Draw( DRAW_GL_WIRE, ( DRAW_RF_SEL_FILL | DRAW_RF_CAM ) );
+
+                    // Hydra : always draw bbox outline!
+                    aabb_draw( brush->owner->model.pRender->GetAABB(), DRAW_GL_WIRE );
+                }
+                else
+                {
+                    for ( face = brush->brush_faces ; face ; face = face->next )
+                        Brush_FaceDraw( face, DRAW_GL_WIRE );
+                }
+            }
+        }
+
+        // Solid outline
+        qglDisable( GL_LINE_STIPPLE );
+        glLineWidth( 1 );
+        qglEnable( GL_POLYGON_OFFSET_LINE );
+        glPolygonOffset( -1, -1 );
+        qglDepthFunc( GL_LEQUAL );
+
+        for ( brush = pList->next ; brush != pList ; brush = brush->next )
+        {
+            if ( ( brush->patchBrush && ( g_qeglobals.d_select_mode == sel_curvepoint || g_qeglobals.d_select_mode == sel_area ) ) ) {
+                continue;
+            }
+
+            if ( !g_PrefsDlg.m_bPatchBBoxSelect && brush->patchBrush ) {
+                DrawPatchMesh( brush->pPatch );
+            }
+            else if ( brush->owner->model.pRender && g_PrefsDlg.m_nEntityShowState != ENTITY_BOX ) {
+                brush->owner->model.pRender->Draw( DRAW_GL_WIRE, ( DRAW_RF_SEL_FILL | DRAW_RF_CAM ) );
+
+                // Hydra : always draw bbox outline!
+                aabb_draw( brush->owner->model.pRender->GetAABB(), DRAW_GL_WIRE );
+            }
+            else
+            {
+                for ( face = brush->brush_faces ; face ; face = face->next )
+                    Brush_FaceDraw( face, DRAW_GL_WIRE );
+            }
+        }
+        qglDisable( GL_POLYGON_OFFSET_LINE );
+    }
 
 	// edge / vertex flags
 	if ( g_qeglobals.d_select_mode == sel_vertex ) {

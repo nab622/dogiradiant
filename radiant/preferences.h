@@ -646,6 +646,7 @@ bool m_bShowShaders;
 bool m_bHideEmptyDirs;
 int m_nShader;
 bool m_bNoStipple;
+bool m_bXraySelection;
 int m_nUndoLevels;
 bool m_bVertexSplit;
 

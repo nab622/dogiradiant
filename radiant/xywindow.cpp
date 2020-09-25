@@ -1075,7 +1075,7 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 		tdp[0] = tdp[1] = tdp[2] = 0.0;
 		SnapToPoint( pointx, m_nHeight - 1 - pointy, tdp );
 
-		g_strStatus.Format( "x:: %.1f  y:: %.1f  z:: %.1f", tdp[0], tdp[1], tdp[2] );
+        g_strStatus.Format( "X: %g   Y: %g   Z: %g", tdp[0], tdp[1], tdp[2] );
 		g_pParentWnd->SetStatusText( 1, g_strStatus );
 
 		// i need to generalize the point code.. having 3 flavors pretty much sucks..
@@ -1406,49 +1406,11 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 	}
 
 	// mbutton = angle camera
-    // NAB622: FIXME: This can result in the camera turning upside-down somehow
 	if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
 		 ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
 
-        VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
+        calculateCameraAngle( x, y, point );
 
-		int n1 = ( m_nViewType == XY ) ? 1 : 2;
-		int n2 = ( m_nViewType == YZ ) ? 1 : 0;
-		int nAngle = ( m_nViewType == XY ) ? YAW : PITCH;
-
-        if ( point[n1] || point[n2] ) {
-            g_pParentWnd->GetCamWnd()->Camera()->angles[nAngle] = 180 / Q_PI*atan2( point[n1], point[n2] );
-        }
-
-        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180, 360) - 180;
-        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180, 360) - 180;
-
-        if ( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] > 90 ) {
-            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = 180 - g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
-            if( !cameraFlipped ) {
-                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
-                cameraFlipped = true;
-            }
-        }
-        else if ( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] < -90 ) {
-            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = -180 - g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
-            if( !cameraFlipped ) {
-                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
-                cameraFlipped = true;
-            }
-        } else {
-            if( cameraFlipped ) {
-                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180;
-                cameraFlipped = false;
-            }
-        }
-
-        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180, 360) - 180;
-        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180, 360) - 180;
-
-        Sys_Printf("YAW: %f  -  PITCH: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
-
-        Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
         return;
 	}
 
@@ -1789,12 +1751,12 @@ void XYWnd::NewBrushDrag( int x, int y ){
 	}
 	//
 
-	vec3_t vSize;
+    vec3_t vSize;
 	VectorSubtract( maxs, mins, vSize );
-	g_strStatus.Format( "Size X:: %.1f  Y:: %.1f  Z:: %.1f", vSize[0], vSize[1], vSize[2] );
+    g_strStatus.Format( "Size X: %.1f   Y: %.1f   Z: %.1f", vSize[0], vSize[1], vSize[2] );
 	g_pParentWnd->SetStatusText( 2, g_strStatus );
 
-	Brush_AddToList( n, &selected_brushes );
+    Brush_AddToList( n, &selected_brushes );
 
 	Entity_LinkBrush( world_entity, n );
 
@@ -1905,49 +1867,11 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 */
 
     // mbutton = angle camera
-    // NAB622: FIXME: This can result in the camera turning upside-down somehow
     if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
          ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
 
-        SnapToPoint( x, y, point );
-        VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, point );
+        calculateCameraAngle( x, y, point );
 
-        int n1 = ( m_nViewType == XY ) ? 1 : 2;
-        int n2 = ( m_nViewType == YZ ) ? 1 : 0;
-        int nAngle = ( m_nViewType == XY ) ? YAW : PITCH;
-        if ( point[n1] || point[n2] ) {
-            g_pParentWnd->GetCamWnd()->Camera()->angles[nAngle] = 180 / Q_PI*atan2( point[n1], point[n2] );
-        }
-
-        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180, 360) - 180;
-        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180, 360) - 180;
-
-        if ( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] > 90 ) {
-            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = 180 - g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
-            if( !cameraFlipped ) {
-                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
-                cameraFlipped = true;
-            }
-        }
-        else if ( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] < -90 ) {
-            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = -180 - g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
-            if( !cameraFlipped ) {
-                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
-                cameraFlipped = true;
-            }
-        } else {
-            if( cameraFlipped ) {
-                g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180;
-                cameraFlipped = false;
-            }
-        }
-
-        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180, 360) - 180;
-        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateRotatingValueBeneathMax(g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180, 360) - 180;
-
-        Sys_Printf("YAW: %f  -  PITCH: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
-
-        Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
         return;
     }
 
@@ -2005,6 +1929,66 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 		}
 		return;
 	}
+}
+
+void XYWnd::calculateCameraAngle( int x, int y, vec3_t point ) {
+    vec3_t newAngle, tempAngle;
+    //Initialize these to make sure they have the right values later
+    newAngle[PITCH] = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
+    newAngle[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW];
+
+    SnapToPoint( x, y, point );
+
+    // The grid is only setting two of three grid vectors. The third point must be even with the camera's origin
+    switch ( m_nViewType ) {
+        // USING THE CAMERA ORIGIN IS A HACK TO GET THIS TO WORK TEMPORARILY
+        // THE CORRECT WAY TO DO THIS IS TO CALCULATE OUT THE THIRD VECTOR
+        case YZ:
+            point[0] = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
+        break;
+        case XZ:
+            point[1] = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
+        break;
+        case XY:
+            point[2] = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
+        break;
+    }
+
+    VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, tempAngle );
+    VectorToAngles( tempAngle, tempAngle );
+
+    tempAngle[YAW] = calculateVecRotatingValueBeneathMax( tempAngle[YAW], 360 );
+    tempAngle[PITCH] = calculateVecRotatingValueBeneathMax( tempAngle[PITCH], 360 );
+
+Sys_Printf( "PITCH TEST: %lf\n", newAngle[PITCH] );
+    switch ( m_nViewType ) {
+        case YZ:
+        newAngle[PITCH] = tempAngle[PITCH];
+        newAngle[YAW] = tempAngle[YAW];
+            if( newAngle[PITCH] >= 270 || newAngle[PITCH] < 90 ) {
+                newAngle[YAW] = -g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
+            }
+        break;
+        case XZ:
+            // Add 180 to the yaw in the XZ view
+            newAngle[YAW] = tempAngle[YAW] + 180;
+            newAngle[PITCH] = tempAngle[PITCH];
+        break;
+        case XY:
+            // Ignore the pitch change in the XY view
+            newAngle[YAW] = tempAngle[YAW];
+        break;
+    }
+//            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] <= 180 && g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] > 0 )   // XZ
+//            if( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] < 90 )   // YZ
+Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
+
+    g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateVecRotatingValueBeneathMax( newAngle[YAW], 360 );
+    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( newAngle[PITCH], 360 );
+    // NAB622: Just in case something funky happened, set this to zero
+    g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] = 0;
+
+    Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
 }
 
 bool XYWnd::areWeOffTheGrid( int x, int y ) {
@@ -2333,17 +2317,18 @@ void XYWnd::XY_ToGridPoint( int x, int y, vec3_t point ){
  */
 
 void XYWnd::XY_DrawGrid(){
-	float x, y, xb, xe, yb, ye;
-	float w, h;
+    vec_t x, y, xb, xe, yb, ye;
+    vec_t w, h;
     char text[32];
     int color1, color2;
-    float step, stepx, stepy, currentGridSize;
+    vec_t step, stepx, stepy;
+    float currentGridSize;
 
     int skipBlocks = 2;             //NAB622: Set a multiple - every so many blocks gets the primary color. The others all get the alternate color
     int majorSkipMultiples = 4;     //NAB622: 'Major' grid lines are considered this multiple of the normal grid lines
     float minSize = 32;             //NAB622: This is the minimum number of pixels allowed between grid lines before we rescale to a larger size
     int refactorAmt = 2;            //NAB622: This is how much we refactor the steps when minSize is hit
-    float labelSpacing = 64;        //NAB622: This is the minimum number of pixels between the numeric labels on the grid
+    int labelSpacing = 64;        //NAB622: This is the minimum number of pixels between the numeric labels on the grid
 
     float minorStep = g_qeglobals.d_gridsize;
 
@@ -2504,33 +2489,38 @@ void XYWnd::XY_DrawGrid(){
 		// Pixels between baseline of horizontal grid line label and drawn horizontal grid line.
 		const int pixelsButtomCushion = 2;
 
-		float yPosLabelsTop = m_vOrigin[nDim2] + h - ( gtk_glwidget_font_ascent() + pixelsTopCushion ) / m_fScale;
-		float xPosLabelsLeft = m_vOrigin[nDim1] - w + pixelsLeftCushion / m_fScale;
-		float leftCushion = pixelsLeftCushion / m_fScale;
-		float bottomOffset = ( pixelsButtomCushion - gtk_glwidget_font_descent() ) / m_fScale;
+        vec_t yPosLabelsTop = m_vOrigin[nDim2] + h - ( gtk_glwidget_font_ascent() + pixelsTopCushion ) / m_fScale;
+        vec_t xPosLabelsLeft = m_vOrigin[nDim1] - w + pixelsLeftCushion / m_fScale;
+        vec_t leftCushion = pixelsLeftCushion / m_fScale;
+        vec_t bottomOffset = ( pixelsButtomCushion - gtk_glwidget_font_descent() ) / m_fScale;
 
 
 		// This renders the numbers along varying X on top of the grid view (labels vertical grid lines).
         for ( x = xb - fmod( xb, stepx ); x <= xe; x += stepx ) {
+
             //Check to see if we have decimals
-            switch( getDecimalPrecision( x ) ) {
+            switch( getVecDecimalPrecision( x ) ) {
                 case 0:
                     sprintf( text, "%i", (int) x );
                     break;
                 case 1:
-                    sprintf( text, "%.1f", (float) x );
+                    sprintf( text, "%.1lf", x );
                     break;
                 case 2:
-                    sprintf( text, "%.2f", (float) x );
+                    sprintf( text, "%.2lf", x );
                     break;
                 case 3:
-                    sprintf( text, "%.3f", (float) x );
+                    sprintf( text, "%.3lf", x );
                     break;
                 case 4:
-                    sprintf( text, "%.4f", (float) x );
+                    sprintf( text, "%.4lf", x );
+                    break;
+                case 5:
+                    sprintf( text, "%.5lf", x );
                     break;
                 default:
-                    sprintf( text, "%.5f", (float) x );
+                    sprintf( text, "%.6lf", x );
+                    break;
             }
             qglRasterPos2f( x + leftCushion, yPosLabelsTop );
             gtk_glwidget_print_string( text );
@@ -2538,25 +2528,30 @@ void XYWnd::XY_DrawGrid(){
 
 		// This renders the numbers along varying Y on the left of the grid view (labels horizontal grid lines).
         for ( y = yb - fmod( yb, stepy ); y <= ye; y += stepy ) {
+
             //Check to see if we have decimals
-            switch( getDecimalPrecision( y ) ) {
+            switch( getVecDecimalPrecision( y ) ) {
                 case 0:
                     sprintf( text, "%i", (int) y );
                     break;
                 case 1:
-                    sprintf( text, "%.1f", (float) y );
+                    sprintf( text, "%.1lf", y );
                     break;
                 case 2:
-                    sprintf( text, "%.2f", (float) y );
+                    sprintf( text, "%.2lf", y );
                     break;
                 case 3:
-                    sprintf( text, "%.3f", (float) y );
+                    sprintf( text, "%.3lf", y );
                     break;
                 case 4:
-                    sprintf( text, "%.4f", (float) y );
+                    sprintf( text, "%.4lf", y );
+                    break;
+                case 5:
+                    sprintf( text, "%.5lf", y );
                     break;
                 default:
-                    sprintf( text, "%.5f", (float) y );
+                    sprintf( text, "%.6lf", y );
+                    break;
             }
             qglRasterPos2f( xPosLabelsLeft, y + bottomOffset );
             gtk_glwidget_print_string( text );
@@ -2789,22 +2784,33 @@ void XYWnd::DrawCameraIcon(){
 	fov = 48 / m_fScale;
 	box = 16 / m_fScale;
 
-	if ( m_nViewType == XY ) {
-		x = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
+    switch( m_nViewType ) {
+    case XY:
+        x = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
 		y = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
 		a = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] / 180 * Q_PI;
-	}
-	else if ( m_nViewType == YZ ) {
-		x = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
-		y = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
-		a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
-	}
-	else
-	{
-		x = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
-		y = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
-		a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
-	}
+        break;
+    case XZ:
+        x = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
+        y = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 180 ) {
+            // The camera is past the locked Y axis! Flip the angles so they aim the correct way
+            a = -( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180 ) / 180 * Q_PI;
+        } else {
+            a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
+        }
+        break;
+    case YZ:
+        x = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
+        y = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 180 ) {
+            // The camera is past the locked Y axis! Flip the angles so they aim the correct way
+            a = -( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180 ) / 180 * Q_PI;
+        } else {
+            a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
+        }
+        break;
+    }
 
     qglColor3f( gridCameraSymbolColor[0], gridCameraSymbolColor[1], gridCameraSymbolColor[2] );
 	qglBegin( GL_LINE_STRIP );
@@ -2825,10 +2831,10 @@ void XYWnd::DrawCameraIcon(){
 }
 
 void XYWnd::DrawZIcon( void ){
-    if ( drawZSymbolOnGrid == false ) {
-        return;     //NAB622: I don't see the point of drawing a Z icon on the grid, all it does is get in the way...
-    }
-
+// NAB622: Disabling the Z window. It serves no purpose
+// This function wasn't exactly part of the Z window, but it was used in conjunction with it,
+// and all it ever does is get in the way
+/*
     if ( m_nViewType == XY ) {
 		float x = z.origin[0];
 		float y = z.origin[1];
@@ -2867,6 +2873,7 @@ void XYWnd::DrawZIcon( void ){
 
         qglDisable( GL_BLEND );
     }
+*/
 }
 
 // can be greatly simplified but per usual i am in a hurry

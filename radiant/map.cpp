@@ -193,11 +193,11 @@ void Map_Free( void ){
 }
 
 entity_t *AngledEntity(){
-	entity_t *ent = Map_FindClass( "info_player_start" );
-	if ( !ent ) {
-		ent = Map_FindClass( "info_player_deathmatch" );
-	}
-	if ( !ent ) {
+    entity_t *ent = Map_FindClass( "info_player_intermission" );
+    if ( !ent ) {
+        ent = Map_FindClass( "info_player_start" );
+    }
+    if ( !ent ) {
 		ent = Map_FindClass( "info_player_deathmatch" );
 	}
 	if ( !ent ) {
@@ -221,15 +221,62 @@ entity_t *AngledEntity(){
 void Map_StartPosition(){
 	entity_t *ent = AngledEntity();
 
-	g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = 0;
-	if ( ent ) {
+    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = 0;
+    g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = 0;
+    g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] = 0;
+
+    if ( ent ) {
 		GetVectorForKey( ent, "origin", g_pParentWnd->GetCamWnd()->Camera()->origin );
 		GetVectorForKey( ent, "origin", g_pParentWnd->GetXYWnd()->GetOrigin() );
-		g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = FloatForKey( ent, "angle" );
-	}
+
+        bool foundAngles = false;
+        vec3_t finalAngle, temp;
+        finalAngle[PITCH] = 0;
+        finalAngle[YAW] = 0;
+        finalAngle[ROLL] = 0;
+
+        const char *target, *targetName;
+        entity_t *otherEnt;
+
+        target = ValueForKey( ent, "target" );
+        if( strcmp( target, "" ) ) {
+            // If there's a targetname,find the targeted entity and aim the camera at it
+            for ( otherEnt = entities.next ; otherEnt != &entities && !foundAngles; otherEnt = otherEnt->next )
+            {
+                targetName = ValueForKey( otherEnt, "targetname" );
+                if ( !strcmp( target, targetName ) ) {
+                    GetVectorForKey( ent, "origin", temp );
+                    GetVectorForKey( otherEnt, "origin", finalAngle );
+                    VectorSubtract( finalAngle, temp, temp );
+                    VectorToAngles( temp, finalAngle );
+                    foundAngles = true;
+                    break;
+                }
+            }
+        }
+        if( !foundAngles ) {
+            // No target. Try the "angles" key
+            GetVectorForKey( ent, "angles", temp );
+            if( temp[PITCH] != 0 || temp[YAW] != 0 || temp[ROLL] != 0 ) {
+                finalAngle[PITCH] = temp[PITCH];
+                finalAngle[YAW] = temp[YAW];
+                foundAngles = true;
+            }
+        }
+        if( !foundAngles ) {
+            // Last shot - try the "angle" key
+            if( FloatForKey( ent, "angle" ) ) {
+                finalAngle[YAW] = FloatForKey( ent, "angle" );
+                foundAngles = true;
+            }
+        }
+        if( foundAngles ) {
+            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = finalAngle[PITCH];
+            g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = finalAngle[YAW];
+        }
+    }
 	else
 	{
-		g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = 0;
 		VectorCopy( vec3_origin, g_pParentWnd->GetCamWnd()->Camera()->origin );
 		VectorCopy( vec3_origin, g_pParentWnd->GetXYWnd()->GetOrigin() );
 	}
@@ -528,6 +575,9 @@ void Map_LoadFile( const char *filename ){
 	double elapsed_time;
 	start = clock();
 
+    // NAB622: Add the map to the recently used list here so it can't be missed
+    MRU_AddFile( filename );
+
     g_bIgnoreCommands++;
 
 	Sys_BeginWait();
@@ -566,7 +616,10 @@ void Map_LoadFile( const char *filename ){
 	// this may be a problem if we "rb" and use the XML parser, might have an incompatibility
 	if ( file.Open( filename, "rb" ) ) {
 		Map_Import( &file, type );
-	}
+
+        // NAB622: Save prefs here so if the map load causes a crash, it's still in the recent list!
+        g_PrefsDlg.SavePrefs();
+    }
 	else{
 		Sys_FPrintf( SYS_ERR, "ERROR: failed to open %s for read\n", filename );
 	}
@@ -603,9 +656,7 @@ void Map_LoadFile( const char *filename ){
 
 	Map_RestoreBetween();
 
-	//
-	// move the view to a start position
-	//
+    // Move the camera to a start position
 	Map_StartPosition();
 
 	Map_RegionOff();

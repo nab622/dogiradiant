@@ -65,11 +65,6 @@ vec_t clampCameraBoundaries( vec_t input ) {
 }
 
 
-// NAB622: This value is used to stop the camera frop flipping around incessantly
-// when middle clicking in the grid view
-bool cameraFlipped = false;
-
-
 // leo: Track memory allocations for debugging
 // NOTE TTimo this was never used and probably not relevant
 //   there are tools to do that
@@ -971,20 +966,35 @@ void QE_CountBrushesAndUpdateStatusBar( void ){
 	g_numbrushes = 0;
 	g_numentities = 0;
 
-	if ( active_brushes.next != NULL ) {
-		for ( b = active_brushes.next ; b != NULL && b != &active_brushes ; b = next )
-		{
-			next = b->next;
-			if ( b->brush_faces ) {
-				if ( !b->owner->eclass->fixedsize ) {
-					g_numbrushes++;
-				}
-				else{
-					g_numentities++;
-				}
-			}
-		}
-	}
+    if ( active_brushes.next != NULL ) {
+        for ( b = active_brushes.next ; b != NULL && b != &active_brushes ; b = next )
+        {
+            next = b->next;
+            if ( b->brush_faces ) {
+                if ( !b->owner->eclass->fixedsize ) {
+                    g_numbrushes++;
+                }
+                else{
+                    g_numentities++;
+                }
+            }
+        }
+    }
+
+    if ( selected_brushes.next != NULL ) {
+        for ( b = selected_brushes.next ; b != NULL && b != &selected_brushes ; b = next )
+        {
+            next = b->next;
+            if ( b->brush_faces ) {
+                if ( !b->owner->eclass->fixedsize ) {
+                    g_numbrushes++;
+                }
+                else{
+                    g_numentities++;
+                }
+            }
+        }
+    }
 /*
     if ( entities.next != NULL )
     {
@@ -1384,8 +1394,8 @@ void Sys_UpdateStatusBar( void ){
 
 	char numbrushbuffer[100] = "";
 
-	sprintf( numbrushbuffer, "Brushes: %d Entities: %d", g_numbrushes, g_numentities );
-	g_pParentWnd->SetStatusText( 2, numbrushbuffer );
+    sprintf( numbrushbuffer, "Brushes: %d   Entities: %d", g_numbrushes, g_numentities );
+    g_pParentWnd->SetStatusText( 4, numbrushbuffer );
 	//Sys_Status( numbrushbuffer, 2 );
 }
 
@@ -1466,8 +1476,7 @@ void MRU_AddFile( const char *str ){
 				MRU_SetText( i, MRU_GetText( i - 1 ) );
 
 			MRU_SetText( 0, str );
-
-			return;
+            return;
 		}
 	}
 
@@ -1497,7 +1506,7 @@ void MRU_Activate( int index ){
 	{
 		MRU_used--;
 
-        // NAB622: If the value was changed in the prefs, we need to account for that
+        // NAB622: If the count was changed in the prefs, we need to account for that
         if( MRU_used > g_PrefsDlg.m_nMRUCount ) {
             MRU_used = g_PrefsDlg.m_nMRUCount;
         }

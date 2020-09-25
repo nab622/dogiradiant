@@ -3753,9 +3753,9 @@ void Face_FitTexture( face_t * face, float nHeight, float nWidth ){
 
 
         // NAB622: Clamp the shift and rotate values
-        td->shift[0] = calculateRotatingValueBeneathMax( td->shift[0], face->d_texture->width );
-        td->shift[1] = calculateRotatingValueBeneathMax( td->shift[1], face->d_texture->height );
-        td->rotate = calculateRotatingValueBeneathMax( td->rotate, 360 );
+        td->shift[0] = calculateVecRotatingValueBeneathMax( td->shift[0], face->d_texture->width );
+        td->shift[1] = calculateVecRotatingValueBeneathMax( td->shift[1], face->d_texture->height );
+        td->rotate = calculateVecRotatingValueBeneathMax( td->rotate, 360 );
     }
 }
 

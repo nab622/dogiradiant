@@ -1528,7 +1528,7 @@ void SelectTexture( int mx, int my, bool bShift, bool bFitScale ){
 				{
 					strName = pAuxShader->getName();
 				}
-				strTex.Format( "%s W: %i H: %i", strName.GetBuffer(), q->width, q->height );
+                strTex.Format( "%s Width: %i Height: %i", strName.GetBuffer(), q->width, q->height );
 				g_pParentWnd->SetStatusText( 3, strTex );
 			}
 			return;

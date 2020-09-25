@@ -108,6 +108,7 @@ void DrawCameraIcon();
 void XY_DrawBlockGrid();
 void XY_DrawGrid();
 void XY_MouseMoved( int x, int y, int buttons );
+void calculateCameraAngle( int x, int y, vec3_t point );
 // TTimo: FIXME: was experimental stuff to track possible endless loop issues
 //  void XY_MouseMovedRec (int x, int y, int buttons);
 void NewBrushDrag( int x, int y );

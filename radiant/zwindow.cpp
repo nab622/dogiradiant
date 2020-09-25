@@ -83,7 +83,7 @@ void ZWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 	float fz = z.origin[2] + ( ( m_pWidget->allocation.height - 1 - pointy ) - ( z.height / 2 ) ) / z.scale;
 	fz = floor( fz / g_qeglobals.d_gridsize + 0.5 ) * g_qeglobals.d_gridsize;
 	CString strStatus;
-	strStatus.Format( "Z:: %.1f", fz );
+    strStatus.Format( "Z: %.1f", fz );
 	g_pParentWnd->SetStatusText( 1, strStatus );
 	Z_MouseMoved( pointx, m_pWidget->allocation.height - 1 - pointy, nFlags );
 }

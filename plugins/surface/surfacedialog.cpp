@@ -267,9 +267,9 @@ void IsFaceConflicting(){
             texHeight = temp_texdef_face_list->face->d_texture->height;
 
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
-            tmp_texdef->shift[0] = calculateRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
-            tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
-            tmp_texdef->rotate = calculateRotatingValueBeneathMax( tmp_texdef->rotate, 360 );
+            tmp_texdef->shift[0] = calculateVecRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
+            tmp_texdef->shift[1] = calculateVecRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
+            tmp_texdef->rotate = calculateVecRotatingValueBeneathMax( tmp_texdef->rotate, 360 );
         }
     }
 
@@ -947,7 +947,7 @@ GtkWidget* create_SurfaceInspector( void ){
     reset_scale_button = gtk_button_new_with_mnemonic( _( "Reset Scale" ) );
     // NAB622: For cleanliness sake, let's remove the trailing zeroes
     char scale_tooltip_value[128];
-        switch( getDecimalPrecision( GetDefaultScaleValue() ) ) {
+        switch( getFloatDecimalPrecision( GetDefaultScaleValue() ) ) {
             case 0:
                 sprintf( scale_tooltip_value, "This will reset the horizontal and vertical scale values to %i", (int) GetDefaultScaleValue() );
                 break;
@@ -1476,7 +1476,7 @@ static void on_hshift_value_spinbutton_value_changed( GtkSpinButton *spinbutton,
 			tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
 			tmp_orig_texdef = (texdef_t *) &temp_texdef_face_list->orig_texdef;
 			tmp_texdef->shift[0] = texdef_SI_values.shift[0] + texdef_offset.shift[0];
-            tmp_texdef->shift[0] = calculateRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
+            tmp_texdef->shift[0] = calculateVecRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
         }
         is_HShift_conflicting = FALSE;
         GetTexMods();
@@ -1496,7 +1496,7 @@ static void on_vshift_value_spinbutton_value_changed( GtkSpinButton *spinbutton,
 			tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
 			tmp_orig_texdef = (texdef_t *) &temp_texdef_face_list->orig_texdef;
 			tmp_texdef->shift[1] = texdef_SI_values.shift[1] + texdef_offset.shift[1];
-            tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
+            tmp_texdef->shift[1] = calculateVecRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
         }
         is_VShift_conflicting = FALSE;
         GetTexMods();
@@ -1554,7 +1554,7 @@ static void on_rotate_value_spinbutton_value_changed( GtkSpinButton *spinbutton,
 			tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
 			tmp_orig_texdef = (texdef_t *) &temp_texdef_face_list->orig_texdef;
 			tmp_texdef->rotate = texdef_SI_values.rotate + texdef_offset.rotate;
-            tmp_texdef->rotate = calculateRotatingValueBeneathMax( tmp_texdef->rotate, 360 );
+            tmp_texdef->rotate = calculateVecRotatingValueBeneathMax( tmp_texdef->rotate, 360 );
         }
         is_Rotate_conflicting = FALSE;
         GetTexMods();
@@ -1811,7 +1811,7 @@ static void on_horizontal_flip_button_clicked( GtkButton *button, gpointer user_
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
             tmp_texdef->shift[0] = tmp_texdef->shift[0] + temp_texdef_face_list->face->d_texture->width / 2;
             tmp_texdef->scale[0] *= -1;
-            tmp_texdef->shift[0] = calculateRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
+            tmp_texdef->shift[0] = calculateVecRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
         }
         GetTexMods();
     }
@@ -1828,7 +1828,7 @@ static void on_vertical_flip_button_clicked( GtkButton *button, gpointer user_da
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
             tmp_texdef->shift[1] = tmp_texdef->shift[1] + temp_texdef_face_list->face->d_texture->height / 2;
             tmp_texdef->scale[1] *= -1;
-            tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
+            tmp_texdef->shift[1] = calculateVecRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
         }
         GetTexMods();
     }
@@ -1845,7 +1845,7 @@ static void on_mirror_horizontal_button_clicked( GtkButton *button, gpointer use
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
             tmp_texdef->shift[0] *= -1;
             tmp_texdef->scale[0] *= -1;
-            tmp_texdef->shift[0] = calculateRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
+            tmp_texdef->shift[0] = calculateVecRotatingValueBeneathMax( tmp_texdef->shift[0], temp_texdef_face_list->face->d_texture->width );
         }
         GetTexMods();
     }
@@ -1862,7 +1862,7 @@ static void on_mirror_vertical_button_clicked( GtkButton *button, gpointer user_
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
             tmp_texdef->shift[1] *= -1;
             tmp_texdef->scale[1] *= -1;
-            tmp_texdef->shift[1] = calculateRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
+            tmp_texdef->shift[1] = calculateVecRotatingValueBeneathMax( tmp_texdef->shift[1], temp_texdef_face_list->face->d_texture->height );
         }
         GetTexMods();
     }
@@ -1877,7 +1877,7 @@ static void on_rotate_180_button_clicked( GtkButton *button, gpointer user_data 
         for ( temp_texdef_face_list = get_texdef_face_list(); temp_texdef_face_list; temp_texdef_face_list = temp_texdef_face_list->next )
         {
             tmp_texdef = (texdef_t *) &temp_texdef_face_list->texdef;
-            tmp_texdef->rotate = calculateRotatingValueBeneathMax( tmp_texdef->rotate - 180, 360 );
+            tmp_texdef->rotate = calculateVecRotatingValueBeneathMax( tmp_texdef->rotate - 180, 360 );
         }
         GetTexMods();
     }

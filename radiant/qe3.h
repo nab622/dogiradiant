@@ -480,11 +480,6 @@ void Patch_LODMatchAll();
 void Patch_CalcBounds( patchMesh_t *p, vec3_t& vMin, vec3_t& vMax );
 
 
-// NAB622: This value is used to stop the camera frop flipping around incessantly
-// when middle clicking in the grid view
-extern bool cameraFlipped;
-
-
 // group stuff
 // group_t are loaded / saved through "group_info" entities
 // they hold epairs for group settings and additionnal access info (tree nodes)
@@ -757,6 +752,11 @@ extern gint try_destroy_splash( gpointer );
 bool areWeOutOfBounds( vec3_t inputVectors );
 vec_t clampBoundaries( vec_t input );
 vec_t clampCameraBoundaries( vec_t input );
+
+
+// NAB622: This is the maximum number of recent files that can display in the file menu
+// Warning, if this value is increased above 20, a ton of GTK stuff will need updated
+#define MAX_RECENT_FILES 20
 
 
 #include "mainframe.h"

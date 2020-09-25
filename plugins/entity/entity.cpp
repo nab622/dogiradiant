@@ -342,27 +342,27 @@ void Entity_SetKeyValList( entity_t *e, epair_t* ep ){
    this is meant to raise messages instead of calling the IEdit directly
  */
 static void Entity_OnKeyValueChanged( entity_t *e, const char *key, const char* value ){
-	if ( strcmp( key,"classname" ) == 0 ) {
-		e->eclass = Eclass_ForName( value, false );
-		Entity_UpdateClass( e, value );
-		if ( strcmp( value,"light" ) == 0 ) {
-			for ( epair_t* ep = e->epairs; ep != NULL; ep = ep->next )
-				Light_OnKeyValueChanged( e, ep->key, ep->value );
-		}
-		if ( e->model.pEdit ) {
-			for ( epair_t* ep = e->epairs; ep != NULL; ep = ep->next )
-				e->model.pEdit->OnKeyValueChanged( e, ep->key, ep->value );
-		}
-	}
-	else if ( Entity_IsLight( e ) ) {
-		Light_OnKeyValueChanged( e, key, value );
-	}
-	else if ( e->model.pEdit ) {
-		e->model.pEdit->OnKeyValueChanged( e, key, value );
-	}
+    if ( strcmp( key,"classname" ) == 0 ) {
+        e->eclass = Eclass_ForName( value, false );
+        Entity_UpdateClass( e, value );
+        if ( strcmp( value,"light" ) == 0 ) {
+            for ( epair_t* ep = e->epairs; ep != NULL; ep = ep->next )
+                Light_OnKeyValueChanged( e, ep->key, ep->value );
+        }
+        if ( e->model.pEdit ) {
+            for ( epair_t* ep = e->epairs; ep != NULL; ep = ep->next )
+                e->model.pEdit->OnKeyValueChanged( e, ep->key, ep->value );
+        }
+    }
+    else if ( Entity_IsLight( e ) ) {
+        Light_OnKeyValueChanged( e, key, value );
+    }
+    else if ( e->model.pEdit ) {
+        e->model.pEdit->OnKeyValueChanged( e, key, value );
+    }
 
-	// update brush mins/maxs for legacy culling system
-	if ( e->model.pRender && e->brushes.onext != &e->brushes ) {
-		Brush_Build( e->brushes.onext, true, true, false, true );
-	}
+    // update brush mins/maxs for legacy culling system
+    if ( e->model.pRender && e->brushes.onext != &e->brushes ) {
+        Brush_Build( e->brushes.onext, true, true, false, true );
+    }
 }

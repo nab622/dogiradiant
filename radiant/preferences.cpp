@@ -133,6 +133,7 @@
 #define LOADSHADERS_KEY         "LoadShaders"
 #define SHOWTEXDIRLIST_KEY		"ShowTextureDirectoryList"
 #define NOSTIPPLE_KEY           "NoStipple"
+#define XRAYSELECTION_KEY       "XRaySelection"
 #define UNDOLEVELS_KEY          "UndoLevels"
 #define VERTEXMODE_KEY          "VertexSplit"
 #define ENGINEPATH_KEY          "EnginePath"
@@ -241,8 +242,9 @@ int maximumRenderDistance = abs( (int) ceil( ( g_MaxWorldCoord - g_MinWorldCoord
 
 
 // Declaring these up here...
-GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox, *cameraMovementSlider;
+GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *xrayOutlineCheck, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox, *cameraMovementSlider;
 
+static void xraySelectionToggled();
 static void resetRenderDistanceSpin();
 static void renderDistanceSpinChanged();
 static void cubicClippingToggled();
@@ -655,7 +657,7 @@ PrefsDlg::PrefsDlg (){
 	m_bCamFreeLookStrafe = FALSE;
 	m_bCamInverseMouse = FALSE;
 	m_bCamDiscrete = TRUE;
-	m_bNewLightDraw = FALSE;
+    m_bNewLightDraw = FALSE;
 	m_strPrefabPath = "";
 	m_nWhatGame = 0;
 	m_bALTEdge = FALSE;
@@ -687,6 +689,7 @@ PrefsDlg::PrefsDlg (){
 	m_bShowShaders = FALSE;
 	m_nShader = -1;
 	m_bNoStipple = FALSE;
+    m_bXraySelection = TRUE;
     m_bVertexSplit = TRUE;
 	m_bSelectCurves = TRUE;
 	m_bSelectModels = TRUE;
@@ -2005,6 +2008,14 @@ void PrefsDlg::BuildDialog(){
     }
     g_list_free( combo_list );
 
+    // Outline visibility
+    xrayOutlineCheck = gtk_check_button_new_with_label( _( "X-ray selection outlines" ) );
+    gtk_widget_set_tooltip_text( xrayOutlineCheck, _( "Selection outlines will be visible through other objects as dotted lines" ) );
+    gtk_box_pack_start( GTK_BOX( vbox ), xrayOutlineCheck, FALSE, FALSE, 0 );
+    gtk_widget_show( xrayOutlineCheck );
+    AddDialogData( xrayOutlineCheck, &m_bXraySelection, DLG_CHECK_BOOL );
+    g_signal_connect( (gpointer) xrayOutlineCheck, "toggled", G_CALLBACK( xraySelectionToggled ), NULL );
+
     // Light drawing
     check = gtk_check_button_new_with_label( _( "Light drawing" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );
@@ -3146,6 +3157,11 @@ void PrefsDlg::BuildDialog(){
 
 // end new prefs dialog
 
+static void xraySelectionToggled() {
+    g_PrefsDlg.m_bXraySelection ^= 1;
+    Sys_UpdateWindows( W_CAMERA_IFON );
+}
+
 static void resetRenderDistanceSpin() {
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( renderDistanceSpin ), DEFAULT_RENDER_DISTANCE );
 }
@@ -3479,7 +3495,8 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( SHOWSHADERS_KEY,        &m_bShowShaders,                TRUE );
 	mLocalPrefs.GetPref( HIDEEMPTYDIRS_KEY,      &m_bHideEmptyDirs,              FALSE );
 	mLocalPrefs.GetPref( GLLIGHTING_KEY,         &m_bGLLighting,                 FALSE );
-	mLocalPrefs.GetPref( NOSTIPPLE_KEY,          &m_bNoStipple,                  FALSE );
+    mLocalPrefs.GetPref( NOSTIPPLE_KEY,          &m_bNoStipple,                  FALSE );
+    mLocalPrefs.GetPref( XRAYSELECTION_KEY,      &m_bXraySelection,              TRUE );
     mLocalPrefs.GetPref( UNDOLEVELS_KEY,         &m_nUndoLevels,                 512 );
 	mLocalPrefs.GetPref( VERTEXMODE_KEY,         &m_bVertexSplit,                TRUE );
 	mLocalPrefs.GetPref( RUNQ2_KEY,              &m_bRunQuake,                   RUNQ2_DEF );
@@ -3507,7 +3524,7 @@ void PrefsDlg::LoadPrefs(){
 	mLocalPrefs.GetPref( WIDTH_KEY,              &mWindowInfo.position.w,        -1 );
 	mLocalPrefs.GetPref( HEIGHT_KEY,             &mWindowInfo.position.h,        450 );
 
-	const window_position_t default_window_pos = { 0, 0, 200, 200, };
+    const window_position_t default_window_pos = { 0, 0, 300, 700, };
 
 	mLocalPrefs.GetPref( ENTITYWND_KEY,          &mWindowInfo.posEntityWnd,      default_window_pos );
 	mLocalPrefs.GetPref( MAPINFOWND_KEY,         &mWindowInfo.posMapInfoWnd,     default_window_pos );
@@ -3663,7 +3680,7 @@ void PrefsDlg::SavePrefs(){
     // NAB622: Force to a 3 button mouse
     m_nMouseButtons = 3;
 /*
-// NAB622: Force to a 3 button mouse
+// NAB622: Disabling this bit, mouse is forced to 3 buttons now
     if ( m_nMouse == 0 ) {
         m_nMouseButtons = 2;
 	}
@@ -3681,10 +3698,12 @@ void PrefsDlg::PostModal( int code ){
 #ifdef ATIHACK_812
 		UpdateATIHack();
 #endif
-		if ( g_pParentWnd ) {
+/*
+// NAB622: Not sure why this is here...
+        if ( g_pParentWnd ) {
 			g_pParentWnd->SetGridStatus();
 		}
-		Sys_UpdateWindows( W_ALL );
+*/		Sys_UpdateWindows( W_ALL );
 		if ( m_nUndoLevels != 0 ) {
 			Undo_SetMaxSize( m_nUndoLevels );
 		}

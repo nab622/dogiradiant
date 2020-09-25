@@ -118,6 +118,11 @@ void Select_Ungroup();
 #define SPEED_TURN  22.5
 
 
+// NAB622: The main window uses a timer for various things (Autosave, partial status bar refresh)
+// This value is how many milliseconds there are between updates
+#define TIMER_FREQUENCY 250
+
+
 // NOTE: the menu item field is REQUIRED, Gtk uses it to bind the keyboard shortcut
 // - if you add a command here and you don't want a menu item, use the "hidden" menu
 // - if you decide to add a menu item, check if it's not in the "hidden" menu already
@@ -2161,7 +2166,7 @@ void MainFrame::create_main_statusbar( GtkWidget *window, GtkWidget *vbox ){
 	gtk_container_set_border_width( GTK_CONTAINER( hbox1 ), 0 );
 	gtk_widget_show( hbox1 );
 
-	label = gtk_label_new( _( " Label " ) );
+    label = gtk_label_new( _( " Label " ) );
 	gtk_box_pack_start( GTK_BOX( hbox1 ), label, FALSE, TRUE, 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
@@ -2174,12 +2179,12 @@ void MainFrame::create_main_statusbar( GtkWidget *window, GtkWidget *vbox ){
 		gtk_frame_set_shadow_type( GTK_FRAME( frame ), GTK_SHADOW_IN );
 		gtk_widget_show( frame );
 
-		label = gtk_label_new( _( " Label " ) );
+        label = gtk_label_new( _( "" ) );
 		gtk_container_add( GTK_CONTAINER( frame ), label );
 		gtk_misc_set_padding( GTK_MISC( label ), 3, 0 );
 		gtk_widget_show( label );
 		m_pStatusLabel[i] = label;
-	}
+    }
 }
 
 guint s_idle_id;
@@ -3297,7 +3302,7 @@ void MainFrame::Create(){
 
 	m_bDoLoop = true;
 
-	m_nTimer = g_timeout_add( 1000, timer, this );
+    m_nTimer = g_timeout_add( TIMER_FREQUENCY, timer, this );
 }
 
 // =============================================================================
@@ -3318,7 +3323,6 @@ MainFrame::MainFrame(){
 	m_pWatchBSP = NULL;
 	for ( int n = 0; n < 6; n++ )
 		m_pStatusLabel[n] = NULL;
-	m_bNeedStatusUpdate = false;
 	m_nTimer = 0;
 	m_bSleeping = false;
 	Create();
@@ -4088,26 +4092,12 @@ void MainFrame::OnTimer(){
 		QE_CheckAutoSave();
 	}
 
-	// see MainFrame::UpdateStatusText below
-	if ( m_bNeedStatusUpdate ) {
-		for ( int n = 0; n < 6; n++ )
-		{
-			if ( m_strStatus[n].GetLength() >= 0 && m_pStatusLabel[n] != NULL ) {
-				gtk_label_set_text( GTK_LABEL( m_pStatusLabel[n] ), m_strStatus[n] );
-			}
-		}
-		m_bNeedStatusUpdate = false;
-	}
-}
-
-void MainFrame::UpdateStatusText(){
-	m_bNeedStatusUpdate = true;
 }
 
 void MainFrame::SetStatusText( int nPane, const char* pText ){
 	if ( pText && nPane <= 5 && nPane >= 0 ) {
 		m_strStatus[nPane] = pText;
-		UpdateStatusText();
+        gtk_label_set_text( GTK_LABEL( m_pStatusLabel[nPane] ), m_strStatus[nPane] );
 	}
 }
 void MainFrame::SetButtonMenuStates(){
@@ -4547,11 +4537,13 @@ void MainFrame::NudgeSelection( int nDirection, float fAmount ){
 		float fAdj = fAmount;
 
 		g_pParentWnd->ActiveXY()->Rotation()[nAxis] += fAdj;
-		CString strStatus;
-		strStatus.Format( "Rotation x:: %.1f  y:: %.1f  z:: %.1f", g_pParentWnd->ActiveXY()->Rotation()[0],
+
+        CString strStatus;
+        strStatus.Format( "Rotation X: %.1f   Y: %.1f   Z: %.1f", g_pParentWnd->ActiveXY()->Rotation()[0],
 						  g_pParentWnd->ActiveXY()->Rotation()[1], g_pParentWnd->ActiveXY()->Rotation()[2] );
 		g_pParentWnd->SetStatusText( 2, strStatus );
-		Select_RotateAxis( nAxis, fDeg, false, true );
+
+        Select_RotateAxis( nAxis, fDeg, false, true );
 		Sys_UpdateWindows( W_ALL );
 	}
 	else
@@ -4619,13 +4611,22 @@ void MainFrame::Nudge( int nDim, float fNudge ){
 
 void MainFrame::SetGridStatus(){
 	CString strStatus;
-	char c1;
-	char c2;
-	c1 = ( g_PrefsDlg.m_bTextureLock ) ? 'M' : ' ';
-	c2 = ( g_PrefsDlg.m_bRotateLock ) ? 'R' : ' ';
-	strStatus.Format( "G:%g R:%i C:%i L:%c%c", g_qeglobals.d_gridsize,
-					  g_PrefsDlg.m_nRotation, g_PrefsDlg.m_nCubicScale, c1, c2 );
-	SetStatusText( 4, strStatus );
+    char lockStatus[20];
+
+    if( g_PrefsDlg.m_bTextureLock && g_PrefsDlg.m_bRotateLock ) {
+        sprintf( lockStatus, "Moves & Rotations" );
+    } else {
+        if( g_PrefsDlg.m_bTextureLock ) {
+            sprintf( lockStatus, "Moves Only" );
+        } else if( g_PrefsDlg.m_bRotateLock ) {
+            sprintf( lockStatus, "Rotations Only" );
+        } else {
+            sprintf( lockStatus, "Off" );
+        }
+    }
+
+    strStatus.Format( "Grid size: %g   Texture lock: %s", g_qeglobals.d_gridsize, lockStatus );
+    SetStatusText( 5, strStatus );
 }
 
 void MainFrame::UpdatePatchToolbarButtons(){
@@ -5005,11 +5006,12 @@ void MainFrame::OnPrefs() {
     int nRenderDistance = g_PrefsDlg.m_nRenderDistance;
     bool bCubicClipping = g_PrefsDlg.m_bCubicClipping;
     int nCubicScale = g_PrefsDlg.m_nCubicScale;
+    bool bXraySelection = g_PrefsDlg.m_bXraySelection;
     int nMRUCount = g_PrefsDlg.m_nMRUCount;
 
     g_PrefsDlg.LoadPrefs();
 
-    if(g_PrefsDlg.DoModal() == IDOK) {
+    if( g_PrefsDlg.DoModal() == IDOK ) {
         if((g_PrefsDlg.m_nLatchedView               != nView            ) ||
            (g_PrefsDlg.m_bLatchedDetachableMenus    != bDetachableMenus ) ||
            (g_PrefsDlg.m_bLatchedWideToolbar        != bToolbar         ) ||
@@ -5019,7 +5021,7 @@ void MainFrame::OnPrefs() {
            (g_PrefsDlg.m_nLatchedTextureQuality     != nTextureQuality  ) || 
            (g_PrefsDlg.m_bLatchedFloatingZ          != bFloatingZ       ) ||
 		   (g_PrefsDlg.m_bShowTexDirList            != bShowTexDirList)) {
-            gtk_MessageBoxNew(m_pWidget, _( "You must restart Radiant for the "
+                gtk_MessageBoxNew(m_pWidget, _( "You must restart Radiant for the "
                               "changes to take effect." ), _( "Restart Radiant" ), 
                               MB_OK | MB_ICONINFORMATION);
         }
@@ -5054,20 +5056,34 @@ void MainFrame::OnPrefs() {
         g_bIgnoreCommands--;
 */
     } else {
-        //NAB622: If prefs changes were canceled, end up here
+        //NAB622: If prefs changes were canceled, we end up here
 
 
         // NAB622: If the renderer settings were touched and the changes were canceled, we need to restore the original settings and redraw the camera window
         if ( g_PrefsDlg.m_nRenderDistance != nRenderDistance ||
              g_PrefsDlg.m_bCubicClipping != bCubicClipping ||
-             g_PrefsDlg.m_nCubicScale != nCubicScale
-           ) {
-            g_PrefsDlg.m_nRenderDistance = nRenderDistance;
-            g_PrefsDlg.m_bCubicClipping = bCubicClipping;
-            g_PrefsDlg.m_nCubicScale = nCubicScale;
+             g_PrefsDlg.m_nCubicScale != nCubicScale ) {
 
-            Sys_UpdateWindows( W_CAMERA );
+
+                g_PrefsDlg.m_nRenderDistance = nRenderDistance;
+                g_PrefsDlg.m_bCubicClipping = bCubicClipping;
+                g_PrefsDlg.m_nCubicScale = nCubicScale;
+
+                Sys_UpdateWindows( W_CAMERA );
         }
+
+Sys_Printf( "CubicScale Pref: %d - bCubicClipping: %d  -  XRay Pref: %d - bXraySelection: %d\n", g_PrefsDlg.m_bCubicClipping, bCubicClipping, g_PrefsDlg.m_bXraySelection, bXraySelection);
+        if( g_PrefsDlg.m_bXraySelection != bXraySelection ) {
+                g_PrefsDlg.m_bXraySelection = bXraySelection;
+
+Sys_Printf( "CubicScale Pref: %d - bCubicClipping: %d  -  XRay Pref: %d - bXraySelection: %d\n", g_PrefsDlg.m_bCubicClipping, bCubicClipping, g_PrefsDlg.m_bXraySelection, bXraySelection);
+                //Since these values are changed immediately and don't wait for the prefs to be closed,the
+                // checkboxes need to be switched back to the original state or they'll get out of sync
+                gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
+                gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( xrayOutlineCheck ), g_PrefsDlg.m_bXraySelection );
+                Sys_UpdateWindows( W_CAMERA );
+        }
+
 
     }
 
@@ -5453,7 +5469,6 @@ void MainFrame::OnViewCubein(){
         saveCubicClipSettings();
     }
     Sys_UpdateWindows( W_CAMERA );
-    SetGridStatus();
 }
 
 void MainFrame::OnViewCubeout(){
@@ -5479,7 +5494,6 @@ void MainFrame::OnViewCubeout(){
         saveCubicClipSettings();
     }
     Sys_UpdateWindows( W_CAMERA );
-    SetGridStatus();
 }
 
 void MainFrame::OnViewShownames(){
@@ -5655,7 +5669,7 @@ void MainFrame::OnViewCubicclipping(){
 	w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_view_cubicclipping" ) );
 	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
 	w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "ttb_view_cubicclipping" ) );
-	gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
+    gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
 	g_bIgnoreCommands--;
 
     if ( GTK_IS_WIDGET( cubicClippingCheckbox ) ) {
@@ -7671,29 +7685,18 @@ void MainFrame::OnCameraAngleup(){
     m_pCamWnd->Camera()->angles[0] += SPEED_TURN;
     if ( m_pCamWnd->Camera()->angles[0] > 90 ) {
         m_pCamWnd->Camera()->angles[0] = 90;
-        // NAB622: Make sure to reset this
-        cameraFlipped = false;
     } else if ( m_pCamWnd->Camera()->angles[0] < -90 ) {
         m_pCamWnd->Camera()->angles[0] = -90;
-        // NAB622: Make sure to reset this
-        cameraFlipped = false;
     }
     Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
 }
 
 void MainFrame::OnCameraAngledown(){
-    // NAB622: Make sure to reset this
-    cameraFlipped = false;
-
     m_pCamWnd->Camera()->angles[0] -= SPEED_TURN;
     if ( m_pCamWnd->Camera()->angles[0] > 90 ) {
         m_pCamWnd->Camera()->angles[0] = 90;
-        // NAB622: Make sure to reset this
-        cameraFlipped = false;
     } else if ( m_pCamWnd->Camera()->angles[0] < -90 ) {
         m_pCamWnd->Camera()->angles[0] = -90;
-        // NAB622: Make sure to reset this
-        cameraFlipped = false;
     }
     Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
 }

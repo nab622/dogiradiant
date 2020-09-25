@@ -27,24 +27,26 @@
 #include "version.h"
 #include "aboutmsg.h"
 
+// This is needed for getVecDecimalPrecision
+#include "gridDataType.h"
 
 // NAB622: This is the location local.pref and other configuration files will be stored
 // If you fork the project, please change this so it doesn't conflict with others
 #define PREFS_SUBDIRECTORY "upgRadiant"
-
-// NAB622: This is the maximum number of recent files that can display in the file menu
-#define MAX_RECENT_FILES 20
 
 
 // This has to be here for the functions below
 #include <math.h>
 
 // NAB622: These are my math functions, added here for global access
-    inline int getDecimalPrecision( float input ) {
+    inline int getFloatDecimalPrecision( float input ) {
         //Figure out how many decimal places are in the input number
         int test = (int) input;
         int i = 0;
         int maxPrecision = 6;
+
+        // Have to increment this, since this is not a 0-based index
+        maxPrecision++;
 
         while ( test != input && i <= maxPrecision ) {
             i++;
@@ -55,7 +57,25 @@
         return i;
     }
 
-    inline int getWholeNumberPrecision( float input ) {
+    inline int getVecDecimalPrecision( vec_t input ) {
+        //Figure out how many decimal places are in the input number
+        int test = (int) input;
+        int i = 0;
+        int maxPrecision = 6;
+
+        // Have to increment this, since this is not a 0-based index
+        maxPrecision++;
+
+        while ( test != input && i <= maxPrecision ) {
+            i++;
+            input *= 10;
+            test = (int) input;
+        }
+
+        return i;
+    }
+
+    inline int getFloatWholeNumberPrecision( float input ) {
         //Figure out how many decimal places are in the input number
         int test = (int) input;
         int i = 0;
@@ -69,8 +89,28 @@
         return i;
     }
 
-    inline float calculateRotatingValueBeneathMax( float input, int max ) {
+    inline int getVecWholeNumberPrecision( vec_t input ) {
+        //Figure out how many decimal places are in the input number
+        int test = (int) input;
+        int i = 0;
+
+        while ( test != 0 ) {
+            i++;
+            input /= 10;
+            test = (int) input;
+        }
+
+        return i;
+    }
+
+    inline float calculateFloatRotatingValueBeneathMax( float input, int max ) {
         float output = fmod( input, max );
+        if( output < 0 ) output += max;
+        return output;
+    }
+
+    inline float calculateVecRotatingValueBeneathMax( vec_t input, int max ) {
+        vec_t output = fmod( input, max );
         if( output < 0 ) output += max;
         return output;
     }
@@ -86,12 +126,12 @@
     #define MIN_GRID_PRECISION 0.03125
 
     // NAB622: This is used to determine how many decimal places are in the lowest grid precision
-    #define GRID_DECIMAL_PRECISION getDecimalPrecision( (float) MIN_GRID_PRECISION )
+    #define GRID_DECIMAL_PRECISION getFloatDecimalPrecision( (float) MIN_GRID_PRECISION )
 
 
     // NAB622: This value is the maximum zoom-in distance on the grid. The numeric value specified here corresponds to the maximum
     // number of pixels the grid can render per block before it stops zooming in, at the smallest precision available
-    #define MAX_GRID_ZOOM_PIXELS 45
+    #define MAX_GRID_ZOOM_PIXELS 90
 
     // NAB622: Calculate the actual zoom value needed, based on the values given previously
     #define MAX_GRID_ZOOM_BLOCKSIZE ( MAX_GRID_ZOOM_PIXELS / MIN_GRID_PRECISION )

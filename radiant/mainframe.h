@@ -38,6 +38,7 @@
 #endif
 
 extern GtkWidget *cubicClippingCheckbox;
+extern GtkWidget *xrayOutlineCheck;
 extern GtkWidget *cubicClippingSpin;
 extern GtkWidget *outlineComboBox;
 
@@ -545,7 +546,6 @@ guint m_nTimer;
 bool m_bSleeping;
 
 CString m_strStatus[15];
-bool m_bNeedStatusUpdate;
 
 /*!
    synapse server
@@ -574,7 +574,6 @@ void RoutineProcessing();
 XYWnd* ActiveXY() { return m_pActiveXY; };
 void UpdateWindows( int nBits );
 void SetStatusText( int nPane, const char* pText );
-void UpdateStatusText();
 void SetWindowStyle( int nStyle );
 virtual ~MainFrame();
 XYWnd* GetXYWnd() {return m_pXYWnd; }

@@ -928,7 +928,7 @@ void DoProjectSettings(){
 void DoMapInfo(){
 	static GtkWidget *dialog;
 	GtkWidget *vbox, *hbox, *table, *button, *label, *scr;
-	GtkWidget *brushes_label, *entities_label, *net_label, *content_area;
+    GtkWidget *brushes_label, *patches_label, *entities_label, *net_label, *net_patches_label, *content_area;
 	GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
 
 	if ( dialog != NULL ) {
@@ -953,60 +953,89 @@ void DoMapInfo(){
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox, FALSE, TRUE, 0 );
 	gtk_widget_show( hbox );
 
-	table = gtk_table_new( 3, 2, FALSE );
+    table = gtk_table_new( 5, 2, FALSE );
 	gtk_box_pack_start( GTK_BOX( hbox ), table, TRUE, TRUE, 0 );
-	gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
-	gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
+    gtk_table_set_col_spacings( GTK_TABLE( table ), 6 );
 	gtk_widget_show( table );
 
-	brushes_label = gtk_label_new( "" );
-	gtk_table_attach( GTK_TABLE( table ), brushes_label, 1, 2, 0, 1,
-					  (GtkAttachOptions) ( GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( brushes_label ), 1.0, 0.5 );
-	gtk_widget_show( brushes_label );
+    brushes_label = gtk_label_new( "" );
+    gtk_table_attach( GTK_TABLE( table ), brushes_label, 1, 2, 0, 1,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( brushes_label ), 0.0, 0.5 );
+    gtk_widget_show( brushes_label );
 
-	entities_label = gtk_label_new( "" );
-	gtk_table_attach( GTK_TABLE( table ), entities_label, 1, 2, 1, 2,
+    patches_label = gtk_label_new( "" );
+    gtk_table_attach( GTK_TABLE( table ), patches_label, 1, 2, 1, 2,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( patches_label ), 0.0, 0.5 );
+    gtk_widget_show( patches_label );
+
+    entities_label = gtk_label_new( "" );
+    gtk_table_attach( GTK_TABLE( table ), entities_label, 1, 2, 2, 3,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( entities_label ), 1.0, 0.5 );
+    gtk_misc_set_alignment( GTK_MISC( entities_label ), 0.0, 0.5 );
 	gtk_widget_show( entities_label );
 
-	net_label = gtk_label_new( "" );
-	gtk_table_attach( GTK_TABLE( table ), net_label, 1, 2, 2, 3,
-					  (GtkAttachOptions) ( GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( net_label ), 1.0, 0.5 );
-	gtk_widget_show( net_label );
+    net_label = gtk_label_new( "" );
+    gtk_table_attach( GTK_TABLE( table ), net_label, 1, 2, 3, 4,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( net_label ), 0.0, 0.5 );
+    gtk_widget_show( net_label );
 
-	label = gtk_label_new( _( "Total Brushes" ) );
+    net_patches_label = gtk_label_new( "" );
+    gtk_table_attach( GTK_TABLE( table ), net_patches_label, 1, 2, 4, 5,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( net_patches_label ), 0.0, 0.5 );
+    gtk_widget_show( net_patches_label );
+
+    label = gtk_label_new( _( "Total Brushes:" ) );
 	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
 	gtk_widget_show( label );
 
-	label = gtk_label_new( _( "Total Entities" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 1, 2,
-					  (GtkAttachOptions) ( GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_show( label );
+    label = gtk_label_new( _( "Total Patches:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 1, 2,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+    gtk_widget_show( label );
 
-	label = gtk_label_new( _( "Net brush count\n(non entity)" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 2, 3,
-					  (GtkAttachOptions) ( GTK_FILL ),
-					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_show( label );
+    label = gtk_label_new( _( "Total Entities:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 2, 3,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+    gtk_widget_show( label );
 
+    label = gtk_label_new( _( "Non-entity Brush Count:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 3, 4,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+    gtk_widget_show( label );
 
+    label = gtk_label_new( _( "Non-entity Patch Count:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 4, 5,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+    gtk_widget_show( label );
 
-	label = gtk_label_new( _( "Entity breakdown" ) );
+/*
+// NAB622: I don't see the point in this label...
+    label = gtk_label_new( _( "Entity breakdown" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), label, FALSE, TRUE, 0 );
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
+*/
 
 	scr = gtk_scrolled_window_new( (GtkAdjustment*)NULL, (GtkAdjustment*)NULL );
 
@@ -1043,17 +1072,49 @@ void DoMapInfo(){
 	}
 
 	// Initialize fields
-	int TotalBrushes = 0, TotalEntities = 0, Net = 0;
+    int TotalBrushes = 0, TotalPatches = 0, TotalEntities = 0, Net = 0, NetPatches = 0;
 
-	for ( brush_t* pBrush = active_brushes.next; pBrush != &active_brushes; pBrush = pBrush->next )
-	{
-		TotalBrushes++;
-		if ( pBrush->owner == world_entity ) {
-			Net++;
-		}
-	}
+    for ( brush_t* pBrush = active_brushes.next; pBrush != &active_brushes; pBrush = pBrush->next )
+    {
+        if ( pBrush->owner->eclass->fixedsize ) {
+            continue;
+        }
 
-	typedef struct
+        if( pBrush->patchBrush ) {
+            TotalPatches++;
+            if ( pBrush->owner == world_entity ) {
+                NetPatches++;
+            }
+            continue;
+        }
+
+        TotalBrushes++;
+        if ( pBrush->owner == world_entity ) {
+            Net++;
+        }
+    }
+
+    for ( brush_t* pBrush = selected_brushes.next; pBrush != &selected_brushes; pBrush = pBrush->next )
+    {
+        if ( pBrush->owner->eclass->fixedsize ) {
+            continue;
+        }
+
+        if( pBrush->patchBrush ) {
+            TotalPatches++;
+            if ( pBrush->owner == world_entity ) {
+                NetPatches++;
+            }
+            continue;
+        }
+
+        TotalBrushes++;
+        if ( pBrush->owner == world_entity ) {
+            Net++;
+        }
+    }
+
+    typedef struct
 	{
 		const char *name;
 		int count;
@@ -1101,12 +1162,16 @@ void DoMapInfo(){
 	g_object_unref( G_OBJECT( store ) );
 
 	char tmp[16];
-	sprintf( tmp, "%d", TotalBrushes );
-	gtk_label_set_text( GTK_LABEL( brushes_label ), tmp );
-	sprintf( tmp, "%d", TotalEntities );
+    sprintf( tmp, "%d", TotalBrushes );
+    gtk_label_set_text( GTK_LABEL( brushes_label ), tmp );
+    sprintf( tmp, "%d", TotalPatches );
+    gtk_label_set_text( GTK_LABEL( patches_label ), tmp );
+    sprintf( tmp, "%d", TotalEntities );
 	gtk_label_set_text( GTK_LABEL( entities_label ), tmp );
-	sprintf( tmp, "%d", Net );
-	gtk_label_set_text( GTK_LABEL( net_label ), tmp );
+    sprintf( tmp, "%d", Net );
+    gtk_label_set_text( GTK_LABEL( net_label ), tmp );
+    sprintf( tmp, "%d", NetPatches );
+    gtk_label_set_text( GTK_LABEL( net_patches_label ), tmp );
 
 
 	gtk_dialog_run( GTK_DIALOG( dialog ) );
