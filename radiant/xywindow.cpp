@@ -2803,7 +2803,9 @@ void XYWnd::DrawCameraIcon(){
             a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
         }
 
-        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 90 ) {
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 0 ) {
+            fovScale = 0;
+        } else if ( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 90 ) {
             fovScale = 1;
         } else {
             if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
@@ -2825,7 +2827,9 @@ void XYWnd::DrawCameraIcon(){
             a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
         }
 
-        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 90 ) {
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 0 ) {
+            fovScale = 0;
+        } else if ( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 90 ) {
             fovScale = 1;
         } else {
             if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
