@@ -689,7 +689,7 @@ void Select_GetBounds( vec3_t mins, vec3_t maxs ){
 
 	for ( i = 0 ; i < 3 ; i++ )
 	{
-        // NAB622: Not sure why max is being attached to min and verse vica, but whatever, it doesn't work the other way...
+        // NAB622: Initialize these to the opposite ends of the grid so we can update them as we find better coordinates
         mins[i] = g_MaxWorldCoord;
         maxs[i] = g_MinWorldCoord;
     }
