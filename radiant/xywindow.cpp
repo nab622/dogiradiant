@@ -2803,12 +2803,16 @@ void XYWnd::DrawCameraIcon(){
             a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
         }
 
-        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
-            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
-            fovScale = 1 - ( fovScale / 90 );
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 90 ) {
+            fovScale = 1;
         } else {
-            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
-            fovScale /= 90;
+            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
+                fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+                fovScale = 1 - ( fovScale / 90 );
+            } else {
+                fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+                fovScale /= 90;
+            }
         }
         break;
     case YZ:
@@ -2821,12 +2825,16 @@ void XYWnd::DrawCameraIcon(){
             a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
         }
 
-        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
-            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
-            fovScale = 1 - ( fovScale / 90 );
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 90 ) {
+            fovScale = 1;
         } else {
-            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
-            fovScale /= 90;
+            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
+                fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+                fovScale = 1 - ( fovScale / 90 );
+            } else {
+                fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+                fovScale /= 90;
+            }
         }
         break;
     }
