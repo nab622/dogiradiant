@@ -689,9 +689,10 @@ void Select_GetBounds( vec3_t mins, vec3_t maxs ){
 
 	for ( i = 0 ; i < 3 ; i++ )
 	{
-        mins[i] = g_MinWorldCoord;
-        maxs[i] = g_MaxWorldCoord;
-	}
+        // NAB622: Not sure why max is being attached to min and verse vica, but whatever, it doesn't work the other way...
+        mins[i] = g_MaxWorldCoord;
+        maxs[i] = g_MinWorldCoord;
+    }
 
 	for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next )
 	{
@@ -733,8 +734,8 @@ void Select_GetMid( vec3_t mid ){
 	vec3_t mins, maxs;
 	int i;
 
-	if ( !g_PrefsDlg.m_bSnap ) {
-		Select_GetTrueMid( mid );
+    if ( 1 || !g_PrefsDlg.m_bSnap ) {
+        Select_GetTrueMid( mid );
 		return;
 	}
 
