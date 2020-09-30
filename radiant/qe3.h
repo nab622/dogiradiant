@@ -102,6 +102,7 @@ extern _QEREntityTable __ENTITYTABLENAME;
 
 #include "iundo.h"
 
+
 extern _QERPlugMapTable g_MapTable;
 
 //++timo for BP conversion escaping FIXME: remove when mixing two formats!
@@ -742,6 +743,19 @@ bool DispatchOnLButtonUp( guint32 nFlags, int x, int y );
 //
 #include "icamera.h"
 
+
+// NAB Functions
+bool areWeOutOfBounds( vec3_t inputVectors );
+vec_t clampBoundaries( vec_t input );
+vec_t clampCameraBoundaries( vec_t input );
+void fixUpsideDownAngles( vec3_t input, vec3_t output );
+void getEntityAngles( entity_t* inputEntity, vec3_t finalAngle );
+
+// NAB622: This is the maximum number of recent files that can display in the file menu
+// Warning, if this value is increased above 20, a ton of GTK stuff will need updated
+#define MAX_RECENT_FILES 20
+
+
 // Some declarations that were in stdafx.h
 
 // main.cpp
@@ -749,16 +763,6 @@ extern gint try_destroy_splash( gpointer );
 
 
 //mainframe.cpp
-bool areWeOutOfBounds( vec3_t inputVectors );
-vec_t clampBoundaries( vec_t input );
-vec_t clampCameraBoundaries( vec_t input );
-
-
-// NAB622: This is the maximum number of recent files that can display in the file menu
-// Warning, if this value is increased above 20, a ton of GTK stuff will need updated
-#define MAX_RECENT_FILES 20
-
-
 #include "mainframe.h"
 #include "preferences.h"
 #include "findtexturedialog.h"

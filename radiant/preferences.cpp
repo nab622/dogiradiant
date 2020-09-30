@@ -109,6 +109,7 @@
 #define PREFAB_KEY              "PrefabPath"
 #define USERINI_KEY             "UserINIPath"
 #define ROTATION_KEY            "Rotation"
+#define VERTEX_EDGE_HANDLE_KEY  "VertexEdgeHandleSize"
 #define BUGGYICD_KEY            "BuggyICD"
 #define CHASEMOUSE_KEY          "ChaseMouse"
 #define MOUSEWHEELZOOM_KEY      "MousewheelZoom"
@@ -242,8 +243,9 @@ int maximumRenderDistance = abs( (int) ceil( ( g_MaxWorldCoord - g_MinWorldCoord
 
 
 // Declaring these up here...
-GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *xrayOutlineCheck, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox, *cameraMovementSlider;
+GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *xrayOutlineCheck, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox, *cameraMovementSlider, *vertexEdgeHandleSpin;
 
+static void updateVertexEdgeHandles();
 static void xraySelectionToggled();
 static void resetRenderDistanceSpin();
 static void renderDistanceSpinChanged();
@@ -675,6 +677,7 @@ PrefsDlg::PrefsDlg (){
 	m_bSnap = TRUE;
 	m_strUserPath = "";
 	m_nRotation = 0;
+    m_nVertexEdgeHandleSize = 10;
     m_nRenderDistance = DEFAULT_RENDER_DISTANCE;
     m_bCubicClipping = FALSE;
     m_nCubicIncrement = 1024;
@@ -2008,13 +2011,16 @@ void PrefsDlg::BuildDialog(){
     }
     g_list_free( combo_list );
 
-    // Outline visibility
+/*
+// NAB622: This value kept getting out of sync with the checkbox. I disabled it because it was silly to have as a preference anyway...
+    // X-ray selections
     xrayOutlineCheck = gtk_check_button_new_with_label( _( "X-ray selection outlines" ) );
     gtk_widget_set_tooltip_text( xrayOutlineCheck, _( "Selection outlines will be visible through other objects as dotted lines" ) );
     gtk_box_pack_start( GTK_BOX( vbox ), xrayOutlineCheck, FALSE, FALSE, 0 );
     gtk_widget_show( xrayOutlineCheck );
     AddDialogData( xrayOutlineCheck, &m_bXraySelection, DLG_CHECK_BOOL );
     g_signal_connect( (gpointer) xrayOutlineCheck, "toggled", G_CALLBACK( xraySelectionToggled ), NULL );
+*/
 
     // Light drawing
     check = gtk_check_button_new_with_label( _( "Light drawing" ) );
@@ -2690,16 +2696,43 @@ void PrefsDlg::BuildDialog(){
 	gtk_widget_show( check );
 	AddDialogData( check, &m_bDoTargetFix, DLG_CHECK_BOOL );
 
-	// Rotation increment
+    // Vertex/Edge handle size
+    // container
+    table = gtk_table_new( 2, 1, FALSE );
+    gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
+    gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+    gtk_widget_show( table );
+
+    // label
+    label = gtk_label_new( _( "Vertex/Edge handle size:" ) );
+    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+                      (GtkAttachOptions) ( 0 ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+    gtk_widget_show( label );
+
+    vertexEdgeHandleSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 8, 4, 40, 1, 10, 0 ) ), 1, 0 );
+    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( vertexEdgeHandleSpin ), TRUE );
+    gtk_entry_set_alignment( GTK_ENTRY( vertexEdgeHandleSpin ), 1.0 ); //right
+    gtk_table_attach( GTK_TABLE( table ), vertexEdgeHandleSpin, 1, 2, 0, 1,
+                      (GtkAttachOptions) ( GTK_FILL ),
+                      (GtkAttachOptions) ( 0 ), 0, 0 );
+    gtk_widget_show( vertexEdgeHandleSpin );
+    AddDialogData( vertexEdgeHandleSpin, &m_nVertexEdgeHandleSize, DLG_SPIN_INT );
+    g_signal_connect( (gpointer) vertexEdgeHandleSpin, "value-changed", G_CALLBACK( updateVertexEdgeHandles ), NULL );
+
+
+/*
+// NAB622: This is intended for the surface inspector, but the surface inspector can handle this just fine on it's own...
+    // Rotation increment
 	// container
-	table = gtk_table_new( 2, 3, FALSE );
-	gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
+    table = gtk_table_new( 2, 1, FALSE );
+    gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
 	gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
 	gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
 	gtk_widget_show( table );
 
-/*
-// NAB622: I think the surface inspector can do this just fine on it's own...
     // label
     label = gtk_label_new( _( "Default rotation step (Surface inspector only):" ) );
 	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
@@ -2929,7 +2962,7 @@ void PrefsDlg::BuildDialog(){
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
 
-    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 0.5, 0, 65535, 0.1, 1, 0 ) ), 1, TEXTURE_SCALE_PRECISION );
+    spin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( 0.5, 0.001, 65535, 0.1, 1, 0 ) ), 1, TEXTURE_SCALE_PRECISION );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 0, 1,
@@ -3157,6 +3190,10 @@ void PrefsDlg::BuildDialog(){
 
 // end new prefs dialog
 
+static void updateVertexEdgeHandles() {
+    g_PrefsDlg.m_nVertexEdgeHandleSize = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( vertexEdgeHandleSpin ) );
+    Sys_UpdateWindows( W_CAMERA_IFON );
+}
 static void xraySelectionToggled() {
     g_PrefsDlg.m_bXraySelection ^= 1;
     Sys_UpdateWindows( W_CAMERA_IFON );
@@ -3456,6 +3493,7 @@ void PrefsDlg::LoadPrefs(){
     mLocalPrefs.GetPref( SNAP_KEY,               &m_bSnap,                       TRUE );
     mLocalPrefs.GetPref( USERINI_KEY,            &m_strUserPath,                 "" );
     mLocalPrefs.GetPref( ROTATION_KEY,           &m_nRotation,                   2.5 );
+    mLocalPrefs.GetPref( VERTEX_EDGE_HANDLE_KEY, &m_nVertexEdgeHandleSize,       10 );
     mLocalPrefs.GetPref( CHASEMOUSE_KEY,         &m_bChaseMouse,                 TRUE );
     mLocalPrefs.GetPref( MOUSEWHEELZOOM_KEY,     &m_bMousewheelZoom,             FALSE );
     mLocalPrefs.GetPref( ENTITYSHOW_KEY,         &m_nEntityShowState,            ENTITY_SKINNED_BOXED );

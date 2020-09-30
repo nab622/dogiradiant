@@ -4087,6 +4087,7 @@ void MainFrame::OnTimer(){
 	display = gdk_window_get_display( window );
 	gdk_display_get_pointer( display, NULL, NULL, NULL, &mask );
 #endif
+
 	if ( ( mask & ( GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK ) ) == 0 ) {
 		QE_CountBrushesAndUpdateStatusBar();
 		QE_CheckAutoSave();
@@ -5003,13 +5004,14 @@ void MainFrame::OnPrefs() {
     bool    bFloatingZ          = g_PrefsDlg.m_bFloatingZ;
 	bool    bShowTexDirList     = g_PrefsDlg.m_bShowTexDirList;
 
+    g_PrefsDlg.LoadPrefs();
+
     int nRenderDistance = g_PrefsDlg.m_nRenderDistance;
     bool bCubicClipping = g_PrefsDlg.m_bCubicClipping;
     int nCubicScale = g_PrefsDlg.m_nCubicScale;
-    bool bXraySelection = g_PrefsDlg.m_bXraySelection;
     int nMRUCount = g_PrefsDlg.m_nMRUCount;
+    int nVertexEdgeHandleSize = g_PrefsDlg.m_nVertexEdgeHandleSize;
 
-    g_PrefsDlg.LoadPrefs();
 
     if( g_PrefsDlg.DoModal() == IDOK ) {
         if((g_PrefsDlg.m_nLatchedView               != nView            ) ||
@@ -5062,28 +5064,20 @@ void MainFrame::OnPrefs() {
         // NAB622: If the renderer settings were touched and the changes were canceled, we need to restore the original settings and redraw the camera window
         if ( g_PrefsDlg.m_nRenderDistance != nRenderDistance ||
              g_PrefsDlg.m_bCubicClipping != bCubicClipping ||
-             g_PrefsDlg.m_nCubicScale != nCubicScale ) {
+             g_PrefsDlg.m_nCubicScale != nCubicScale ||
+             g_PrefsDlg.m_nVertexEdgeHandleSize != nVertexEdgeHandleSize ) {
 
 
                 g_PrefsDlg.m_nRenderDistance = nRenderDistance;
                 g_PrefsDlg.m_bCubicClipping = bCubicClipping;
                 g_PrefsDlg.m_nCubicScale = nCubicScale;
+                g_PrefsDlg.m_nVertexEdgeHandleSize = nVertexEdgeHandleSize;
 
-                Sys_UpdateWindows( W_CAMERA );
-        }
-
-Sys_Printf( "CubicScale Pref: %d - bCubicClipping: %d  -  XRay Pref: %d - bXraySelection: %d\n", g_PrefsDlg.m_bCubicClipping, bCubicClipping, g_PrefsDlg.m_bXraySelection, bXraySelection);
-        if( g_PrefsDlg.m_bXraySelection != bXraySelection ) {
-                g_PrefsDlg.m_bXraySelection = bXraySelection;
-
-Sys_Printf( "CubicScale Pref: %d - bCubicClipping: %d  -  XRay Pref: %d - bXraySelection: %d\n", g_PrefsDlg.m_bCubicClipping, bCubicClipping, g_PrefsDlg.m_bXraySelection, bXraySelection);
-                //Since these values are changed immediately and don't wait for the prefs to be closed,the
-                // checkboxes need to be switched back to the original state or they'll get out of sync
+                // Checkbox needs to be switched back to the original state or it'll get out of sync
                 gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
-                gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( xrayOutlineCheck ), g_PrefsDlg.m_bXraySelection );
+
                 Sys_UpdateWindows( W_CAMERA );
         }
-
 
     }
 
@@ -7683,20 +7677,20 @@ void MainFrame::OnCameraDown(){
 
 void MainFrame::OnCameraAngleup(){
     m_pCamWnd->Camera()->angles[0] += SPEED_TURN;
-    if ( m_pCamWnd->Camera()->angles[0] > 90 ) {
+    if ( m_pCamWnd->Camera()->angles[0] > 90 && m_pCamWnd->Camera()->angles[0] <= 180 ) {
         m_pCamWnd->Camera()->angles[0] = 90;
-    } else if ( m_pCamWnd->Camera()->angles[0] < -90 ) {
-        m_pCamWnd->Camera()->angles[0] = -90;
+    } else if ( m_pCamWnd->Camera()->angles[0] < 270 && m_pCamWnd->Camera()->angles[0] > 180 ) {
+        m_pCamWnd->Camera()->angles[0] = 270;
     }
     Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
 }
 
 void MainFrame::OnCameraAngledown(){
     m_pCamWnd->Camera()->angles[0] -= SPEED_TURN;
-    if ( m_pCamWnd->Camera()->angles[0] > 90 ) {
+    if ( m_pCamWnd->Camera()->angles[0] > 90 && m_pCamWnd->Camera()->angles[0] <= 180 ) {
         m_pCamWnd->Camera()->angles[0] = 90;
-    } else if ( m_pCamWnd->Camera()->angles[0] < -90 ) {
-        m_pCamWnd->Camera()->angles[0] = -90;
+    } else if ( m_pCamWnd->Camera()->angles[0] < 270 && m_pCamWnd->Camera()->angles[0] > 180 ) {
+        m_pCamWnd->Camera()->angles[0] = 270;
     }
     Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
 }
@@ -7867,12 +7861,7 @@ void MainFrame::applyGridSize( float newSize ) {
     //NAB622: Made this into a function, is cleaner
     GtkWidget *item;
 
-    if ( newSize < MIN_GRID_PRECISION ) {
-        newSize = MIN_GRID_PRECISION;
-    }
-    else if ( newSize > 4096.0 ) {
-        newSize = 4096.0;
-    }
+    newSize = CLAMP( newSize, MIN_GRID_PRECISION, 4096 );
 
     g_qeglobals.d_gridsize = newSize;
 

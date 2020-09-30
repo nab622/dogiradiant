@@ -267,7 +267,7 @@ float fDiff( float f1, float f2 ){
    ==================
  */
 void DrawPathLines( void ){
-	int i, j, k;
+    int i, j, k;
 	vec3_t mid, mid1;
 	entity_t *se, *te;
 	brush_t   *sb, *tb;
@@ -760,7 +760,7 @@ void XYWnd::SetOrigin( vec3_t org ){
 
 void XYWnd::OnSize( int cx, int cy ){
 	m_nWidth = cx;
-	m_nHeight = cy;
+    m_nHeight = cy;
 }
 
 brush_t hold_brushes;
@@ -823,7 +823,7 @@ void XYWnd::SplitClip(){
 
 void XYWnd::FlipClip(){
 	g_bSwitch = !g_bSwitch;
-	Sys_UpdateWindows( XY | W_CAMERA_IFON );
+    Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 }
 
 // makes sure the selected brush or camera is in view
@@ -899,7 +899,7 @@ void XYWnd::SetClipMode( bool bMode ){
 
 			if ( found ) {
 				// SetClipMode( true );
-				Sys_UpdateWindows( XY | W_CAMERA_IFON );
+                Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 			}
 		}
 	}
@@ -913,7 +913,7 @@ void XYWnd::SetClipMode( bool bMode ){
 		CleanList( &g_brBackSplits );
 		g_brFrontSplits.next = &g_brFrontSplits;
 		g_brBackSplits.next = &g_brBackSplits;
-		Sys_UpdateWindows( XY | W_CAMERA_IFON );
+        Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 	}
 }
 
@@ -997,12 +997,12 @@ rectangle_t rectangle_from_area_xy(){
 	XYWnd* xy = g_pParentWnd->ActiveXY();
 	int nDim1 = ( xy->GetViewType() == YZ ) ? 1 : 0;
 	int nDim2 = ( xy->GetViewType() == XY ) ? 1 : 2;
-	float origin_left = xy->GetOrigin()[nDim1] - ( xy->Width() / 2 ) / xy->Scale();
-	float origin_bottom = xy->GetOrigin()[nDim2] - ( xy->Height() / 2 ) / xy->Scale();
-	float left = MIN( g_qeglobals.d_vAreaTL[nDim1], g_qeglobals.d_vAreaBR[nDim1] ) - origin_left;
-	float top = MAX( g_qeglobals.d_vAreaTL[nDim2], g_qeglobals.d_vAreaBR[nDim2] ) - origin_bottom;
-	float right = MAX( g_qeglobals.d_vAreaTL[nDim1], g_qeglobals.d_vAreaBR[nDim1] ) - origin_left;
-	float bottom = MIN( g_qeglobals.d_vAreaTL[nDim2], g_qeglobals.d_vAreaBR[nDim2] ) - origin_bottom;
+    vec_t origin_left = xy->GetOrigin()[nDim1] - ( xy->Width() / 2 ) / xy->Scale();
+    vec_t origin_bottom = xy->GetOrigin()[nDim2] - ( xy->Height() / 2 ) / xy->Scale();
+    vec_t left = MIN( g_qeglobals.d_vAreaTL[nDim1], g_qeglobals.d_vAreaBR[nDim1] ) - origin_left;
+    vec_t top = MAX( g_qeglobals.d_vAreaTL[nDim2], g_qeglobals.d_vAreaBR[nDim2] ) - origin_bottom;
+    vec_t right = MAX( g_qeglobals.d_vAreaTL[nDim1], g_qeglobals.d_vAreaBR[nDim1] ) - origin_left;
+    vec_t bottom = MIN( g_qeglobals.d_vAreaTL[nDim2], g_qeglobals.d_vAreaBR[nDim2] ) - origin_bottom;
 	left *= xy->Scale();
 	top *= xy->Scale();
 	right *= xy->Scale();
@@ -1086,7 +1086,7 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 				bCrossHair = true;
 				SnapToPoint( pointx, m_nHeight - 1 - pointy, g_pMovingPoint->m_ptClip );
 				g_pMovingPoint->UpdatePointPtr();
-				Sys_UpdateWindows( XY | W_CAMERA_IFON );
+                Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 			}
 			else
 			{
@@ -1107,7 +1107,7 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 			if ( g_pMovingClip && HasCapture() ) {
 				bCrossHair = true;
 				SnapToPoint( pointx, m_nHeight - 1 - pointy, g_pMovingClip->m_ptClip );
-				Sys_UpdateWindows( XY | W_CAMERA_IFON );
+                Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 			}
 			else
 			{
@@ -1144,7 +1144,7 @@ void XYWnd::OnMouseMove( guint32 nFlags, int pointx, int pointy ){
 			if ( g_pMovingPath && HasCapture() ) {
 				bCrossHair = true;
 				SnapToPoint( pointx, m_nHeight - 1 - pointy, g_pMovingPath->m_ptClip );
-				Sys_UpdateWindows( XY | W_CAMERA_IFON );
+                Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 			}
 			else
 			{
@@ -1232,7 +1232,7 @@ void XYWnd::OnTimer(){
     m_vOrigin[nDim1] = clampCameraBoundaries(m_vOrigin[nDim1]);
     m_vOrigin[nDim2] = clampCameraBoundaries(m_vOrigin[nDim2]);
 
-    Sys_UpdateWindows( W_XY | W_CAMERA | W_ENTITY | W_SURFACE );
+    Sys_UpdateWindows( W_XY | W_CAMERA | W_ENTITY | W_SURFACE | W_PATCH );
 	m_ptDragX += m_ptDragAdjX;
 	m_ptDragY += m_ptDragAdjY;
 	m_ptDragTotalX += m_ptDragAdjX;
@@ -1403,7 +1403,8 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
         }
 
         Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
-	}
+        return;
+    }
 
 	// mbutton = angle camera
 	if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
@@ -1454,10 +1455,14 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 
 void XYWnd::XY_MouseUp( int x, int y, int buttons ){
 	Drag_MouseUp( buttons );
-	if ( !m_bPress_selection ) {
-		Sys_UpdateWindows( W_ALL );
+/*
+    // NAB622: Disabled this. It does not appear to be important, but it is causing everything
+    // to render twice, including the camera, which will have a massive impact on performance
+    if ( !m_bPress_selection ) {
+        Sys_UpdateWindows( W_ALL );
 	}
-	m_nButtonstate = 0;
+*/
+    m_nButtonstate = 0;
 
 	gdk_window_set_cursor( gtk_widget_get_window( m_pWidget ), NULL );
 
@@ -1932,22 +1937,18 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 }
 
 void XYWnd::calculateCameraAngle( int x, int y, vec3_t point ) {
-    vec3_t newAngle, tempAngle;
-    //Initialize these to make sure they have the right values later
-    newAngle[PITCH] = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH];
-    newAngle[YAW] = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW];
+    vec3_t tempAngle;
 
     SnapToPoint( x, y, point );
 
     // The grid is only setting two of three grid vectors. The third point must be even with the camera's origin
+    // Using the camera's origin will tell us if the camera is flipped below
     switch ( m_nViewType ) {
-        // USING THE CAMERA ORIGIN IS A HACK TO GET THIS TO WORK TEMPORARILY
-        // THE CORRECT WAY TO DO THIS IS TO CALCULATE OUT THE THIRD VECTOR
-        case YZ:
-            point[0] = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
-        break;
         case XZ:
             point[1] = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
+        break;
+        case YZ:
+            point[0] = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
         break;
         case XY:
             point[2] = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
@@ -1957,37 +1958,32 @@ void XYWnd::calculateCameraAngle( int x, int y, vec3_t point ) {
     VectorSubtract( point, g_pParentWnd->GetCamWnd()->Camera()->origin, tempAngle );
     VectorToAngles( tempAngle, tempAngle );
 
-    tempAngle[YAW] = calculateVecRotatingValueBeneathMax( tempAngle[YAW], 360 );
-    tempAngle[PITCH] = calculateVecRotatingValueBeneathMax( tempAngle[PITCH], 360 );
-
-Sys_Printf( "PITCH TEST: %lf\n", newAngle[PITCH] );
     switch ( m_nViewType ) {
-        case YZ:
-        newAngle[PITCH] = tempAngle[PITCH];
-        newAngle[YAW] = tempAngle[YAW];
-            if( newAngle[PITCH] >= 270 || newAngle[PITCH] < 90 ) {
-                newAngle[YAW] = -g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] + 180;
-            }
-        break;
         case XZ:
-            // Add 180 to the yaw in the XZ view
-            newAngle[YAW] = tempAngle[YAW] + 180;
-            newAngle[PITCH] = tempAngle[PITCH];
-        break;
+        case YZ:
+            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 180 ) {
+                // If the camera's yaw is more than 180, we need to handle this a bit differently...
+                if( tempAngle[YAW] == 270 || tempAngle[YAW] == 180 ) {
+                    // The camera turned upside-down! We need to flip the pitch all the way over. There is other code to catch that later on
+                    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( -tempAngle[PITCH] + 180, 360 );
+                } else {
+                    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( tempAngle[PITCH], 360 );
+                }
+            } else {
+                if( tempAngle[YAW] == 270 || tempAngle[YAW] == 180 ) {
+                    // The camera turned upside-down! We need to flip the pitch all the way over. There is other code to catch that later on
+                    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( tempAngle[PITCH], 360 );
+                } else {
+                    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( -tempAngle[PITCH] + 180, 360 );
+                }
+            }
+            break;
         case XY:
-            // Ignore the pitch change in the XY view
-            newAngle[YAW] = tempAngle[YAW];
-        break;
+            // Ignore the pitch in the XY view
+            g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = tempAngle[YAW];
+            break;
     }
-//            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] <= 180 && g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] > 0 )   // XZ
-//            if( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] < 90 )   // YZ
-Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
-
-    g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = calculateVecRotatingValueBeneathMax( newAngle[YAW], 360 );
-    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( newAngle[PITCH], 360 );
-    // NAB622: Just in case something funky happened, set this to zero
-    g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] = 0;
-
+//Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
     Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
 }
 
@@ -2064,7 +2060,7 @@ void XYWnd::DropClipPoint( guint32 nFlags, int pointx, int pointy ){
 		Select_GetMid( mid );
 		( *pPt )[nDim] = mid[nDim];
 	}
-	Sys_UpdateWindows( XY | W_CAMERA_IFON );
+    Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 }
 
 void XYWnd::DropPathPoint( guint32 nFlags, int pointx, int pointy ){
@@ -2095,7 +2091,7 @@ void XYWnd::DropPathPoint( guint32 nFlags, int pointx, int pointy ){
 			g_pPathFunc = NULL;
 		}
 	}
-	Sys_UpdateWindows( XY | W_CAMERA_IFON );
+    Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 }
 
 // FIXME: AddPointPoint() redundant function never called
@@ -2106,7 +2102,7 @@ void XYWnd::AddPointPoint( guint32 nFlags, vec3_t* pVec ){
 	_VectorCopy( *pVec, g_PointPoints[g_nPointCount] );
 	g_PointPoints[g_nPointCount].SetPointPtr( pVec );
 	g_nPointCount++;
-	Sys_UpdateWindows( XY | W_CAMERA_IFON );
+    Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 }
 
 // FIXME: ProduceSplits() redundant function never called
@@ -2197,7 +2193,7 @@ void XYWnd::ProduceSplitLists(){
 			}
 		}
 		// ydnar: update the window if any patches are selected
-		Sys_UpdateWindows( XY | W_CAMERA_IFON );
+        Sys_UpdateWindows( W_XY | W_CAMERA_IFON );
 	}
 
 	CleanList( &g_brFrontSplits );
@@ -2261,10 +2257,10 @@ void XYWnd::SnapToPoint( int x, int y, vec3_t point ){
 
 // TTimo: watch it, this doesn't init one of the 3 coords
 void XYWnd::XY_ToPoint( int x, int y, vec3_t point ){
-	float fx = x;
-	float fy = y;
-	float fw = m_nWidth;
-	float fh = m_nHeight;
+    vec_t fx = x;
+    vec_t fy = y;
+    vec_t fw = m_nWidth;
+    vec_t fh = m_nHeight;
 	if ( m_nViewType == XY ) {
 		point[0] = m_vOrigin[0] + ( fx - fw / 2 ) / m_fScale;
 		point[1] = m_vOrigin[1] + ( fy - fh / 2 ) / m_fScale;
@@ -2328,7 +2324,7 @@ void XYWnd::XY_DrawGrid(){
     int majorSkipMultiples = 4;     //NAB622: 'Major' grid lines are considered this multiple of the normal grid lines
     float minSize = 32;             //NAB622: This is the minimum number of pixels allowed between grid lines before we rescale to a larger size
     int refactorAmt = 2;            //NAB622: This is how much we refactor the steps when minSize is hit
-    int labelSpacing = 64;        //NAB622: This is the minimum number of pixels between the numeric labels on the grid
+    int labelSpacing = 64;          //NAB622: This is the minimum number of pixels between the numeric labels on the grid
 
     float minorStep = g_qeglobals.d_gridsize;
 
@@ -2779,16 +2775,23 @@ void XYWnd::DrawRotateIcon(){
 }
 
 void XYWnd::DrawCameraIcon(){
-	float x, y, a, fov, box;
+    float x, y, a, fov, box, fovScale;
 
-	fov = 48 / m_fScale;
+    fov = 48 / m_fScale;
 	box = 16 / m_fScale;
 
     switch( m_nViewType ) {
     case XY:
         x = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
-		y = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
-		a = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] / 180 * Q_PI;
+        y = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
+        a = g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] / 180 * Q_PI;
+
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] == 0 ) {
+            fovScale = 1;
+        } else {
+            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] - 180, 90) );
+            fovScale /= 90;
+        }
         break;
     case XZ:
         x = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
@@ -2798,6 +2801,14 @@ void XYWnd::DrawCameraIcon(){
             a = -( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180 ) / 180 * Q_PI;
         } else {
             a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
+        }
+
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
+            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+            fovScale = 1 - ( fovScale / 90 );
+        } else {
+            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+            fovScale /= 90;
         }
         break;
     case YZ:
@@ -2809,12 +2820,24 @@ void XYWnd::DrawCameraIcon(){
         } else {
             a = g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] / 180 * Q_PI;
         }
+
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
+            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+            fovScale = 1 - ( fovScale / 90 );
+        } else {
+            fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+            fovScale /= 90;
+        }
         break;
     }
 
+    // Add a base amount to fovScale so it is always visible
+    fov = fov * ( fovScale + 0.4 );
+
     qglColor3f( gridCameraSymbolColor[0], gridCameraSymbolColor[1], gridCameraSymbolColor[2] );
-	qglBegin( GL_LINE_STRIP );
-	qglVertex3f( x - box,y,0 );
+    glLineWidth( 2 );
+    qglBegin( GL_LINE_STRIP );
+    qglVertex3f( x - box,y,0 );
 	qglVertex3f( x,y + ( box / 2 ),0 );
 	qglVertex3f( x + box,y,0 );
 	qglVertex3f( x,y - ( box / 2 ),0 );
@@ -2822,7 +2845,8 @@ void XYWnd::DrawCameraIcon(){
 	qglVertex3f( x + box,y,0 );
 	qglEnd();
 
-	qglBegin( GL_LINE_STRIP );
+    glLineWidth( 1 );
+    qglBegin( GL_LINE_STRIP );
 	qglVertex3f( x + fov * cos( a + Q_PI / 4 ), y + fov * sin( a + Q_PI / 4 ), 0 );
 	qglVertex3f( x, y, 0 );
 	qglVertex3f( x + fov * cos( a - Q_PI / 4 ), y + fov * sin( a - Q_PI / 4 ), 0 );
@@ -3183,7 +3207,7 @@ void XYWnd::XY_Draw(){
 	//
 	//++timo why is the display list broken?
 	if ( g_qeglobals.d_pointfile_display_list ) {
-		Pointfile_Draw();
+        Pointfile_Draw();
 	}
 
 	//
@@ -3261,41 +3285,39 @@ void XYWnd::XY_Draw(){
 		PaintSizeInfo( nDim1, nDim2, vMinBounds, vMaxBounds );
 	}
 
-	// edge / vertex flags
+    // edge / vertex flags
 	if ( g_qeglobals.d_select_mode == sel_vertex ) {
-		// brush verts
-		qglPointSize( 4 );
+        // brush verts
 		qglColor3f( 0,1,0 );
-		qglBegin( GL_POINTS );
-		for ( i = 0 ; i < g_qeglobals.d_numpoints ; i++ )
+        qglPointSize( g_PrefsDlg.m_nVertexEdgeHandleSize );
+        qglBegin( GL_POINTS );
+        for ( i = 0 ; i < g_qeglobals.d_numpoints ; i++ )
             qglVertex3f_convertFloat( g_qeglobals.d_points[i] );
 		qglEnd();
 
 		if ( g_qeglobals.d_num_move_points ) {
 			// selected brush verts
-			qglPointSize( 5 );
-			qglColor3f( 0,0,1 );
-			qglBegin( GL_POINTS );
+            qglColor3f( 0,0,1 );
+            qglBegin( GL_POINTS );
 			for ( i = 0; i < g_qeglobals.d_num_move_points; i++ )
                 qglVertex3f_convertFloat( g_qeglobals.d_move_points[i] );
 			qglEnd();
 		}
-		qglPointSize( 1 );
 	}
 	else if ( g_qeglobals.d_select_mode == sel_edge ) {
         vec_t   *v1, *v2;
-		qglPointSize( 4 );
-		qglColor3f( 0,0,1 );
-		qglBegin( GL_POINTS );
-		for ( i = 0 ; i < g_qeglobals.d_numedges ; i++ )
+        qglColor3f( 0,0.3,1 );
+        qglPointSize( g_PrefsDlg.m_nVertexEdgeHandleSize );
+        qglBegin( GL_POINTS );
+        for ( i = 0 ; i < g_qeglobals.d_numedges ; i++ )
 		{
 			v1 = g_qeglobals.d_points[g_qeglobals.d_edges[i].p1];
 			v2 = g_qeglobals.d_points[g_qeglobals.d_edges[i].p2];
 			qglVertex3f( ( v1[0] + v2[0] ) * 0.5,( v1[1] + v2[1] ) * 0.5,( v1[2] + v2[2] ) * 0.5 );
 		}
 		qglEnd();
-		qglPointSize( 1 );
 	}
+    qglPointSize( 1 );
 
 	if ( !( m_nViewType == XY ) ) {
 		qglPopMatrix();

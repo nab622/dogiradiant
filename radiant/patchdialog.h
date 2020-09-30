@@ -25,6 +25,8 @@
 #include "dialog.h"
 
 
+void on_patch_hscale_changed();
+void on_patch_vscale_changed();
 void on_patch_fit_width_spinbutton_value_changed( GtkWidget *widget, gpointer data );
 void on_patch_fit_height_spinbutton_value_changed( GtkWidget *widget, gpointer data );
 void on_patch_fit_button_clicked( GtkWidget *widget, gpointer data );

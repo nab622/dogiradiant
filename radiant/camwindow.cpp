@@ -123,7 +123,7 @@ void CamWnd::Cam_Init(){
 void CamWnd::OnSize( int cx, int cy ){
 	m_Camera.width = cx;
 	m_Camera.height = cy;
-	gtk_widget_queue_draw( m_pWidget );
+    gtk_widget_queue_draw( m_pWidget );
 }
 
 rectangle_t rectangle_from_area_cam(){
@@ -381,6 +381,8 @@ void CamWnd::Cam_PositionDrag( int buttons ){
 
 void CamWnd::Cam_MouseControl( float dtime ){
     Cam_KeyControl( dtime );
+
+    fixUpsideDownAngles( m_Camera.angles, m_Camera.angles );
 
     if ( g_PrefsDlg.m_bCamFreeLook ) {
 		int dx, dy;
@@ -1355,8 +1357,14 @@ void CamWnd::Cam_Draw(){
 	float yfov;
 	double start = 0.0, end;
 	int i;
+    vec3_t correctedAngles;
 
-	if ( !active_brushes.next ) {
+    fixUpsideDownAngles( m_Camera.angles, correctedAngles );
+
+    // NAB622: This should *always* be zero. It'll mess up a ton of stuff if it isn't
+    correctedAngles[ROLL] = 0;
+
+    if ( !active_brushes.next ) {
 		return; // not valid yet
 
 	}
@@ -1397,11 +1405,16 @@ void CamWnd::Cam_Draw(){
 	m4x4_rotate_by_vec3( &m_Camera.modelview[0][0], vec, eXYZ );
 	VectorSet( vec, 0, 0, 90 );
 	m4x4_rotate_by_vec3( &m_Camera.modelview[0][0], vec, eXYZ );
-	VectorSet( vec, 0, m_Camera.angles[0], 0 );
+    VectorSet( vec, 0, correctedAngles[PITCH], 0 );
 	m4x4_rotate_by_vec3( &m_Camera.modelview[0][0], vec, eXYZ );
-	VectorSet( vec, 0, 0, -m_Camera.angles[1] );
-	m4x4_rotate_by_vec3( &m_Camera.modelview[0][0], vec, eXYZ );
-	VectorSet( vec, -m_Camera.origin[0],  -m_Camera.origin[1],  -m_Camera.origin[2] );
+    VectorSet( vec, 0, 0, -correctedAngles[YAW] );
+    m4x4_rotate_by_vec3( &m_Camera.modelview[0][0], vec, eXYZ );
+
+    // NAB622: Added this because what the help
+    VectorSet( vec, -correctedAngles[ROLL], 0, 0 );
+    m4x4_rotate_by_vec3( &m_Camera.modelview[0][0], vec, eXYZ );
+
+    VectorSet( vec, -m_Camera.origin[0],  -m_Camera.origin[1],  -m_Camera.origin[2] );
 	m4x4_translate_by_vec3( &m_Camera.modelview[0][0], vec );
 
 	Cam_BuildMatrix();
@@ -1434,12 +1447,12 @@ void CamWnd::Cam_Draw(){
 
 		vec3_t vCam, vRotate;
 		VectorSet( vCam, -1, 0, 0 ); //default cam pos
-		VectorSet( vRotate, 0, -m_Camera.angles[0], 0 );
+        VectorSet( vRotate, 0, -m_Camera.angles[0], 0 );
 		VectorRotate( vCam, vRotate, vCam );
-		VectorSet( vRotate, 0, 0, m_Camera.angles[1] );
+        VectorSet( vRotate, 0, 0, m_Camera.angles[1] );
 		VectorRotate( vCam, vRotate, vCam );
 
-		inverse_cam_dir[0] = vCam[0];
+        inverse_cam_dir[0] = vCam[0];
 		inverse_cam_dir[1] = vCam[1];
 		inverse_cam_dir[2] = vCam[2];
 		inverse_cam_dir[3] = 0;
@@ -1519,12 +1532,12 @@ void CamWnd::Cam_Draw(){
 		qglDisable( GL_BLEND );
         qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
         qglColor3f( 1, 1, 1 );
+        glLineWidth( 1 );
 
         if( g_PrefsDlg.m_bXraySelection ) {
             // Stipple outline
             qglEnable( GL_LINE_STIPPLE );
             qglLineStipple( 1, 34952 );
-            glLineWidth( 1 );
             qglDepthFunc( GL_GREATER );
 
             for ( brush = pList->next ; brush != pList ; brush = brush->next )
@@ -1552,7 +1565,6 @@ void CamWnd::Cam_Draw(){
 
         // Solid outline
         qglDisable( GL_LINE_STIPPLE );
-        glLineWidth( 1 );
         qglEnable( GL_POLYGON_OFFSET_LINE );
         glPolygonOffset( -1, -1 );
         qglDepthFunc( GL_LEQUAL );
@@ -1581,12 +1593,14 @@ void CamWnd::Cam_Draw(){
         qglDisable( GL_POLYGON_OFFSET_LINE );
     }
 
-	// edge / vertex flags
+    qglDisable( GL_DEPTH_TEST );
+
+    // edge / vertex flags
 	if ( g_qeglobals.d_select_mode == sel_vertex ) {
-			// brush verts
-			qglPointSize( 4 );
+            // brush verts
 			qglColor3f( 0,1,0 );
-			qglBegin( GL_POINTS );
+            qglPointSize( g_PrefsDlg.m_nVertexEdgeHandleSize );
+            qglBegin( GL_POINTS );
             for ( i = 0 ; i < g_qeglobals.d_numpoints ; i++ ) {
 
                 vecFloat3_t tempVec;
@@ -1600,7 +1614,6 @@ void CamWnd::Cam_Draw(){
 
 			if ( g_qeglobals.d_num_move_points ) {
 				// selected brush verts
-				qglPointSize( 5 );
 				qglColor3f( 0,0,1 );
 				qglBegin( GL_POINTS );
                 for ( i = 0; i < g_qeglobals.d_num_move_points; i++ ) {
@@ -1616,14 +1629,13 @@ void CamWnd::Cam_Draw(){
 				qglEnd();
 			}
 
-			qglPointSize( 1 );
 		}
 	else if ( g_qeglobals.d_select_mode == sel_edge ) {
 		float   *v1, *v2;
-		qglPointSize( 4 );
-		qglColor3f( 0,0,1 );
-		qglBegin( GL_POINTS );
-		for ( i = 0 ; i < g_qeglobals.d_numedges ; i++ )
+        qglColor3f( 0,0.3,1 );
+        qglPointSize( g_PrefsDlg.m_nVertexEdgeHandleSize );
+        qglBegin( GL_POINTS );
+        for ( i = 0 ; i < g_qeglobals.d_numedges ; i++ )
 		{
             vecFloat3_t tempVec1, tempVec2;
             for( int z = 0; z < 3; z++ ) {
@@ -1637,8 +1649,8 @@ void CamWnd::Cam_Draw(){
 			qglVertex3f( ( v1[0] + v2[0] ) * 0.5,( v1[1] + v2[1] ) * 0.5,( v1[2] + v2[2] ) * 0.5 );
 		}
 		qglEnd();
-		qglPointSize( 1 );
 	}
+    qglPointSize( 1 );
 
 	//
 	// draw pointfile

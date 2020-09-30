@@ -75,9 +75,9 @@ static void button_press( GtkWidget *widget, GdkEventButton *event, gpointer dat
 
 	switch ( event->button )
 	{
-	case 1: flags |= MK_LBUTTON; break;
-	case 2: flags |= MK_MBUTTON; break;
-	case 3: flags |= MK_RBUTTON; break;
+    case 1: flags |= MK_LBUTTON; break;
+    case 2: flags |= MK_MBUTTON; break;
+    case 3: flags |= MK_RBUTTON; break;
 #if !GTK_CHECK_VERSION( 1,3,0 )
 	case 4: wnd->OnMouseWheel( true, (int)event->x, (int)event->y ); break;
 	case 5: wnd->OnMouseWheel( false, (int)event->x, (int)event->y ); break;
@@ -145,11 +145,11 @@ static void motion( GtkWidget *widget, GdkEventMotion *event, gpointer data ){
 		flags |= MK_MBUTTON;
 	}
 
-	if ( ( event->state & GDK_BUTTON3_MASK ) != 0 ) {
-		flags |= MK_RBUTTON;
-	}
+    if ( ( event->state & GDK_BUTTON3_MASK ) != 0 ) {
+        flags |= MK_RBUTTON;
+    }
 
-	if ( ( event->state & GDK_CONTROL_MASK ) != 0 ) {
+    if ( ( event->state & GDK_CONTROL_MASK ) != 0 ) {
 		flags |= MK_CONTROL;
 	}
 
@@ -163,10 +163,6 @@ static void motion( GtkWidget *widget, GdkEventMotion *event, gpointer data ){
 static void resize( GtkWidget *widget, GtkAllocation *allocation, gpointer data ){
 	GLWindow *wnd = (GLWindow*)data;
 	wnd->OnSize( allocation->width, allocation->height );
-
-    // NAB622: Without this here, the windows get messed up when something is resized
-    // Redrawing the 3D view would make these operations PAINFULLY slow. So just do everything else
-    Sys_UpdateWindows( W_XY | W_TEXTURE | W_CONSOLE );
 }
 
 static gint timer( gpointer data ){

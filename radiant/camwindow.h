@@ -32,13 +32,13 @@ public:
 rectangle_t()
 	: x( 0 ), y( 0 ), w( 0 ), h( 0 )
 {}
-rectangle_t( float _x, float _y, float _w, float _h )
+rectangle_t( vec_t _x, vec_t _y, vec_t _w, vec_t _h )
 	: x( _x ), y( _y ), w( _w ), h( _h )
 {}
-float x;
-float y;
-float w;
-float h;
+vec_t x;
+vec_t y;
+vec_t w;
+vec_t h;
 };
 
 class XORRectangle

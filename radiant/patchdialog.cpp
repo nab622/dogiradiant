@@ -35,23 +35,31 @@
 GtkWidget *vbox, *vbox2, *hbox, *hbox2, *frame, *table, *label, *nodeBox, *nodeContainer;
 GtkWidget *button, *entry, *spin, *combo, *row_label, *col_label, *unlockNodesButton;
 GtkWidget *patchFitTable, *patchFittingFrame, *patch_fit_width_spinbutton, *patch_fit_height_spinbutton, *patch_fit_button, *patch_swap_button, *eventbox;
-GtkAdjustment *patch_fit_width_spinbutton_adj, *patch_fit_height_spinbutton_adj;
+GtkAdjustment *patch_fit_width_spinbutton_adj, *patch_fit_height_spinbutton_adj, *patch_special_hscale, *patch_special_vscale;
 GtkWidget *patchTextureFrame, *patchTextureFrameLayoutTable, *patchTextureCoordinatesFrame, *patchTextureFrameTable;
 GtkWidget *patchHorizontalFlipButton, *patchVerticalFlipButton, *patchHorizontalMirrorButton, *patchVerticalMirrorButton;
-GtkWidget *patchFlippingFrame, *patchFlipTable, *specialFrame, *specialTable, *functionLayoutTable;
+GtkWidget *patchFlippingFrame, *patchFlipTable, *specialFrame, *specialTable, *specialScaleTable, *functionLayoutTable;
 GtkWidget *patch_texture_combo, *patch_texture_combo_entry;
 GtkWidget *rowColumnDropdownTable, *nodeCoordinatesTable, *textureCoordinatesTable;
 GtkWidget *patchTextureWidthLabel, *patchTextureHeightLabel;
+GtkWidget *patch_special_hscale_spinbutton, *patch_special_vscale_spinbutton;
 GtkAdjustment *adj;
 GList *lst, *cells;
 GtkSizeGroup *size_group;
-GtkWidget *cap_button, *set_button, *nat_button, *fit_button;
+GtkWidget *cap_button, *set_button, *nat_button, *grid_size_scale_button, *reset_special_scale_button, *fit_button;
 
 GtkWidget *hseparator;
 
-//This is the value for the fit buttons
+//These are the values for the fit buttons
 float patchFitWidth = 1.0;
 float patchFitHeight = 1.0;
+
+//These are the values for the scale buttons
+float patchHScale = g_PrefsDlg.m_fDefTextureScale;
+float patchVScale = g_PrefsDlg.m_fDefTextureScale;
+
+//I need to make sure the hScale and vScale variables are getting data.......why won't this compile???
+//Sys_Printf( "HScale: %f   -   VScale: %f\n", patchHScale, patchVScale );
 
 //This is for the unlock button in the nodes section
 bool nodeLock = true;
@@ -137,19 +145,27 @@ static void OnSelchangeComboColRow( GtkWidget *widget, gpointer data ){
 	g_PatchDialog.UpdateData( FALSE );
 }
 
-static void OnBtnPatchdetails( GtkWidget *widget, gpointer data ){
-	Patch_NaturalizeSelected( true );
-	Sys_UpdateWindows( W_ALL );
-}
-
 static void OnBtnPatchfit( GtkWidget *widget, gpointer data ){
 	Patch_ResetTexturing( 1.0, 1.0 );
 	Sys_UpdateWindows( W_ALL );
 }
 
+static void OnBtnPatchdetails( GtkWidget *widget, gpointer data ){
+    Patch_NaturalizeSelected( true );
+    Sys_UpdateWindows( W_ALL );
+}
+
 static void OnBtnPatchnatural( GtkWidget *widget, gpointer data ){
-	Patch_NaturalizeSelected();
-	Sys_UpdateWindows( W_ALL );
+    Patch_NaturalizeSelected();
+    Sys_UpdateWindows( W_ALL );
+}
+
+static void grid_size_scale_button_clicked() {
+
+}
+
+static void reset_special_scale_button_clicked() {
+
 }
 
 static void OnBtnPatchreset( GtkWidget *widget, gpointer data ){
@@ -496,7 +512,7 @@ void PatchDialog::BuildDialog(){
 
                     // we fill in this data, if no patch is selected the widgets are unmodified when the inspector is raised
                     // so we need to have at least one initialisation somewhere
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->shift[0] );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->shift[0] );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
                     g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
@@ -518,7 +534,7 @@ void PatchDialog::BuildDialog(){
                     gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
                     gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
                     gtk_widget_show( spin );
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->shift[1] );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->shift[1] );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
                     g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
@@ -541,7 +557,7 @@ void PatchDialog::BuildDialog(){
                     gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
                     gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
                     gtk_widget_show( spin );
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->scale[0] );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->scale[0] );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
                     g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
@@ -563,7 +579,7 @@ void PatchDialog::BuildDialog(){
                     gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
                     gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
                     gtk_widget_show( spin );
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), l_pPIIncrement->scale[1] );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->scale[1] );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
                     g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
@@ -586,7 +602,7 @@ void PatchDialog::BuildDialog(){
                     gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
                     gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
                     gtk_widget_show( spin );
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ),  l_pPIIncrement->rotate );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->rotate );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
                     g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
@@ -612,42 +628,117 @@ void PatchDialog::BuildDialog(){
                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
     gtk_widget_show( specialFrame );
 
-        specialTable = gtk_table_new( 2, 1, FALSE );
+        specialTable = gtk_table_new( 2, 2, FALSE );
         gtk_container_set_border_width( GTK_CONTAINER( specialTable ), 5 );
         gtk_table_set_col_spacings( GTK_TABLE( specialTable ), 2 );
         gtk_container_add( GTK_CONTAINER( specialFrame ), specialTable );
         gtk_widget_show( specialTable );
 
+        specialScaleTable = gtk_table_new( 4, 2, FALSE );
+        gtk_table_attach( GTK_TABLE( specialTable ), specialScaleTable, 0, 2, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_container_set_border_width( GTK_CONTAINER( specialScaleTable ), 5 );
+        gtk_table_set_col_spacings( GTK_TABLE( specialScaleTable ), 2 );
+        gtk_widget_show( specialScaleTable );
+
+            label = gtk_label_new( _( "Horizontal Scale" ) );
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), label, 0, 1, 0, 1,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+            gtk_widget_show( label );
+
+            label = gtk_label_new( _( "Vertical Scale" ) );
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), label, 1, 2, 0, 1,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+            gtk_widget_show( label );
+
+            patch_special_hscale = GTK_ADJUSTMENT( gtk_adjustment_new( patchHScale, -MAX_SCALE_VALUE, MAX_SCALE_VALUE, 0.1, 1, 0 ) );
+            patch_special_hscale_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_special_hscale ), 1, TEXTURE_SCALE_PRECISION );
+            sprintf( tempTooltip, "This is the horizontal scale of the texture when a 'Natural' or 'Cap' operation is applied." );
+            gtk_widget_set_tooltip_text( patch_special_hscale_spinbutton, _( tempTooltip ) );
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), patch_special_hscale_spinbutton, 0, 1, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ), TRUE );
+            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ), GTK_UPDATE_ALWAYS );
+            gtk_entry_set_alignment( GTK_ENTRY( patch_special_hscale_spinbutton ), 1.0 ); //right
+            gtk_widget_show( patch_special_hscale_spinbutton );
+            g_signal_connect( (gpointer) patch_special_vscale_spinbutton, "value-changed", G_CALLBACK( on_patch_hscale_changed ), NULL );
+
+            patch_special_vscale = GTK_ADJUSTMENT( gtk_adjustment_new( patchVScale, -MAX_SCALE_VALUE, MAX_SCALE_VALUE, 0.1, 1, 0 ) );
+            patch_special_vscale_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_special_vscale ), 1, TEXTURE_SCALE_PRECISION );
+            sprintf( tempTooltip, "This is the vertical scale of the texture when a 'Natural' or 'Cap' operation is applied." );
+            gtk_widget_set_tooltip_text( patch_special_vscale_spinbutton, _( tempTooltip ) );
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), patch_special_vscale_spinbutton, 1, 2, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ), TRUE );
+            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ), GTK_UPDATE_ALWAYS );
+            gtk_entry_set_alignment( GTK_ENTRY( patch_special_vscale_spinbutton ), 1.0 ); //right
+            gtk_widget_show( patch_special_vscale_spinbutton );
+            g_signal_connect( (gpointer) patch_special_vscale_spinbutton, "value-changed", G_CALLBACK( on_patch_vscale_changed ), NULL );
+
+/*
             eventbox = gtk_event_box_new();
-            gtk_table_attach( GTK_TABLE( specialTable ), eventbox, 0, 1, 0, 1,
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), eventbox, 2, 3, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_widget_show( eventbox );
+            grid_size_scale_button = gtk_button_new_with_mnemonic( _( "Grid" ) );
+            gtk_widget_set_tooltip_text( grid_size_scale_button, _( "This will set the scale field to match the current grid size" ) );
+            gtk_container_add( GTK_CONTAINER( eventbox ), grid_size_scale_button );
+            gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
+            gtk_widget_show( grid_size_scale_button );
+            g_signal_connect( G_OBJECT( reset_special_scale_button ), "clicked", G_CALLBACK( grid_size_scale_button_clicked ), NULL );
+*/
+
+            eventbox = gtk_event_box_new();
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), eventbox, 3, 4, 1, 2,
                               (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                               (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
             gtk_widget_show( eventbox );
 
-            cap_button = gtk_button_new_with_mnemonic( _( "Cap" ) );
-            gtk_widget_set_tooltip_text( cap_button, _( "This will distribute the texture equally across the mesh based on the grid" ) );
-            gtk_container_add( GTK_CONTAINER( eventbox ), cap_button );
+            reset_special_scale_button = gtk_button_new_with_mnemonic( _( "Default" ) );
+            gtk_widget_set_tooltip_text( reset_special_scale_button, _( "This will reset the scale field to the default size" ) );
+            gtk_container_add( GTK_CONTAINER( eventbox ), reset_special_scale_button );
             gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
-            gtk_widget_show( cap_button );
-            g_signal_connect( G_OBJECT( cap_button ), "clicked", G_CALLBACK( OnBtnPatchdetails ), NULL );
+            gtk_widget_show( reset_special_scale_button );
+            g_signal_connect( G_OBJECT( reset_special_scale_button ), "clicked", G_CALLBACK( reset_special_scale_button_clicked ), NULL );
 
-            eventbox = gtk_event_box_new();
-            gtk_table_attach( GTK_TABLE( specialTable ), eventbox, 1, 2, 0, 1,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_widget_show( eventbox );
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( specialTable ), eventbox, 0, 1, 1, 2,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_widget_show( eventbox );
 
-            nat_button = gtk_button_new_with_mnemonic( _( "Natural" ) );
-            gtk_widget_set_tooltip_text( nat_button, _( "This will stretch the texture equally across each node in the mesh" ) );
-            gtk_container_add( GTK_CONTAINER( eventbox ), nat_button );
-            gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
-            gtk_widget_show( nat_button );
-            g_signal_connect( G_OBJECT( nat_button ), "clicked", G_CALLBACK( OnBtnPatchnatural ), NULL );
+        cap_button = gtk_button_new_with_mnemonic( _( "Cap" ) );
+        gtk_widget_set_tooltip_text( cap_button, _( "This will distribute the texture equally across the mesh based on the grid locations of each node" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), cap_button );
+        gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
+        gtk_widget_show( cap_button );
+        g_signal_connect( G_OBJECT( cap_button ), "clicked", G_CALLBACK( OnBtnPatchdetails ), NULL );
 
-            size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
-            gtk_size_group_add_widget( size_group, cap_button );
-            gtk_size_group_add_widget( size_group, nat_button );
-            g_object_unref( size_group );
+        eventbox = gtk_event_box_new();
+        gtk_table_attach( GTK_TABLE( specialTable ), eventbox, 1, 2, 1, 2,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_widget_show( eventbox );
+
+        nat_button = gtk_button_new_with_mnemonic( _( "Natural" ) );
+        gtk_widget_set_tooltip_text( nat_button, _( "This will stretch the texture equally across each node in the mesh" ) );
+        gtk_container_add( GTK_CONTAINER( eventbox ), nat_button );
+        gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
+        gtk_widget_show( nat_button );
+        g_signal_connect( G_OBJECT( nat_button ), "clicked", G_CALLBACK( OnBtnPatchnatural ), NULL );
+
+        size_group = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
+        gtk_size_group_add_widget( size_group, cap_button );
+        gtk_size_group_add_widget( size_group, nat_button );
+        g_object_unref( size_group );
 
     patchFlippingFrame = gtk_frame_new( _( "Flip & Mirror" ) );
     gtk_table_attach( GTK_TABLE( functionLayoutTable ), patchFlippingFrame, 0, 1, 1, 2,
@@ -1116,8 +1207,9 @@ void PatchDialog::GetPatchInfo(){
 		m_bListenChanged = true;
 
 	}
-	else{
-		Sys_FPrintf( SYS_WRN, "WARNING: No patch selected.\n" );
+    else {
+// NAB622: FIXME: This error has become quite a nuisance because whenever the patch inspector is open it triggers like crazy
+//        Sys_FPrintf( SYS_WRN, "WARNING: No patch selected.\n" );
 	}
 	// fill in our internal structs
 	UpdateRowColInfo();
@@ -1208,6 +1300,15 @@ void on_patch_texture_combo_entry_activate( GtkEntry *entry, gpointer user_data 
         }
         Sys_UpdateWindows( W_CAMERA | W_PATCH );
     }
+}
+
+void on_patch_hscale_changed() {
+    patchHScale = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ) );
+    Sys_Printf( "sdfgsdg" );
+}
+
+void on_patch_vscale_changed() {
+    patchVScale = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ) );
 }
 
 // Fit texture

@@ -267,8 +267,8 @@ void VectorRotate( vec3_t vIn, vec3_t vRotation, vec3_t out ){
 	{
 		if ( vRotation[i] != 0 ) {
 			float dAngle = vRotation[i] * Q_PI / 180.0f;
-			float c = (vec_t)cos( dAngle );
-			float s = (vec_t)sin( dAngle );
+            float c = (float)cos( dAngle );
+            float s = (float)sin( dAngle );
 			vWork[nIndex[i][0]] = va[nIndex[i][0]] * c - va[nIndex[i][1]] * s;
 			vWork[nIndex[i][1]] = va[nIndex[i][0]] * s + va[nIndex[i][1]] * c;
 		}
@@ -367,7 +367,7 @@ void AddPointToBounds( vec3_t v, vec3_t mins, vec3_t maxs ){
 #endif
 
 void AngleVectors( vec3_t angles, vec3_t forward, vec3_t right, vec3_t up ){
-	float angle;
+    vec_t angle;
 	static float sr, sp, sy, cr, cp, cy;
 	// static to help MS compiler fp bugs
 
@@ -406,25 +406,25 @@ void VectorToAngles( vec3_t vec, vec3_t angles ){
         yaw = 0;
         if ( vec[ 2 ] > 0 ) {
             pitch = 90;
-		}
-		else
-		{
+        }
+        else
+        {
             pitch = 270;
-		}
-	}
-	else
-	{
+        }
+    }
+    else
+    {
         yaw = (vec_t)atan2( vec[ 1 ], vec[ 0 ] ) * 180 / M_PI;
-		if ( yaw < 0 ) {
+        if ( yaw < 0 ) {
             yaw += 360;
-		}
+        }
 
         forward = (vec_t)sqrt( vec[ 0 ] * vec[ 0 ] + vec[ 1 ] * vec[ 1 ] );
-		pitch = (vec_t)atan2( vec[ 2 ], forward ) * 180 / M_PI;
-		if ( pitch < 0 ) {
+        pitch = (vec_t)atan2( vec[ 2 ], forward ) * 180 / M_PI;
+        if ( pitch < 0 ) {
             pitch += 360;
-		}
-	}
+        }
+    }
 
     angles[ PITCH ] = pitch;
     angles[ YAW ] = yaw;

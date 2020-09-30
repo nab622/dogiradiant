@@ -637,6 +637,7 @@ bool m_bNoClamp;
 bool m_bSnap;
 Str m_strUserPath;
 int m_nRotation;
+int m_nVertexEdgeHandleSize;
 bool m_bChaseMouse;
 bool m_bMousewheelZoom;
 bool m_bTextureScrollbar;

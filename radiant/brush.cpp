@@ -706,7 +706,7 @@ void Brush_MakeFacePlanes( brush_t *b ){
  */
 void DrawBrushEntityName( brush_t *b ){
 	const char  *name;
-	float a, s, c;
+    vec_t a, s, c;
 	vec3_t mid;
 	int i;
 
@@ -727,7 +727,32 @@ void DrawBrushEntityName( brush_t *b ){
 	// Brush_DrawFacingAngle() works when called, but is not being called.
 	if ( g_qeglobals.d_savedinfo.show_angles && ( b->owner->eclass->nShowFlags & ECLASS_ANGLE ) ) {
 		// draw the angle pointer
-		a = FloatForKey( b->owner, "angle" );
+        vec3_t entAngles;
+        getEntityAngles( b->owner, entAngles );
+
+//Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", entAngles[PITCH], entAngles[YAW], entAngles[ROLL] );
+
+        if ( g_pParentWnd->ActiveXY() ) {
+            switch ( g_pParentWnd->ActiveXY()->GetViewType() ) {
+                case YZ:
+                    a = entAngles[PITCH];
+                    if( entAngles[YAW] <= 180 ) {
+                        a = -a + 180;
+                    }
+                    break;
+                case XZ:
+                    a = entAngles[PITCH];
+                    if( entAngles[YAW] >= 90 && entAngles[YAW] < 270 ) {
+                        a = -a + 180;
+                    }
+                    break;
+                case XY:
+                    // Ignore pitch entirely in the XY view
+                    a = entAngles[YAW];
+                    break;
+            }
+        }
+
 		s = sin( a / 180 * Q_PI );
 		c = cos( a / 180 * Q_PI );
 		for ( i = 0 ; i < 3 ; i++ )
@@ -3029,7 +3054,7 @@ void FacingVectors( entity_t *e, vec3_t forward, vec3_t right, vec3_t up ){
 }
 
 void Brush_DrawFacingAngle( brush_t *b, entity_t *e ){
-	vec3_t forward, right, up;
+    vec3_t angles, forward, right, up;
 	vec3_t endpoint, tip1, tip2;
 	vec3_t start;
 	float dist;
@@ -3038,7 +3063,13 @@ void Brush_DrawFacingAngle( brush_t *b, entity_t *e ){
 	VectorScale( start, 0.5, start );
 	dist = ( b->maxs[0] - start[0] ) * 2.5;
 
-	FacingVectors( e, forward, right, up );
+//    FacingVectors( e, forward, right, up );
+    getEntityAngles( e, angles );
+
+    // Pitch kept coming out upside-down, so reverse it
+    angles[PITCH] = -angles[PITCH];
+
+    AngleVectors( angles, forward, right, up );
 	VectorMA( start, dist, forward, endpoint );
 
 	dist = ( b->maxs[0] - start[0] ) * 0.5;
@@ -3752,7 +3783,7 @@ void Face_FitTexture( face_t * face, float nHeight, float nWidth ){
         td->shift[1] += ( fmod( nHeight, 1 ) * face->d_texture->height );
 
 
-        // NAB622: Clamp the shift and rotate values
+        // NAB622: Roll over the shift and rotate values
         td->shift[0] = calculateVecRotatingValueBeneathMax( td->shift[0], face->d_texture->width );
         td->shift[1] = calculateVecRotatingValueBeneathMax( td->shift[1], face->d_texture->height );
         td->rotate = calculateVecRotatingValueBeneathMax( td->rotate, 360 );
@@ -3769,7 +3800,7 @@ void Brush_FitTexture( brush_t *b, float nHeight, float nWidth ){
 }
 
 void aabb_draw( const aabb_t *aabb, int mode ){
-	vec3_t normals[6] = { { 1, 0, 0}, { 0, 1, 0 }, { 0, 0, 1 }, {-1, 0, 0}, { 0,-1, 0 }, { 0, 0,-1 } };
+    vec3_t normals[6] = { { 1, 0, 0}, { 0, 1, 0 }, { 0, 0, 1 }, {-1, 0, 0}, { 0,-1, 0 }, { 0, 0,-1 } };
 	vec3_t points[8];
 	vec3_t vMin, vMax;
 	VectorSubtract( aabb->origin, aabb->extents, vMin );

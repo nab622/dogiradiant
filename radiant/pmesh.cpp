@@ -5451,8 +5451,7 @@ void Patch_NaturalizeSelected( bool bCap ){
 		if ( pb->patchBrush ) {
 			if ( bCap ) {
 				Patch_CapTexture( pb->pPatch ); //, bCycleCap);
-			}
-			else{
+            } else {
 				Patch_Naturalize( pb->pPatch );
 			}
 		}

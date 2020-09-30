@@ -1905,6 +1905,7 @@ void TexWnd::UpdateFilter( const char* pFilter ){
 
 void TexWnd::OnSize( int cx, int cy ){
 	m_bNeedRange = true;
+    Sys_UpdateWindows( W_TEXTURE );
 }
 
 void TexWnd::OnExpose() {

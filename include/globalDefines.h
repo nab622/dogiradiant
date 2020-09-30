@@ -152,8 +152,7 @@
     // NAB622: This is the maximum number of items in the 'texture' combo box at the top of the surface/patch inspector
     #define MAX_NUM_TEXTURE_LIST_ITEMS 64
 
-    // NAB622: Used in the surface inspector and patch inspector.
-    // Anything lower than 4 can cause issues
+    // NAB622: Anything higher than 4 can cause issues
     #define TEXTURE_SHIFT_PRECISION 4
     #define TEXTURE_ROTATE_PRECISION 4
     #define TEXTURE_SCALE_PRECISION 4

@@ -64,6 +64,80 @@ vec_t clampCameraBoundaries( vec_t input ) {
     return CLAMP( input, g_MinWorldCoord * cushion, g_MaxWorldCoord * cushion );
 }
 
+void fixUpsideDownAngles( vec3_t input, vec3_t output ) {
+    for( int i = 0; i < 3; i++ ) {
+        output[i] = calculateVecRotatingValueBeneathMax( input[i], 360 );
+        // NAB622: Roll over BOTH the input and output vectors. Since we calculated this, may as
+        // well apply it to the input array. This will assure that the camera angles are covered
+        input[i] = output[i];
+    }
+
+    if( output[PITCH] > 90 && output[PITCH] < 270 ) {
+        // Camera is upside-down! Flip the yaw 180
+        output[YAW] = calculateVecRotatingValueBeneathMax( output[YAW] + 180, 360 );
+
+        // Now, see if we're closer to 90 or 270, and bounce off of that back toward 0 or 360
+        if( output[PITCH] < 180 ) {
+            output[PITCH] = 90 - ( output[PITCH] - 90 );
+        } else {
+            output[PITCH] = 270 - ( output[PITCH] - 270 );
+        }
+    }
+}
+
+void getEntityAngles( entity_t *inputEntity, vec3_t finalAngle ) {
+    if ( inputEntity ) {
+        bool foundAngles = false;
+        vec3_t temp;
+        temp[PITCH] = 0;
+        temp[YAW] = 0;
+        temp[ROLL] = 0;
+
+        const char *target, *targetName;
+        entity_t *otherEnt;
+
+        target = ValueForKey( inputEntity, "target" );
+        if( strcmp( target, "" ) ) {
+            // If there's a targetname, find the targeted entity and aim at it
+            for ( otherEnt = entities.next ; otherEnt != &entities; otherEnt = otherEnt->next )
+            {
+                targetName = ValueForKey( otherEnt, "targetname" );
+                if ( !strcmp( target, targetName ) ) {
+                    GetVectorForKey( inputEntity, "origin", temp );
+                    GetVectorForKey( otherEnt, "origin", finalAngle );
+                    VectorSubtract( finalAngle, temp, temp );
+                    VectorToAngles( temp, temp );
+                    foundAngles = true;
+                }
+            }
+        }
+
+        if( !foundAngles ) {
+            // No target. Try the "angles" key
+            GetVectorForKey( inputEntity, "angles", temp );
+            if( temp[PITCH] != 0 || temp[YAW] != 0 || temp[ROLL] != 0 ) {
+                foundAngles = true;
+            }
+        }
+
+        if( !foundAngles ) {
+            // Last shot - try the "angle" key
+            int tempAngle = IntForKey( inputEntity, "angle" );
+            if( tempAngle ) {
+                if ( tempAngle == -1 ) {
+                    temp[PITCH] = 270;    //Up
+                } else if ( tempAngle == -2 ) {
+                    temp[PITCH] = 90;     //Down
+                } else {
+                    temp[YAW] = tempAngle;
+                }
+            }
+        }
+        // Now let's copy the angles we've found to the output vec3
+        VectorCopy( temp, finalAngle );
+    }
+}
+
 
 // leo: Track memory allocations for debugging
 // NOTE TTimo this was never used and probably not relevant

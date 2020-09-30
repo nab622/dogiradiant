@@ -111,5 +111,5 @@ void ZWnd::OnSize( int cx, int cy ){
 	if ( z.height < 10 ) {
 		z.height = 10;
 	}
-	RedrawWindow();
+    RedrawWindow();
 }

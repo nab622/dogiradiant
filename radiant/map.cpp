@@ -221,65 +221,20 @@ entity_t *AngledEntity(){
 void Map_StartPosition(){
 	entity_t *ent = AngledEntity();
 
-    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = 0;
-    g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = 0;
-    g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] = 0;
+    if( ent ) {
+        g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = 0;
+        g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = 0;
+        g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] = 0;
 
-    if ( ent ) {
-		GetVectorForKey( ent, "origin", g_pParentWnd->GetCamWnd()->Camera()->origin );
-		GetVectorForKey( ent, "origin", g_pParentWnd->GetXYWnd()->GetOrigin() );
+        GetVectorForKey( ent, "origin", g_pParentWnd->GetCamWnd()->Camera()->origin );
+        GetVectorForKey( ent, "origin", g_pParentWnd->GetXYWnd()->GetOrigin() );
 
-        bool foundAngles = false;
-        vec3_t finalAngle, temp;
-        finalAngle[PITCH] = 0;
-        finalAngle[YAW] = 0;
-        finalAngle[ROLL] = 0;
+        getEntityAngles( ent, g_pParentWnd->GetCamWnd()->Camera()->angles );
 
-        const char *target, *targetName;
-        entity_t *otherEnt;
-
-        target = ValueForKey( ent, "target" );
-        if( strcmp( target, "" ) ) {
-            // If there's a targetname,find the targeted entity and aim the camera at it
-            for ( otherEnt = entities.next ; otherEnt != &entities && !foundAngles; otherEnt = otherEnt->next )
-            {
-                targetName = ValueForKey( otherEnt, "targetname" );
-                if ( !strcmp( target, targetName ) ) {
-                    GetVectorForKey( ent, "origin", temp );
-                    GetVectorForKey( otherEnt, "origin", finalAngle );
-                    VectorSubtract( finalAngle, temp, temp );
-                    VectorToAngles( temp, finalAngle );
-                    foundAngles = true;
-                    break;
-                }
-            }
-        }
-        if( !foundAngles ) {
-            // No target. Try the "angles" key
-            GetVectorForKey( ent, "angles", temp );
-            if( temp[PITCH] != 0 || temp[YAW] != 0 || temp[ROLL] != 0 ) {
-                finalAngle[PITCH] = temp[PITCH];
-                finalAngle[YAW] = temp[YAW];
-                foundAngles = true;
-            }
-        }
-        if( !foundAngles ) {
-            // Last shot - try the "angle" key
-            if( FloatForKey( ent, "angle" ) ) {
-                finalAngle[YAW] = FloatForKey( ent, "angle" );
-                foundAngles = true;
-            }
-        }
-        if( foundAngles ) {
-            g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = finalAngle[PITCH];
-            g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = finalAngle[YAW];
-        }
+    } else {
+        VectorCopy( vec3_origin, g_pParentWnd->GetCamWnd()->Camera()->origin );
+        VectorCopy( vec3_origin, g_pParentWnd->GetXYWnd()->GetOrigin() );
     }
-	else
-	{
-		VectorCopy( vec3_origin, g_pParentWnd->GetCamWnd()->Camera()->origin );
-		VectorCopy( vec3_origin, g_pParentWnd->GetXYWnd()->GetOrigin() );
-	}
 }
 
 void Map_FreeEntities( CPtrArray *ents ){
