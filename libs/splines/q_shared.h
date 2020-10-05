@@ -217,9 +217,7 @@ void Sys_PumpEvents( void );
 	#error unknown architecture
 #endif
 
-typedef enum {qfalse, qtrue}    qboolean;
-
-typedef unsigned char byte;
+#include "bytebool.h"
 
 #define EQUAL_EPSILON   0.001
 
@@ -416,7 +414,7 @@ extern idVec4 g_color_table[8];
 
 struct cplane_s;
 
-extern idVec3 vec3_origin;
+extern idVec3 gensurf_vec3_origin;
 extern idVec4 vec4_origin;
 extern mat3_t axisDefault;
 
@@ -443,7 +441,8 @@ void ByteToDir( int b, vec3_p dir );
 //#define VectorCopy(a,b)			((b).x=(a).x,(b).y=(a).y,(b).z=(a).z])
 
 #define VectorScale( v, s, o )    ( ( o )[0] = ( v )[0] * ( s ),( o )[1] = ( v )[1] * ( s ),( o )[2] = ( v )[2] * ( s ) )
-#define VectorMA( v, s, b, o )    ( ( o )[0] = ( v )[0] + ( b )[0] * ( s ),( o )[1] = ( v )[1] + ( b )[1] * ( s ),( o )[2] = ( v )[2] + ( b )[2] * ( s ) )
+// Disabled because mathlib.c is now included here and conflicts with this
+// #define VectorMA( v, s, b, o )    ( ( o )[0] = ( v )[0] + ( b )[0] * ( s ),( o )[1] = ( v )[1] + ( b )[1] * ( s ),( o )[2] = ( v )[2] + ( b )[2] * ( s ) )
 #define CrossProduct( a,b,c )     ( ( c )[0] = ( a )[1] * ( b )[2] - ( a )[2] * ( b )[1],( c )[1] = ( a )[2] * ( b )[0] - ( a )[0] * ( b )[2],( c )[2] = ( a )[0] * ( b )[1] - ( a )[1] * ( b )[0] )
 
 #define DotProduct4( x,y )        ( ( x )[0] * ( y )[0] + ( x )[1] * ( y )[1] + ( x )[2] * ( y )[2] + ( x )[3] * ( y )[3] )
@@ -490,7 +489,8 @@ float   Q_crandom( int *seed );
 #define random()    ( ( rand() & 0x7fff ) / ( (float)0x7fff ) )
 #define crandom()   ( 2.0 * ( random() - 0.5 ) )
 
-float Q_rint( float in );
+// NAB622: Disabling this because it conflicts with mathlib, which is now visible here
+//float Q_rint( float in );
 
 void vectoangles( vec3_c value1, angles_p angles );
 void AnglesToAxis( angles_c angles, mat3_p axis );
@@ -586,9 +586,9 @@ void Com_SkipRestOfLine( const char *( *data ) );
 float Com_ParseFloat( const char *( *buf_p ) );
 int Com_ParseInt( const char *( *buf_p ) );
 
-void Com_Parse1DMatrix( const char *( *buf_p ), int x, float *m );
-void Com_Parse2DMatrix( const char *( *buf_p ), int y, int x, float *m );
-void Com_Parse3DMatrix( const char *( *buf_p ), int z, int y, int x, float *m );
+void Com_Parse1DMatrix( const char *( *buf_p ), int x, vec_t *m );
+void Com_Parse2DMatrix( const char *( *buf_p ), int y, int x, vec_t *m );
+void Com_Parse3DMatrix( const char *( *buf_p ), int z, int y, int x, vec_t *m );
 
 //=====================================================================================
 #ifdef __cplusplus

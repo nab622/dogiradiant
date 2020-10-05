@@ -1549,9 +1549,8 @@ void Texture_MouseDown( int x, int y, int buttons ){
 	// lbutton = select texture
 	if ( buttons == MK_LBUTTON || buttons == ( MK_LBUTTON | MK_SHIFT ) || buttons == ( MK_LBUTTON | MK_CONTROL ) ) {
 		SelectTexture( x, g_qeglobals.d_texturewin.height - 1 - y, buttons & MK_SHIFT, buttons & MK_CONTROL );
-		UpdateSurfaceDialog();
-		UpdatePatchInspector();
-	}
+        Sys_UpdateWindows( W_SURFACE | W_PATCH );
+    }
 }
 
 /*

@@ -498,7 +498,7 @@ int Com_ParseInt( const char *( *buf_p ) ) {
 
 
 
-void Com_Parse1DMatrix( const char *( *buf_p ), int x, float *m ) {
+void Com_Parse1DMatrix( const char *( *buf_p ), int x, vec_t *m ) {
 	const char  *token;
 	int i;
 
@@ -506,13 +506,13 @@ void Com_Parse1DMatrix( const char *( *buf_p ), int x, float *m ) {
 
 	for ( i = 0 ; i < x ; i++ ) {
 		token = Com_Parse( buf_p );
-		m[i] = atof( token );
+        m[i] = (vec_t) atof( token );
 	}
 
 	Com_MatchToken( buf_p, ")" );
 }
 
-void Com_Parse2DMatrix( const char *( *buf_p ), int y, int x, float *m ) {
+void Com_Parse2DMatrix( const char *( *buf_p ), int y, int x, vec_t *m ) {
 	int i;
 
 	Com_MatchToken( buf_p, "(" );
@@ -524,7 +524,7 @@ void Com_Parse2DMatrix( const char *( *buf_p ), int y, int x, float *m ) {
 	Com_MatchToken( buf_p, ")" );
 }
 
-void Com_Parse3DMatrix( const char *( *buf_p ), int z, int y, int x, float *m ) {
+void Com_Parse3DMatrix( const char *( *buf_p ), int z, int y, int x, vec_t *m ) {
 	int i;
 
 	Com_MatchToken( buf_p, "(" );

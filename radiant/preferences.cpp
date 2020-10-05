@@ -2474,7 +2474,7 @@ void PrefsDlg::BuildDialog(){
 */
 
 /*
-// NAB622: The Z window was pointless and has been removed
+// NAB622: Disabling the Z window. It serves no purpose
     // Floating Z window
 	check = gtk_check_button_new_with_label( _( "Floating Z Window" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), check, FALSE, FALSE, 0 );

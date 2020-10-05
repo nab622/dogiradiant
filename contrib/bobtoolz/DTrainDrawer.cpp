@@ -84,7 +84,7 @@ void CalculateSpline_r( vec3_t* v, int count, vec3_t out, float tension ) {
 
 	if ( count == 2 ) {
 		VectorSubtract( v[1], v[0], dist );
-		VectorMA( v[0], tension, dist, out );
+        VectorMA( v[0], tension, dist, out );
 		return;
 	}
 
@@ -92,7 +92,7 @@ void CalculateSpline_r( vec3_t* v, int count, vec3_t out, float tension ) {
 
 	for ( int i = 0; i < count - 1; i++ ) {
 		VectorSubtract( v[i + 1], v[i], dist );
-		VectorMA( v[i], tension, dist, v2[i] );
+        VectorMA( v[i], tension, dist, v2[i] );
 	}
 
 	CalculateSpline_r( v2, count - 1, out, tension );

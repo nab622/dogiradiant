@@ -115,7 +115,7 @@ void Cam_MouseDown( int x, int y, int buttons );
 void Cam_MouseUp( int x, int y, int buttons );
 void Cam_MouseMoved( int x, int y, int buttons );
 void InitCull();
-qboolean CullBrush( brush_t *b );
+qboolean CullBrush( brush_t *b, float distance );
 void Cam_Draw();
 void Cam_DrawStuff();
 void Cam_DrawBrushes( int mode );

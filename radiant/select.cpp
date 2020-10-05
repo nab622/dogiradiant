@@ -37,7 +37,7 @@ CPtrArray& g_ptrSelectedFaceBrushes = g_SelectedFaceBrushes;
    Test_Ray
    ===========
  */
-#define DIST_START  999999
+#define DIST_START g_MaxWorldCoord - g_MinWorldCoord
 trace_t Test_Ray( vec3_t origin, vec3_t dir, int flags ){
 	brush_t *brush;
 	face_t  *face;
@@ -227,7 +227,7 @@ singleselect:
 			UpdateEntitySel( brush->owner->eclass );
 		}
 
-		UpdateSurfaceDialog();
+        Sys_UpdateWindows( W_SURFACE );
 	}
 
     if ( bStatus ) {
@@ -347,7 +347,6 @@ void Select_Ray( vec3_t origin, vec3_t dir, int flags ){
 				g_qeglobals.d_select_mode = sel_facets_on;
 			}
 		}
-		UpdateSurfaceDialog();
 		Sys_UpdateWindows( W_ALL );
 		//g_qeglobals.d_select_mode = sel_brush;
 		// Texture_SetTexture requires a brushprimit_texdef fitted to the default width=2 height=2 texture
@@ -378,7 +377,6 @@ void Select_Ray( vec3_t origin, vec3_t dir, int flags ){
 		g_qeglobals.d_select_mode = sel_brush_on;
 		Select_Brush( t.brush, g_PrefsDlg.m_nCamDragMultiSelect == 1 ? Sys_AltDown() : !Sys_AltDown() );
 	}
-	UpdateSurfaceDialog();
 	Sys_UpdateWindows( W_ALL );
 }
 
@@ -409,7 +407,6 @@ void Select_Delete( void ){
 	}
 
 	Sys_MarkMapModified();
-	UpdateSurfaceDialog();
 	Sys_UpdateWindows( W_ALL );
 }
 
@@ -454,7 +451,6 @@ void Select_Deselect( bool bDeselectFaces ){
 			g_ptrSelectedFaceBrushes.RemoveAll();
 		}
 		PerformFiltering();
-		UpdateSurfaceDialog();
         Sys_UpdateWindows( W_ALL );
 		return;
 	}
@@ -476,7 +472,6 @@ void Select_Deselect( bool bDeselectFaces ){
 
 	// filter newly created stuff once it's unselected
 	PerformFiltering();
-	UpdateSurfaceDialog();
 	Sys_UpdateWindows( W_ALL );
 }
 
@@ -687,12 +682,7 @@ void Select_GetBounds( vec3_t mins, vec3_t maxs ){
 	brush_t *b;
 	int i;
 
-	for ( i = 0 ; i < 3 ; i++ )
-	{
-        // NAB622: Initialize these to the opposite ends of the grid so we can update them as we find better coordinates
-        mins[i] = g_MaxWorldCoord;
-        maxs[i] = g_MinWorldCoord;
-    }
+    ClearBounds( mins, maxs );
 
 	for ( b = selected_brushes.next ; b != &selected_brushes ; b = b->next )
 	{

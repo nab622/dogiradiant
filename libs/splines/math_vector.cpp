@@ -39,8 +39,8 @@ idVec3 vec_zero( 0.0f, 0.0f, 0.0f );
 
 Bounds boundsZero;
 
-float idVec3::toYaw( void ) {
-	float yaw;
+vec_t idVec3::toYaw( void ) {
+    vec_t yaw;
 
 	if ( ( y == 0 ) && ( x == 0 ) ) {
 		yaw = 0;
@@ -55,9 +55,9 @@ float idVec3::toYaw( void ) {
 	return yaw;
 }
 
-float idVec3::toPitch( void ) {
-	float forward;
-	float pitch;
+vec_t idVec3::toPitch( void ) {
+    vec_t forward;
+    vec_t pitch;
 
 	if ( ( x == 0 ) && ( y == 0 ) ) {
 		if ( z > 0 ) {
@@ -68,7 +68,7 @@ float idVec3::toPitch( void ) {
 		}
 	}
 	else {
-		forward = ( float )idSqrt( x * x + y * y );
+        forward = ( vec_t )idSqrt( x * x + y * y );
 		pitch = atan2( z, forward ) * 180 / M_PI;
 		if ( pitch < 0 ) {
 			pitch += 360;
@@ -80,9 +80,9 @@ float idVec3::toPitch( void ) {
 
 /*
    angles_t idVec3::toAngles( void ) {
-    float forward;
-    float yaw;
-    float pitch;
+    vec_t forward;
+    vec_t yaw;
+    vec_t pitch;
 
     if ( ( x == 0 ) && ( y == 0 ) ) {
         yaw = 0;
@@ -97,7 +97,7 @@ float idVec3::toPitch( void ) {
             yaw += 360;
         }
 
-        forward = ( float )idSqrt( x * x + y * y );
+        forward = ( vec_t )idSqrt( x * x + y * y );
         pitch = atan2( z, forward ) * 180 / M_PI;
         if ( pitch < 0 ) {
             pitch += 360;
@@ -108,8 +108,8 @@ float idVec3::toPitch( void ) {
    }
  */
 
-idVec3 LerpVector( idVec3 &w1, idVec3 &w2, const float t ) {
-	float omega, cosom, sinom, scale0, scale1;
+idVec3 LerpVector( idVec3 &w1, idVec3 &w2, const vec_t t ) {
+    vec_t omega, cosom, sinom, scale0, scale1;
 
 	cosom = w1 * w2;
 	if ( ( 1.0 - cosom ) > LERP_DELTA ) {

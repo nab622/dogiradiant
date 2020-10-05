@@ -29,10 +29,12 @@
 #include "misc_def.h"
 #include "igl_to_qgl.h"
 
-#include "../include/gridDataType.h"
+#endif
+#endif
 
-#endif
-#endif
+// NAB622: Need to include my headers for this to work too...
+#include "gridDataType.h"
+#include "iglInterpolatePlugin.h"
 
 #include "util_list.h"
 #include "util_str.h"
@@ -611,8 +613,8 @@ virtual void draw( bool editMode ) {
 	glLabeledPoint( blue, startPos, ( editMode ) ? 5 : 3, "Start interpolated" );
 	glLabeledPoint( blue, endPos, ( editMode ) ? 5 : 3, "End interpolated" );
 	qglBegin( GL_LINES );
-	qglVertex3fv( startPos );
-	qglVertex3fv( endPos );
+    qglVertex3f_convertFloat( startPos );
+    qglVertex3f_convertFloat( endPos );
 	qglEnd();
 }
 

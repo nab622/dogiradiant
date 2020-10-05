@@ -171,7 +171,7 @@ DWinding* DPlane::BaseWindingForPlane(){
 	}
 
 	v = DotProduct( vup, normal );
-	VectorMA( vup, -v, normal, vup );
+    VectorMA( vup, -v, normal, vup );
 	VectorNormalize( vup, vup );
 
 	VectorScale( normal, _d, org );

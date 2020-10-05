@@ -361,7 +361,7 @@ void Drag_Begin( int x, int y, int buttons,
 			nFlag |= SF_ENTITIES_FIRST;
 		}
 		Select_Ray( origin, dir, nFlag );
-		UpdateSurfaceDialog();
+        Sys_UpdateWindows( W_SURFACE );
 
 		return;
 	}
@@ -416,8 +416,7 @@ void Drag_Begin( int x, int y, int buttons,
 			brushprimit_texdef_t bp_local;
 			ConvertTexMatWithQTexture( &t.face->brushprimit_texdef, t.face->d_texture, &bp_local, NULL );
 			Texture_SetTexture( &t.face->texdef, &bp_local, false, NULL );
-			UpdateSurfaceDialog();
-			UpdatePatchInspector();
+            Sys_UpdateWindows( W_SURFACE | W_PATCH );
 		}
 		else{
 			Sys_Printf( "Did not select a texture\n" );
@@ -904,5 +903,5 @@ void Drag_MouseUp( int nButtons ){
 	g_pParentWnd->SetStatusText( 3, "" );
 	Undo_EndBrushList( &selected_brushes );
 	Undo_End();
-	UpdateSurfaceDialog();
+    Sys_UpdateWindows( W_SURFACE );
 }

@@ -339,8 +339,9 @@ void _Vector53Copy( vec5_t in, vec3_t out ){
 
 // NOTE: added these from Ritual's Q3Radiant
 void ClearBounds( vec3_t mins, vec3_t maxs ){
-	mins[0] = mins[1] = mins[2] = 99999;
-	maxs[0] = maxs[1] = maxs[2] = -99999;
+    // NAB622: Initialize these to the opposite ends of the grid, so we can update them as we find better coordinates
+    mins[0] = mins[1] = mins[2] = MAX_MAP_SIZE;
+    maxs[0] = maxs[1] = maxs[2] = MIN_MAP_SIZE;
 }
 
 void AddPointToBounds( vec3_t v, vec3_t mins, vec3_t maxs ){

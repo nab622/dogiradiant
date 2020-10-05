@@ -29,9 +29,11 @@
 
 // NAB622: Defining these at the top so they're easier to find
 const float gridCameraSymbolColor[3] = { 0.25, 0.8, 1.0 };
+const float cameraSymbolOutlineColor[3] = { 0.0, 0.0, 0.0 };
+
 
 // The fourth value on these colors is the alpha
-const bool drawZSymbolOnGrid = false;     //NAB622: Disabled this because I think it's pointless
+const bool drawZSymbolOnGrid = false;     // NAB622: Disabling the Z window. It serves no purpose
 const float gridZSymbolColor[4] = { 1.0, 0.3, 0.3, 0.75 };
 const float gridZSymbolBackgroundColor[4] = { 0.1, 0.5, 1.0, 0.25 };
 const float gridZSymbolBorderColor[4] = { 0.1, 1.0, 0.5, 0.45 };
@@ -108,7 +110,8 @@ void DrawCameraIcon();
 void XY_DrawBlockGrid();
 void XY_DrawGrid();
 void XY_MouseMoved( int x, int y, int buttons );
-void calculateCameraAngle( int x, int y, vec3_t point );
+void moveCamera( int x, int y, vec3_t point );
+void angleCamera( int x, int y, vec3_t point );
 // TTimo: FIXME: was experimental stuff to track possible endless loop issues
 //  void XY_MouseMovedRec (int x, int y, int buttons);
 void NewBrushDrag( int x, int y );

@@ -27,6 +27,13 @@
 // Based on spritemodel source code by hydra
 //
 
+// NAB622: We're going to need these for things below...
+#include "globalDefines.h"
+extern vec_t g_MaxWorldCoord;
+extern vec_t g_MinWorldCoord;
+extern vec_t g_MaxBrushSize;
+extern void ClearBounds( vec3_t mins, vec3_t maxs );
+
 #include "plugin.h"
 
 class CBackgroundImage {

@@ -344,11 +344,7 @@ int _pico_strchcount( char *str, int ch ){
 
 void _pico_zero_bounds( picoVec3_t mins, picoVec3_t maxs ){
 	int i;
-	for ( i = 0; i < 3; i++ )
-	{
-		mins[i] = +999999;
-		maxs[i] = -999999;
-	}
+    ClearBounds( mins, maxs );
 }
 
 void _pico_expand_bounds( picoVec3_t p, picoVec3_t mins, picoVec3_t maxs ){

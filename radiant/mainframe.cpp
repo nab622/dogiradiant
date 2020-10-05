@@ -118,7 +118,7 @@ void Select_Ungroup();
 #define SPEED_TURN  22.5
 
 
-// NAB622: The main window uses a timer for various things (Autosave, partial status bar refresh)
+// NAB622: The main window uses a timer for various things (Checking autosave, partial status bar refresh)
 // This value is how many milliseconds there are between updates
 #define TIMER_FREQUENCY 250
 
@@ -2437,7 +2437,7 @@ void MainFrame::Copy(){
 
 void MainFrame::Paste(){
 	clipboard_paste();
-	UpdateSurfaceDialog();
+    UpdateWindows( W_ALL );
 }
 
 

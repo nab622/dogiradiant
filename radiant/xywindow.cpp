@@ -1393,16 +1393,9 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 
 	int nMouseButton = g_PrefsDlg.m_nMouseButtons == 2 ? MK_RBUTTON : MK_MBUTTON;
 
-	// control mbutton = move camera
+    // control + mbutton = move camera
 	if ( m_nButtonstate == ( MK_CONTROL | nMouseButton ) ) {
-		VectorCopyXY( point, g_pParentWnd->GetCamWnd()->Camera()->origin );
-
-        // Make sure the camera isn't out of bounds
-        for( int i = 0; i < 3; i++ ) {
-            point[i] = clampCameraBoundaries( point[i] );
-        }
-
-        Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
+        moveCamera( x, y, point );
         return;
     }
 
@@ -1410,7 +1403,7 @@ void XYWnd::XY_MouseDown( int x, int y, int buttons ){
 	if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
 		 ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
 
-        calculateCameraAngle( x, y, point );
+        angleCamera( x, y, point );
 
         return;
 	}
@@ -1822,19 +1815,11 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 	}
 
 	int nMouseButton = g_PrefsDlg.m_nMouseButtons == 2 ? MK_RBUTTON : MK_MBUTTON;
-	// control mbutton = move camera
+    // control + mbutton = move camera
 	if ( m_nButtonstate == ( MK_CONTROL | nMouseButton ) ) {
-		SnapToPoint( x, y, point );
-		VectorCopyXY( point, g_pParentWnd->GetCamWnd()->Camera()->origin );
-
-        // Make sure the camera isn't out of bounds
-        for( int i = 0; i < 3; i++ ) {
-            point[i] = clampCameraBoundaries( point[i] );
-        }
-
-        Sys_UpdateWindows( W_XY_OVERLAY | W_CAMERA );
-		return;
-	}
+        moveCamera( x, y, point );
+        return;
+    }
 
 /*
 // NAB622: This has been removed
@@ -1875,7 +1860,7 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
     if ( ( g_PrefsDlg.m_nMouseButtons == 3 && m_nButtonstate == MK_MBUTTON ) ||
          ( g_PrefsDlg.m_nMouseButtons == 2 && m_nButtonstate == ( MK_SHIFT | MK_CONTROL | MK_RBUTTON ) ) ) {
 
-        calculateCameraAngle( x, y, point );
+        angleCamera( x, y, point );
 
         return;
     }
@@ -1936,7 +1921,21 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 	}
 }
 
-void XYWnd::calculateCameraAngle( int x, int y, vec3_t point ) {
+void XYWnd::moveCamera( int x, int y, vec3_t point ) {
+    // NAB622: Snap the camera to the grid
+    SnapToPoint( x, y, point );
+
+    // Make sure the camera isn't out of bounds
+    for( int i = 0; i < 3; i++ ) {
+        point[i] = clampCameraBoundaries( point[i] );
+    }
+
+    VectorCopyXY( point, g_pParentWnd->GetCamWnd()->Camera()->origin );
+
+    Sys_UpdateWindows( W_CAMERA | W_XY_OVERLAY );
+}
+
+void XYWnd::angleCamera( int x, int y, vec3_t point ) {
     vec3_t tempAngle;
 
     SnapToPoint( x, y, point );
@@ -1960,6 +1959,23 @@ void XYWnd::calculateCameraAngle( int x, int y, vec3_t point ) {
 
     switch ( m_nViewType ) {
         case XZ:
+            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] <= 90 ) {
+                // If the camera's yaw is more than 270, we need to handle this a bit differently...
+                if( tempAngle[YAW] == 270 || tempAngle[YAW] == 180 ) {
+                    // The camera turned upside-down! We need to flip the pitch all the way over. There is other code to catch that later on
+                    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( -tempAngle[PITCH] + 180, 360 );
+                } else {
+                    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( tempAngle[PITCH], 360 );
+                }
+            } else {
+                if( tempAngle[YAW] == 270 || tempAngle[YAW] == 180 ) {
+                    // The camera turned upside-down! We need to flip the pitch all the way over. There is other code to catch that later on
+                    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( tempAngle[PITCH], 360 );
+                } else {
+                    g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] = calculateVecRotatingValueBeneathMax( -tempAngle[PITCH] + 180, 360 );
+                }
+            }
+            break;
         case YZ:
             if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 180 ) {
                 // If the camera's yaw is more than 180, we need to handle this a bit differently...
@@ -2775,7 +2791,7 @@ void XYWnd::DrawRotateIcon(){
 }
 
 void XYWnd::DrawCameraIcon(){
-    float x, y, a, fov, box, fovScale;
+    float x, y, a, fov, box, fovScale, fovAngle;
 
     fov = 48 / m_fScale;
 	box = 16 / m_fScale;
@@ -2792,11 +2808,13 @@ void XYWnd::DrawCameraIcon(){
             fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] - 180, 90) );
             fovScale /= 90;
         }
+        // NAB622: The camera window forces 90 degree visibility on this axis, always
+        fovAngle = 90;
         break;
     case XZ:
         x = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
         y = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
-        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 180 ) {
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] > 90 && g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 270 ) {
             // The camera is past the locked Y axis! Flip the angles so they aim the correct way
             a = -( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180 ) / 180 * Q_PI;
         } else {
@@ -2804,23 +2822,23 @@ void XYWnd::DrawCameraIcon(){
         }
 
         if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 0 ) {
-            fovScale = 0;
-        } else if ( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 90 ) {
             fovScale = 1;
         } else {
-            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
-                fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
-                fovScale = 1 - ( fovScale / 90 );
-            } else {
+            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] <= 90 ) {
                 fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
                 fovScale /= 90;
+            } else {
+                fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
+                fovScale = 1 - ( fovScale / 90 );
             }
         }
+        // NAB622: Calculate the FOV backwards for this - width / height
+        fovAngle = 2 * atan( (float)g_pParentWnd->GetCamWnd()->Camera()->width / g_pParentWnd->GetCamWnd()->Camera()->height ) * 180 / Q_PI;
         break;
     case YZ:
         x = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
         y = g_pParentWnd->GetCamWnd()->Camera()->origin[2];
-        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 180 ) {
+        if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] > 180 ) {
             // The camera is past the locked Y axis! Flip the angles so they aim the correct way
             a = -( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] + 180 ) / 180 * Q_PI;
         } else {
@@ -2829,10 +2847,8 @@ void XYWnd::DrawCameraIcon(){
 
         if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 0 ) {
             fovScale = 0;
-        } else if ( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] == 90 ) {
-            fovScale = 1;
         } else {
-            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] < 90 ) {
+            if( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] >= 270 || g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] <= 90 ) {
                 fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] - 180, 90) );
                 fovScale = 1 - ( fovScale / 90 );
             } else {
@@ -2840,29 +2856,51 @@ void XYWnd::DrawCameraIcon(){
                 fovScale /= 90;
             }
         }
+        // NAB622: Calculate the FOV backwards for this - width / height
+        fovAngle = 2 * atan( (float)g_pParentWnd->GetCamWnd()->Camera()->width / g_pParentWnd->GetCamWnd()->Camera()->height ) * 180 / Q_PI;
         break;
     }
 
     // Add a base amount to fovScale so it is always visible
     fov = fov * ( fovScale + 0.4 );
 
+    // NAB622: Draw the outline first, and oversize it a bit. This will greatly improve the camera icon's visibility on a busy map
+    qglColor3f( cameraSymbolOutlineColor[0], cameraSymbolOutlineColor[1], cameraSymbolOutlineColor[2] );
+    glLineWidth( 4 );
+    qglBegin( GL_LINE_STRIP );
+    qglVertex3f( x - box,y,0 );
+    qglVertex3f( x,y + ( box / 2 ),0 );
+    qglVertex3f( x + box,y,0 );
+    qglVertex3f( x,y - ( box / 2 ),0 );
+    qglVertex3f( x - box,y,0 );
+    qglVertex3f( x + box,y,0 );
+    qglEnd();
+
+    glLineWidth( 3 );
+    qglBegin( GL_LINE_STRIP );
+    qglVertex3f( x + fov * cos( a + Q_PI / ( 360 / ( 180 - fovAngle ) ) ), y + fov * sin( a + Q_PI / ( 360 / ( 180 - fovAngle ) ) ), 0 );
+    qglVertex3f( x, y, 0 );
+    qglVertex3f( x + fov * cos( a - Q_PI / ( 360 / ( 180 - fovAngle ) ) ), y + fov * sin( a - Q_PI / ( 360 / ( 180 - fovAngle ) ) ), 0 );
+    qglEnd();
+
+    // NAB622: Now draw the camera icon with the correct color
     qglColor3f( gridCameraSymbolColor[0], gridCameraSymbolColor[1], gridCameraSymbolColor[2] );
     glLineWidth( 2 );
     qglBegin( GL_LINE_STRIP );
     qglVertex3f( x - box,y,0 );
-	qglVertex3f( x,y + ( box / 2 ),0 );
-	qglVertex3f( x + box,y,0 );
-	qglVertex3f( x,y - ( box / 2 ),0 );
-	qglVertex3f( x - box,y,0 );
-	qglVertex3f( x + box,y,0 );
-	qglEnd();
+    qglVertex3f( x,y + ( box / 2 ),0 );
+    qglVertex3f( x + box,y,0 );
+    qglVertex3f( x,y - ( box / 2 ),0 );
+    qglVertex3f( x - box,y,0 );
+    qglVertex3f( x + box,y,0 );
+    qglEnd();
 
     glLineWidth( 1 );
     qglBegin( GL_LINE_STRIP );
-	qglVertex3f( x + fov * cos( a + Q_PI / 4 ), y + fov * sin( a + Q_PI / 4 ), 0 );
-	qglVertex3f( x, y, 0 );
-	qglVertex3f( x + fov * cos( a - Q_PI / 4 ), y + fov * sin( a - Q_PI / 4 ), 0 );
-	qglEnd();
+    qglVertex3f( x + fov * cos( a + Q_PI / ( 360 / ( 180 - fovAngle ) ) ), y + fov * sin( a + Q_PI / ( 360 / ( 180 - fovAngle ) ) ), 0 );
+    qglVertex3f( x, y, 0 );
+    qglVertex3f( x + fov * cos( a - Q_PI / ( 360 / ( 180 - fovAngle ) ) ), y + fov * sin( a - Q_PI / ( 360 / ( 180 - fovAngle ) ) ), 0 );
+    qglEnd();
 
 }
 

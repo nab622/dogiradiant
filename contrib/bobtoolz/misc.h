@@ -40,9 +40,9 @@ char* UnixToDosPath( char* path );
 char* GetFilename( char* buffer, const char* filename );
 char* GetGameFilename( char* buffer, const char* filename );
 
-float Determinant3x3( float a1, float a2, float a3,
-					  float b1, float b2, float b3,
-					  float c1, float c2, float c3 );
+vec_t Determinant3x3( vec_t a1, vec_t a2, vec_t a3,
+                      vec_t b1, vec_t b2, vec_t b3,
+                      vec_t c1, vec_t c2, vec_t c3 );
 
 bool GetEntityCentre( const char* entity, vec3_t centre );
 void MakeNormal( vec_t* va, vec_t* vb, vec_t* vc, vec_t* out );

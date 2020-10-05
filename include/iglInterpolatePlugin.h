@@ -76,3 +76,12 @@ inline void qglMultMatrixf_convertFloat( m4x4_t const input ) {
     }
     g_QglTable.m_pfn_qglMultMatrixf( temp );
 }
+
+// raster pos
+inline void qglRasterPos3fv_convertFloat( vec3_t input ) {
+    float output[3];
+    for( int i = 0; i < 3; i++ ) {
+        output[i] = (float) input[i];
+    }
+    g_QglTable.m_pfn_qglRasterPos3fv( output );
+}

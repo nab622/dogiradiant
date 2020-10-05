@@ -403,8 +403,7 @@ void Patch_MeshNormals( patchMesh_t *in ){
    ==================
  */
 void Patch_CalcBounds( patchMesh_t *p, vec3_t& vMin, vec3_t& vMax ){
-	vMin[0] = vMin[1] = vMin[2] = 99999;
-	vMax[0] = vMax[1] = vMax[2] = -99999;
+    ClearBounds( vMin, vMax);
 
 	p->bDirty = true;
 	for ( int w = 0; w < p->width; w++ )

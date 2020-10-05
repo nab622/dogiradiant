@@ -250,11 +250,7 @@ static bool get_selection_bounds( vec3_t mins, vec3_t maxs ){
 		return false;
 	}
 
-	for ( i = 0 ; i < 3 ; i++ )
-	{
-		mins[i] = 99999;
-		maxs[i] = -99999;
-	}
+    ClearBounds( mins, maxs );
 
 	for ( b = selected_brushes->next ; b != selected_brushes ; b = b->next )
 	{

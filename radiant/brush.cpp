@@ -2768,8 +2768,7 @@ void Brush_BuildWindings( brush_t *b, bool bSnap ){
 	}
 
 	// clear the mins/maxs bounds
-	b->mins[0] = b->mins[1] = b->mins[2] = 99999;
-	b->maxs[0] = b->maxs[1] = b->maxs[2] = -99999;
+    ClearBounds( b->mins, b->maxs );
 
 	Brush_MakeFacePlanes( b );
 
@@ -3445,8 +3444,8 @@ bool performBrushMove( brush_t *b, const vec3_t move, bool bSnap, bool applyChan
         if ( b->owner->eclass->fixedsize ) {
             char text[64];
             VectorAdd( b->owner->origin, move, b->owner->origin );
-            sprintf( text, "%i %i %i",
-                     (int)b->owner->origin[0], (int)b->owner->origin[1], (int)b->owner->origin[2] );
+            sprintf( text, "%lf %lf %lf",
+                     (vec_t)b->owner->origin[0], (vec_t)b->owner->origin[1], (vec_t)b->owner->origin[2] );
             SetKeyValue( b->owner, "origin", text );
             //VectorAdd(b->maxs, b->mins, b->owner->origin);
             //VectorScale(b->owner->origin, 0.5, b->owner->origin);
@@ -3679,7 +3678,7 @@ void Face_FitTexture( face_t * face, float nHeight, float nWidth ){
 	float width, height, temp;
 	float rot_width, rot_height;
 	float cosv,sinv,ang;
-	float min_t, min_s, max_t, max_s;
+    vec_t min_t, min_s, max_t, max_s;
 	float s,t;
 	vec3_t vecs[2];
 	vec3_t coords[4];
@@ -3734,8 +3733,8 @@ void Face_FitTexture( face_t * face, float nHeight, float nWidth ){
 		coords[2][1] = max_t;
 		coords[3][0] = max_s;
 		coords[3][1] = max_t;
-		min_s = min_t = 99999;
-		max_s = max_t = -99999;
+        min_s = min_t = g_MaxWorldCoord;
+        max_s = max_t = g_MinWorldCoord;
         for ( i = 0; i < 4; i++ )
 		{
 			s = cosv * coords[i][0] - sinv * coords[i][1];

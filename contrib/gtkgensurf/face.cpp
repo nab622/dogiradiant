@@ -55,7 +55,7 @@ void PlaneFromPoints( float *p0, float *p1, float *p2, PLANE *plane ){
 	plane->dist = DotProduct( p0, plane->normal );
 }
 
-void VectorMA( vec3 va, vec scale, vec3 vb, vec3 vc ){
+void genSurfVectorMA( vec3 va, vec scale, vec3 vb, vec3 vc ){
 	vc[0] = va[0] + scale * vb[0];
 	vc[1] = va[1] + scale * vb[1];
 	vc[2] = va[2] + scale * vb[2];
@@ -139,7 +139,7 @@ MY_WINDING *BaseWindingForPlane( vec3 normal, vec dist ){
 	}
 
 	v = DotProduct( vup, normal );
-	VectorMA( vup, -v, normal, vup );
+    genSurfVectorMA( vup, -v, normal, vup );
 	VectorNormalize( vup, vup );
 
 	VectorScale( normal, dist, org );

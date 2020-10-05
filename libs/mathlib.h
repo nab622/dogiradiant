@@ -19,6 +19,8 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#pragma once
+
 #ifndef __MATHLIB__
 #define __MATHLIB__
 
@@ -77,7 +79,7 @@ qboolean VectorCompare( vec3_t v1, vec3_t v2 );
 #define CrossProduct( a,b,c ) ( ( c )[0] = ( a )[1] * ( b )[2] - ( a )[2] * ( b )[1],( c )[1] = ( a )[2] * ( b )[0] - ( a )[0] * ( b )[2],( c )[2] = ( a )[0] * ( b )[1] - ( a )[1] * ( b )[0] )
 #define VectorClear( x ) ( ( x )[0] = ( x )[1] = ( x )[2] = 0 )
 
-#define Q_rint( in ) ( (vec_t)floor( in + 0.5 ) )
+#define Q_rint( in ) ( floor( in + 0.5 ) )
 
 qboolean VectorIsOnAxis( vec3_t v );
 qboolean VectorIsOnAxialPlane( vec3_t v );
@@ -108,7 +110,7 @@ void VectorISnap( vec3_t point, int snap );
 void VectorFSnap( vec3_t point, vec_t snap );
 
 // NOTE: added these from Ritual's Q3Radiant
-void ClearBounds( vec3_t mins, vec3_t maxs );
+void ClearBounds(vec3_t mins, vec3_t maxs );
 void AddPointToBounds( vec3_t v, vec3_t mins, vec3_t maxs );
 
 void AngleVectors( vec3_t angles, vec3_t forward, vec3_t right, vec3_t up );

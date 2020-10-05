@@ -170,6 +170,7 @@ void CamWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
 int CamWnd::calculateSpeed() {
     // If movement speed is not attached to the grid, return the normal movement speed
     if(!g_PrefsDlg.m_nAttachCameraToGrid) {
+        //m_nMoveSpeed is an integer. Must round it up
         return (int) ceil( g_PrefsDlg.m_nMoveSpeed );
     }
 
@@ -355,8 +356,9 @@ void CamWnd::Cam_ChangeFloor( qboolean up ){
 void CamWnd::Cam_PositionDrag( int buttons ){
     int x, y;
 
-    //Bring this value in and greatly reduce it before use
-    float multiplier = calculateSpeed() / 16;
+    //Bring this value in and greatly reduce it before use. MAKE SURE it's a float before the division or the decimal is lost!
+    float multiplier = ( (float) calculateSpeed() ) / 16;
+
     //Impose a min and max so it doesn't get too crazy
     multiplier = CLAMP( multiplier, MIN_GRID_PRECISION / 4, 128 );
 
@@ -366,9 +368,9 @@ void CamWnd::Cam_PositionDrag( int buttons ){
         vec_t yf = (y - m_ptCursorY) * multiplier * .25;
         VectorMA( m_Camera.origin, xf, m_Camera.vright, m_Camera.origin );
         if ( buttons & MK_SHIFT ) {
-            m_Camera.origin[2] -= yf;
-        } else {
             VectorMA( m_Camera.origin, -yf, m_Camera.vup, m_Camera.origin );
+        } else {
+            m_Camera.origin[2] -= yf;
         }
         Sys_SetCursorPos( m_ptCursorX, m_ptCursorY );
 
@@ -821,32 +823,28 @@ void CamWnd::InitCull(){
 	}
 }
 
-qboolean CamWnd::CullBrush( brush_t *b ){
+qboolean CamWnd::CullBrush( brush_t *b, float distance ){
 	int i;
-	vec3_t point;
+    vec3_t point;
     float d;
 
-	if ( g_PrefsDlg.m_bCubicClipping ) {
-        float fLevel = g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement;
+    point[0] = m_Camera.origin[0] - distance;
+    point[1] = m_Camera.origin[1] - distance;
+    point[2] = m_Camera.origin[2] - distance;
 
-		point[0] = m_Camera.origin[0] - fLevel;
-		point[1] = m_Camera.origin[1] - fLevel;
-		point[2] = m_Camera.origin[2] - fLevel;
+    for ( i = 0; i < 3; i++ )
+        if ( b->mins[i] < point[i] && b->maxs[i] < point[i] ) {
+            return true;
+        }
 
-		for ( i = 0; i < 3; i++ )
-			if ( b->mins[i] < point[i] && b->maxs[i] < point[i] ) {
-				return true;
-			}
+    point[0] = m_Camera.origin[0] + distance;
+    point[1] = m_Camera.origin[1] + distance;
+    point[2] = m_Camera.origin[2] + distance;
 
-		point[0] = m_Camera.origin[0] + fLevel;
-		point[1] = m_Camera.origin[1] + fLevel;
-		point[2] = m_Camera.origin[2] + fLevel;
-
-		for ( i = 0; i < 3; i++ )
-			if ( b->mins[i] > point[i] && b->maxs[i] > point[i] ) {
-				return true;
-			}
-	}
+    for ( i = 0; i < 3; i++ )
+        if ( b->mins[i] > point[i] && b->maxs[i] > point[i] ) {
+            return true;
+        }
 
 	for ( i = 0 ; i < 3 ; i++ )
 		point[i] = b->mins[m_nCullv1[i]] - m_Camera.origin[i];
@@ -1140,11 +1138,21 @@ void CamWnd::Cam_DrawStuff(){
 	VectorSet( identity, 0.8f, 0.8f, 0.8f );
 	brush_t *b;
 
+    float distance;
+
+    if ( g_PrefsDlg.m_bCubicClipping ) {
+        // NAB622: If cubic clipping is enabled, set the cull distance to that
+        distance = (float) g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement;
+    } else {
+        // NAB622: If cubic clipping is not enabled, set the cull distance to the maximum render distance
+        distance = (float) g_PrefsDlg.m_nRenderDistance;
+    }
+
 	for ( b = active_brushes.next; b != &active_brushes; b = b->next )
-		b->bCamCulled = CullBrush( b );
+        b->bCamCulled = CullBrush( b, distance );
 
 	for ( b = selected_brushes.next; b != &selected_brushes; b = b->next )
-		b->bCamCulled = CullBrush( b );
+        b->bCamCulled = CullBrush( b, distance );
 
 	switch ( m_Camera.draw_mode )
 	{

@@ -42,7 +42,8 @@
 // HACK glib-2.0
 #define NAME_MAX 255
 
-typedef bool qboolean;
+#include "bytebool.h"
+//typedef bool qboolean;
 
 #define MAXPOINTS   16
 

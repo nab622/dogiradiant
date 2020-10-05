@@ -780,7 +780,6 @@ void Undo_Undo( qboolean bSilent ){
 	}
 	//
 	g_bScreenUpdates = true;
-	UpdateSurfaceDialog();
 	Sys_UpdateWindows( W_ALL );
 }
 

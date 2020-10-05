@@ -60,8 +60,7 @@ bool g_bCancel_Map_LoadFile;  // Hydra: moved this here
 vec_t g_MaxWorldCoord = MAX_MAP_SIZE;
 vec_t g_MinWorldCoord = MIN_MAP_SIZE;
 
-// the max size we allow on brushes, this is dependant on world coords too
-// makes more sense to say smaller I think?
+// The max size we allow on brushes, this is dependant on world coords too
 vec_t g_MaxBrushSize = g_MaxWorldCoord - g_MinWorldCoord;
 
 void AddRegionBrushes( void );
@@ -995,6 +994,7 @@ void Map_RegionOff( void ){
 	region_active = false;
 	for ( i = 0 ; i < 3 ; i++ )
 	{
+        // NAB622: FIXME: Why 64? Shouldn't the world's coordinates be enough??
 		region_maxs[i] = g_MaxWorldCoord - 64;
 		region_mins[i] = g_MinWorldCoord + 64;
 	}

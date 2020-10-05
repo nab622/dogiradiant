@@ -1568,8 +1568,8 @@ static int CompareMetaTriangles( const void *a, const void *b ){
 	/* then position in world */
 
 	/* find mins */
-	VectorSet( aMins, 999999, 999999, 999999 );
-	VectorSet( bMins, 999999, 999999, 999999 );
+    VectorSet( aMins, 999999, 999999, 999999 );
+    VectorSet( bMins, 999999, 999999, 999999 );
 	for ( i = 0; i < 3; i++ )
 	{
 		av = ( (const metaTriangle_t*) a )->indexes[ i ];

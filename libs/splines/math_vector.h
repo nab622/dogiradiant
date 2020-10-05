@@ -29,6 +29,17 @@
 #include <math.h>
 #include <assert.h>
 
+
+// NAB622: We're going to need these for things below...
+#include "globalDefines.h"
+extern vec_t g_MaxWorldCoord;
+extern vec_t g_MinWorldCoord;
+extern vec_t g_MaxBrushSize;
+
+#include "mathlib.h"
+//extern void ClearBounds( vec3_t mins, vec3_t maxs );
+
+
 //#define DotProduct(a,b)			((a)[0]*(b)[0]+(a)[1]*(b)[1]+(a)[2]*(b)[2])
 //#define VectorSubtract(a,b,c)	((c)[0]=(a)[0]-(b)[0],(c)[1]=(a)[1]-(b)[1],(c)[2]=(a)[2]-(b)[2])
 //#define VectorAdd(a,b,c)		((c)[0]=(a)[0]+(b)[0],(c)[1]=(a)[1]+(b)[1],(c)[2]=(a)[2]+(b)[2])
@@ -54,14 +65,13 @@
 
 #define SnapVector( v ) {v[0] = (int)v[0]; v[1] = (int)v[1]; v[2] = (int)v[2]; }
 
-
 //#include "util_heap.h"
 
 #ifndef EQUAL_EPSILON
-#define EQUAL_EPSILON   0.001
+#define EQUAL_EPSILON   MIN_GRID_PRECISION / 3
 #endif
 
-float Q_fabs( float f );
+vec_t Q_fabs( vec_t f );
 
 #ifndef ID_INLINE
 #ifdef _WIN32
@@ -87,10 +97,10 @@ class angles_t;
 // This is about 12.4 times faster than sqrt() and according to my testing (not exhaustive)
 // it returns fairly accurate results (error below 1.0e-5 up to 100000.0 in 0.1 increments).
 
-static inline float idSqrt( float x ) {
-	const float half = 0.5;
-	const float one = 1.0;
-	float B, y0, y1;
+static inline vec_t idSqrt( vec_t x ) {
+    const vec_t half = 0.5;
+    const vec_t one = 1.0;
+    vec_t B, y0, y1;
 
 	// This'll NaN if it hits frsqrte. Handle both +0.0 and -0.0
 	if ( fabs( x ) == 0.0 ) {
@@ -126,9 +136,9 @@ static inline double idSqrt( double x ) {
 class idVec3 {
 public:
 #ifndef FAT_VEC3
-float x,y,z;
+vec_t x,y,z;
 #else
-float x,y,z,dist;
+vec_t x,y,z,dist;
 #endif
 
 #ifndef FAT_VEC3
@@ -136,29 +146,29 @@ idVec3() {};
 #else
 idVec3() {dist = 0.0f; };
 #endif
-idVec3( const float x, const float y, const float z );
+idVec3( const vec_t x, const vec_t y, const vec_t z );
 
-operator float *();
+operator vec_t *();
 
-float operator[]( const int index ) const;
-float           &operator[]( const int index );
+vec_t operator[]( const int index ) const;
+vec_t           &operator[]( const int index );
 
-void            set( const float x, const float y, const float z );
+void            set( const vec_t x, const vec_t y, const vec_t z );
 
 idVec3 operator-() const;
 
 idVec3          &operator=( const idVec3 &a );
 
-float operator*( const idVec3 &a ) const;
-idVec3 operator*( const float a ) const;
-friend idVec3 operator*( float a, idVec3 b );
+vec_t operator*( const idVec3 &a ) const;
+idVec3 operator*( const vec_t a ) const;
+friend idVec3 operator*( vec_t a, idVec3 b );
 
 idVec3 operator+( const idVec3 &a ) const;
 idVec3 operator-( const idVec3 &a ) const;
 
 idVec3          &operator+=( const idVec3 &a );
 idVec3          &operator-=( const idVec3 &a );
-idVec3          &operator*=( const float a );
+idVec3          &operator*=( const vec_t a );
 
 int operator==( const idVec3 &a ) const;
 int operator!=( const idVec3 &a ) const;
@@ -166,24 +176,24 @@ int operator!=( const idVec3 &a ) const;
 idVec3          Cross( const idVec3 &a ) const;
 idVec3          &Cross( const idVec3 &a, const idVec3 &b );
 
-float           Length( void ) const;
-float           Normalize( void );
+vec_t           Length( void ) const;
+vec_t           Normalize( void );
 
 void            Zero( void );
 void            Snap( void );
 void            SnapTowards( const idVec3 &to );
 
-float           toYaw( void );
-float           toPitch( void );
+vec_t           toYaw( void );
+vec_t           toPitch( void );
 angles_t        toAngles( void );
-friend idVec3   LerpVector( const idVec3 &w1, const idVec3 &w2, const float t );
+friend idVec3   LerpVector( const idVec3 &w1, const idVec3 &w2, const vec_t t );
 
 char            *string( void );
 };
 
 extern idVec3 vec_zero;
 
-ID_INLINE idVec3::idVec3( const float x, const float y, const float z ) {
+ID_INLINE idVec3::idVec3( const vec_t x, const vec_t y, const vec_t z ) {
 	this->x = x;
 	this->y = y;
 	this->z = z;
@@ -192,15 +202,15 @@ ID_INLINE idVec3::idVec3( const float x, const float y, const float z ) {
 #endif
 }
 
-ID_INLINE float idVec3::operator[]( const int index ) const {
+ID_INLINE vec_t idVec3::operator[]( const int index ) const {
 	return ( &x )[ index ];
 }
 
-ID_INLINE float &idVec3::operator[]( const int index ) {
+ID_INLINE vec_t &idVec3::operator[]( const int index ) {
 	return ( &x )[ index ];
 }
 
-ID_INLINE idVec3::operator float *( void ) {
+ID_INLINE idVec3::operator vec_t *( void ) {
 	return &x;
 }
 
@@ -216,7 +226,7 @@ ID_INLINE idVec3 &idVec3::operator=( const idVec3 &a ) {
 	return *this;
 }
 
-ID_INLINE void idVec3::set( const float x, const float y, const float z ) {
+ID_INLINE void idVec3::set( const vec_t x, const vec_t y, const vec_t z ) {
 	this->x = x;
 	this->y = y;
 	this->z = z;
@@ -226,15 +236,15 @@ ID_INLINE idVec3 idVec3::operator-( const idVec3 &a ) const {
 	return idVec3( x - a.x, y - a.y, z - a.z );
 }
 
-ID_INLINE float idVec3::operator*( const idVec3 &a ) const {
+ID_INLINE vec_t idVec3::operator*( const idVec3 &a ) const {
 	return x * a.x + y * a.y + z * a.z;
 }
 
-ID_INLINE idVec3 idVec3::operator*( const float a ) const {
+ID_INLINE idVec3 idVec3::operator*( const vec_t a ) const {
 	return idVec3( x * a, y * a, z * a );
 }
 
-ID_INLINE idVec3 operator*( const float a, const idVec3 b ) {
+ID_INLINE idVec3 operator*( const vec_t a, const idVec3 b ) {
 	return idVec3( b.x * a, b.y * a, b.z * a );
 }
 
@@ -258,7 +268,7 @@ ID_INLINE idVec3 &idVec3::operator-=( const idVec3 &a ) {
 	return *this;
 }
 
-ID_INLINE idVec3 &idVec3::operator*=( const float a ) {
+ID_INLINE idVec3 &idVec3::operator*=( const vec_t a ) {
 	x *= a;
 	y *= a;
 	z *= a;
@@ -310,16 +320,16 @@ ID_INLINE idVec3 &idVec3::Cross( const idVec3 &a, const idVec3 &b ) {
 	return *this;
 }
 
-ID_INLINE float idVec3::Length( void ) const {
-	float length;
+ID_INLINE vec_t idVec3::Length( void ) const {
+    vec_t length;
 
 	length = x * x + y * y + z * z;
-	return ( float )idSqrt( length );
+    return ( vec_t )idSqrt( length );
 }
 
-ID_INLINE float idVec3::Normalize( void ) {
-	float length;
-	float ilength;
+ID_INLINE vec_t idVec3::Normalize( void ) {
+    vec_t length;
+    vec_t ilength;
 
 	length = this->Length();
 	if ( length ) {
@@ -339,9 +349,9 @@ ID_INLINE void idVec3::Zero( void ) {
 }
 
 ID_INLINE void idVec3::Snap( void ) {
-	x = float( int( x ) );
-	y = float( int( y ) );
-	z = float( int( z ) );
+    x = vec_t( int( x ) );
+    y = vec_t( int( y ) );
+    z = vec_t( int( z ) );
 }
 
 /*
@@ -356,24 +366,24 @@ ID_INLINE void idVec3::Snap( void ) {
  */
 ID_INLINE void idVec3::SnapTowards( const idVec3 &to ) {
 	if ( to.x <= x ) {
-		x = float( int( x ) );
+        x = vec_t( int( x ) );
 	}
 	else {
-		x = float( int( x ) + 1 );
+        x = vec_t( int( x ) + 1 );
 	}
 
 	if ( to.y <= y ) {
-		y = float( int( y ) );
+        y = vec_t( int( y ) );
 	}
 	else {
-		y = float( int( y ) + 1 );
+        y = vec_t( int( y ) + 1 );
 	}
 
 	if ( to.z <= z ) {
-		z = float( int( z ) );
+        z = vec_t( int( z ) );
 	}
 	else {
-		z = float( int( z ) + 1 );
+        z = vec_t( int( z ) + 1 );
 	}
 }
 
@@ -388,7 +398,7 @@ Bounds( const idVec3 &mins, const idVec3 &maxs );
 
 void    Clear();
 void    Zero();
-float   Radius();           // radius from origin, not from center
+vec_t   Radius();           // radius from origin, not from center
 idVec3  Center();
 void    AddPoint( const idVec3 &v );
 void    AddBounds( const Bounds &bb );
@@ -432,8 +442,7 @@ ID_INLINE idVec3 Bounds::Center() {
 }
 
 ID_INLINE void Bounds::Clear() {
-	b[0][0] = b[0][1] = b[0][2] = 99999;
-	b[1][0] = b[1][1] = b[1][2] = -99999;
+    ClearBounds( b[0], b[1] );
 }
 
 ID_INLINE void Bounds::Zero() {
@@ -485,22 +494,22 @@ ID_INLINE void Bounds::AddBounds( const Bounds &bb ) {
 	}
 }
 
-ID_INLINE float Bounds::Radius() {
+ID_INLINE vec_t Bounds::Radius() {
 	int i;
-	float total;
-	float a, aa;
+    vec_t total;
+    vec_t a, aa;
 
 	total = 0;
 	for ( i = 0 ; i < 3 ; i++ ) {
-		a = (float)fabs( b[0][i] );
-		aa = (float)fabs( b[1][i] );
+        a = (vec_t)fabs( b[0][i] );
+        aa = (vec_t)fabs( b[1][i] );
 		if ( aa > a ) {
 			a = aa;
 		}
 		total += a * a;
 	}
 
-	return (float)idSqrt( total );
+    return (vec_t)idSqrt( total );
 }
 
 //===============================================================
@@ -508,70 +517,70 @@ ID_INLINE float Bounds::Radius() {
 
 class idVec2 {
 public:
-float x;
-float y;
+vec_t x;
+vec_t y;
 
-operator float *();
-float operator[]( int index ) const;
-float           &operator[]( int index );
+operator vec_t *();
+vec_t operator[]( int index ) const;
+vec_t           &operator[]( int index );
 };
 
-ID_INLINE float idVec2::operator[]( int index ) const {
+ID_INLINE vec_t idVec2::operator[]( int index ) const {
 	return ( &x )[ index ];
 }
 
-ID_INLINE float& idVec2::operator[]( int index ) {
+ID_INLINE vec_t& idVec2::operator[]( int index ) {
 	return ( &x )[ index ];
 }
 
-ID_INLINE idVec2::operator float *( void ) {
+ID_INLINE idVec2::operator vec_t *( void ) {
 	return &x;
 }
 
 class idVec4 : public idVec3 {
 public:
 #ifndef FAT_VEC3
-float dist;
+vec_t dist;
 #endif
 idVec4();
 ~idVec4() {};
 
-idVec4( float x, float y, float z, float dist );
-float operator[]( int index ) const;
-float           &operator[]( int index );
+idVec4( vec_t x, vec_t y, vec_t z, vec_t dist );
+vec_t operator[]( int index ) const;
+vec_t           &operator[]( int index );
 };
 
 ID_INLINE idVec4::idVec4() {}
-ID_INLINE idVec4::idVec4( float x, float y, float z, float dist ) {
+ID_INLINE idVec4::idVec4( vec_t x, vec_t y, vec_t z, vec_t dist ) {
 	this->x = x;
 	this->y = y;
 	this->z = z;
 	this->dist = dist;
 }
 
-ID_INLINE float idVec4::operator[]( int index ) const {
+ID_INLINE vec_t idVec4::operator[]( int index ) const {
 	return ( &x )[ index ];
 }
 
-ID_INLINE float& idVec4::operator[]( int index ) {
+ID_INLINE vec_t& idVec4::operator[]( int index ) {
 	return ( &x )[ index ];
 }
 
 
 class idVec5_t : public idVec3 {
 public:
-float s;
-float t;
-float operator[]( int index ) const;
-float           &operator[]( int index );
+vec_t s;
+vec_t t;
+vec_t operator[]( int index ) const;
+vec_t           &operator[]( int index );
 };
 
 
-ID_INLINE float idVec5_t::operator[]( int index ) const {
+ID_INLINE vec_t idVec5_t::operator[]( int index ) const {
 	return ( &x )[ index ];
 }
 
-ID_INLINE float& idVec5_t::operator[]( int index ) {
+ID_INLINE vec_t& idVec5_t::operator[]( int index ) {
 	return ( &x )[ index ];
 }
 

@@ -762,8 +762,7 @@ void Winding_Bounds( winding_t *w, vec3_t mins, vec3_t maxs ){
 	vec_t v;
 	int i,j;
 
-	mins[0] = mins[1] = mins[2] = 99999;
-	maxs[0] = maxs[1] = maxs[2] = -99999;
+    ClearBounds( mins, maxs );
 
 	for ( i = 0 ; i < w->numpoints ; i++ )
 	{
