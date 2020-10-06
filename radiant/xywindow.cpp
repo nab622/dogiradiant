@@ -761,6 +761,7 @@ void XYWnd::SetOrigin( vec3_t org ){
 void XYWnd::OnSize( int cx, int cy ){
 	m_nWidth = cx;
     m_nHeight = cy;
+    XYResizeCountdown = 2;
 }
 
 brush_t hold_brushes;
@@ -2832,7 +2833,7 @@ void XYWnd::DrawCameraIcon(){
                 fovScale = 1 - ( fovScale / 90 );
             }
         }
-        // NAB622: Calculate the FOV backwards for this - width / height
+        // NAB622: Calculate the FOV
         fovAngle = 2 * atan( (float)g_pParentWnd->GetCamWnd()->Camera()->width / g_pParentWnd->GetCamWnd()->Camera()->height ) * 180 / Q_PI;
         break;
     case YZ:
@@ -2856,13 +2857,16 @@ void XYWnd::DrawCameraIcon(){
                 fovScale /= 90;
             }
         }
-        // NAB622: Calculate the FOV backwards for this - width / height
+        // NAB622: Calculate the FOV
         fovAngle = 2 * atan( (float)g_pParentWnd->GetCamWnd()->Camera()->width / g_pParentWnd->GetCamWnd()->Camera()->height ) * 180 / Q_PI;
         break;
     }
 
     // Add a base amount to fovScale so it is always visible
     fov = fov * ( fovScale + 0.4 );
+
+    // NAB622: Save some calculation below - this can be done in advance
+    fovAngle = Q_PI / ( 360 / ( 180 - fovAngle ) );
 
     // NAB622: Draw the outline first, and oversize it a bit. This will greatly improve the camera icon's visibility on a busy map
     qglColor3f( cameraSymbolOutlineColor[0], cameraSymbolOutlineColor[1], cameraSymbolOutlineColor[2] );
@@ -2878,9 +2882,9 @@ void XYWnd::DrawCameraIcon(){
 
     glLineWidth( 3 );
     qglBegin( GL_LINE_STRIP );
-    qglVertex3f( x + fov * cos( a + Q_PI / ( 360 / ( 180 - fovAngle ) ) ), y + fov * sin( a + Q_PI / ( 360 / ( 180 - fovAngle ) ) ), 0 );
+    qglVertex3f( x + fov * cos( a + fovAngle ), y + fov * sin( a + fovAngle ), 0 );
     qglVertex3f( x, y, 0 );
-    qglVertex3f( x + fov * cos( a - Q_PI / ( 360 / ( 180 - fovAngle ) ) ), y + fov * sin( a - Q_PI / ( 360 / ( 180 - fovAngle ) ) ), 0 );
+    qglVertex3f( x + fov * cos( a - fovAngle ), y + fov * sin( a - fovAngle ), 0 );
     qglEnd();
 
     // NAB622: Now draw the camera icon with the correct color
@@ -2897,9 +2901,9 @@ void XYWnd::DrawCameraIcon(){
 
     glLineWidth( 1 );
     qglBegin( GL_LINE_STRIP );
-    qglVertex3f( x + fov * cos( a + Q_PI / ( 360 / ( 180 - fovAngle ) ) ), y + fov * sin( a + Q_PI / ( 360 / ( 180 - fovAngle ) ) ), 0 );
+    qglVertex3f( x + fov * cos( a + fovAngle ), y + fov * sin( a + fovAngle ), 0 );
     qglVertex3f( x, y, 0 );
-    qglVertex3f( x + fov * cos( a - Q_PI / ( 360 / ( 180 - fovAngle ) ) ), y + fov * sin( a - Q_PI / ( 360 / ( 180 - fovAngle ) ) ), 0 );
+    qglVertex3f( x + fov * cos( a - fovAngle ), y + fov * sin( a - fovAngle ), 0 );
     qglEnd();
 
 }

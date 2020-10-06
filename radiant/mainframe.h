@@ -37,6 +37,9 @@
 #define __toascii( c )    ( ( c ) & 0x7f )
 #endif
 
+extern int XYResizeCountdown;
+extern int CameraResizeCountdown;
+
 extern GtkWidget *cubicClippingCheckbox;
 extern GtkWidget *xrayOutlineCheck;
 extern GtkWidget *cubicClippingSpin;

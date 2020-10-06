@@ -101,6 +101,10 @@ extern GtkWidget *PatchInspector;
 
 GtkAccelGroup* global_accel;
 
+// NAB622: These variables are used to trigger window updates when a user is done resizing things
+int XYResizeCountdown = 0;
+int CameraResizeCountdown = 0;
+
 void Select_Ungroup();
 
 // command mapping stuff
@@ -4093,6 +4097,30 @@ void MainFrame::OnTimer(){
 		QE_CheckAutoSave();
 	}
 
+    // NAB622: If the windows were resized, they need redrawn or they can be glitched out.
+    // If we wait until two retriggers after the user is done resizing, we can avoid bogging
+    // down the program until the user is done.
+    if( XYResizeCountdown > 0 ) {
+        XYResizeCountdown--;
+        if ( XYResizeCountdown == 0 ) {
+            Sys_UpdateWindows( W_XY_OVERLAY );
+        }
+    }
+
+    if( CameraResizeCountdown > 0 ) {
+        CameraResizeCountdown--;
+        if ( CameraResizeCountdown == 0 ) {
+            Sys_UpdateWindows( W_CAMERA_IFON );
+        }
+    }
+
+    if( g_pParentWnd->GetCamWnd()->m_bFreeMove ) {
+        if( !gtk_window_is_active( GTK_WINDOW( m_pWidget ) ) ) {
+            // If Radiant is no longer the active window, disable free look so the mouse is no longer frozen
+            // in place, because some other program/window is clearly trying to use it
+            g_pParentWnd->GetCamWnd()->StopFreeMove();
+        }
+    }
 }
 
 void MainFrame::SetStatusText( int nPane, const char* pText ){

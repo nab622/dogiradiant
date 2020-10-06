@@ -124,6 +124,7 @@ void CamWnd::OnSize( int cx, int cy ){
 	m_Camera.width = cx;
 	m_Camera.height = cy;
     gtk_widget_queue_draw( m_pWidget );
+    CameraResizeCountdown = 2;
 }
 
 rectangle_t rectangle_from_area_cam(){

@@ -707,7 +707,7 @@ void Brush_MakeFacePlanes( brush_t *b ){
 void DrawBrushEntityName( brush_t *b ){
 	const char  *name;
     vec_t a, s, c;
-	vec3_t mid;
+    vec3_t mid, origin, drawLocation;
 	int i;
 
 	if ( !b->owner ) {
@@ -730,67 +730,128 @@ void DrawBrushEntityName( brush_t *b ){
         vec3_t entAngles;
         getEntityAngles( b->owner, entAngles );
 
-//Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", entAngles[PITCH], entAngles[YAW], entAngles[ROLL] );
+Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", entAngles[PITCH], entAngles[YAW], entAngles[ROLL] );
 
-        if ( g_pParentWnd->ActiveXY() ) {
-            switch ( g_pParentWnd->ActiveXY()->GetViewType() ) {
-                case YZ:
-                    a = entAngles[PITCH];
-                    if( entAngles[YAW] <= 180 ) {
-                        a = -a + 180;
-                    }
-                    break;
-                case XZ:
-                    a = entAngles[PITCH];
-                    if( entAngles[YAW] >= 90 && entAngles[YAW] < 270 ) {
-                        a = -a + 180;
-                    }
-                    break;
-                case XY:
-                    // Ignore pitch entirely in the XY view
-                    a = entAngles[YAW];
-                    break;
-            }
+        switch ( g_pParentWnd->ActiveXY()->GetViewType() ) {
+            case YZ:
+                a = entAngles[PITCH];
+                if( entAngles[YAW] > 180 ) {
+                    a = -a + 180;
+                }
+                break;
+            case XZ:
+                a = entAngles[PITCH];
+                if( entAngles[YAW] >= 90 && entAngles[YAW] < 270 ) {
+                    a = -a + 180;
+                }
+                break;
+            case XY:
+                // Ignore pitch entirely in the XY view
+                a = entAngles[YAW];
+                break;
         }
 
 		s = sin( a / 180 * Q_PI );
-		c = cos( a / 180 * Q_PI );
+        c = cos( a / 180 * Q_PI );
 		for ( i = 0 ; i < 3 ; i++ )
-			mid[i] = ( b->mins[i] + b->maxs[i] ) * 0.5;
+            mid[i] = origin[i] = ( b->mins[i] + b->maxs[i] ) * 0.5;
 
-		qglBegin( GL_LINE_STRIP );
-        qglVertex3f_convertFloat( mid );
-		mid[0] += c * 8;
-		mid[1] += s * 8;
-		mid[2] += s * 8;
-        qglVertex3f_convertFloat( mid );
-		mid[0] -= c * 4;
-		mid[1] -= s * 4;
-		mid[2] -= s * 4;
-		mid[0] -= s * 4;
-		mid[1] += c * 4;
-		mid[2] += c * 4;
-        qglVertex3f_convertFloat( mid );
-		mid[0] += c * 4;
-		mid[1] += s * 4;
-		mid[2] += s * 4;
-		mid[0] += s * 4;
-		mid[1] -= c * 4;
-		mid[2] -= c * 4;
-        qglVertex3f_convertFloat( mid );
-		mid[0] -= c * 4;
-		mid[1] -= s * 4;
-		mid[2] -= s * 4;
-		mid[0] += s * 4;
-		mid[1] -= c * 4;
-		mid[2] -= c * 4;
-        qglVertex3f_convertFloat( mid );
-		qglEnd();
-	}
+        glLineWidth( 2 );
+        qglBegin( GL_LINE_STRIP );
+
+        // NAB622: The original code here created the arrows the same way for all 3 axes, with a 45 degree slant across the third, which
+        // meant that two axes always rendered correctly and the third was always useless. Instead of making a huge mess of interconnected
+        // functions for this, I created a separate draw routine for each axis, so all three are always right. I know there's a better way
+        // but I really don't care, as long as this actually works.
+        switch ( g_pParentWnd->ActiveXY()->GetViewType() ) {
+            case YZ:
+            // Stem
+                qglVertex3f_convertFloat( mid );
+                mid[0] = origin[0];
+                mid[1] += c * 12;
+                mid[2] += s * 12;
+                qglVertex3f_convertFloat( mid );
+            // Left half
+                mid[1] -= c * 4;
+                mid[2] -= s * 4;
+                mid[1] -= s * 4;
+                mid[2] += c * 4;
+                qglVertex3f_convertFloat( mid );
+                mid[1] += c * 4;
+                mid[2] += s * 4;
+                mid[1] += s * 4;
+                mid[2] -= c * 4;
+                qglVertex3f_convertFloat( mid );
+            // Right half
+                mid[1] -= c * 4;
+                mid[2] -= s * 4;
+                mid[1] += s * 4;
+                mid[2] -= c * 4;
+                qglVertex3f_convertFloat( mid );
+                break;
+            case XZ:
+            // Stem
+                qglVertex3f_convertFloat( mid );
+                mid[0] += c * 12;
+                mid[1] = origin[1];
+                mid[2] += s * 12;
+                qglVertex3f_convertFloat( mid );
+            // Left half
+                mid[0] -= c * 4;
+                mid[2] -= s * 4;
+                mid[0] -= s * 4;
+                mid[2] += c * 4;
+                qglVertex3f_convertFloat( mid );
+                mid[0] += c * 4;
+                mid[2] += s * 4;
+                mid[0] += s * 4;
+                mid[2] -= c * 4;
+                qglVertex3f_convertFloat( mid );
+            // Right half
+                mid[0] -= c * 4;
+                mid[2] -= s * 4;
+                mid[0] += s * 4;
+                mid[2] -= c * 4;
+                qglVertex3f_convertFloat( mid );
+                break;
+            case XY:
+            default:
+            // Stem
+                qglVertex3f_convertFloat( mid );
+                mid[0] += c * 12;
+                mid[1] += s * 12;
+                mid[2] = origin[2];
+                qglVertex3f_convertFloat( mid );
+            // Left half
+                mid[0] -= c * 4;
+                mid[1] -= s * 4;
+                mid[0] -= s * 4;
+                mid[1] += c * 4;
+                qglVertex3f_convertFloat( mid );
+                mid[0] += c * 4;
+                mid[1] += s * 4;
+                mid[0] += s * 4;
+                mid[1] -= c * 4;
+                qglVertex3f_convertFloat( mid );
+            // Right half
+                mid[0] -= c * 4;
+                mid[1] -= s * 4;
+                mid[0] += s * 4;
+                mid[1] -= c * 4;
+                qglVertex3f_convertFloat( mid );
+                break;
+        }
+
+        qglEnd();
+        glLineWidth( 1 );
+    }
 
 	if ( g_qeglobals.d_savedinfo.show_names ) {
 		name = ValueForKey( b->owner, "classname" );
-		qglRasterPos3f( b->mins[0] + 4, b->mins[1] + 4, b->mins[2] + 4 );
+        b->mins[0] += 4;
+        b->mins[1] += 4;
+        b->mins[2] += 4;
+        qglRasterPos3fv_convertFloat( b->mins );
 		gtk_glwidget_print_string( name );
 	}
 }
