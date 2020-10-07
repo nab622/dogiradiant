@@ -96,18 +96,22 @@ void getEntityAngles( entity_t *inputEntity, vec3_t finalAngle ) {
         const char *target, *targetName;
         entity_t *otherEnt;
 
-        target = ValueForKey( inputEntity, "target" );
-        if( strcmp( target, "" ) ) {
-            // If there's a targetname, find the targeted entity and aim at it
-            for ( otherEnt = entities.next ; otherEnt != &entities; otherEnt = otherEnt->next )
-            {
-                targetName = ValueForKey( otherEnt, "targetname" );
-                if ( !strcmp( target, targetName ) ) {
-                    GetVectorForKey( inputEntity, "origin", temp );
-                    GetVectorForKey( otherEnt, "origin", finalAngle );
-                    VectorSubtract( finalAngle, temp, temp );
-                    VectorToAngles( temp, temp );
-                    foundAngles = true;
+        // NAB622: If this entity is the type to show an angle arrow indicator in Radiant, then check for
+        // a targetname first. Otherwise we'll just use "angles" or "angle" below
+        if( inputEntity->eclass->nShowFlags & ECLASS_ANGLE ) {
+            target = ValueForKey( inputEntity, "target" );
+            if( strcmp( target, "" ) ) {
+                // If there's a targetname, find the targeted entity and aim at it
+                for ( otherEnt = entities.next ; otherEnt != &entities; otherEnt = otherEnt->next )
+                {
+                    targetName = ValueForKey( otherEnt, "targetname" );
+                    if ( !strcmp( target, targetName ) ) {
+                        GetVectorForKey( inputEntity, "origin", temp );
+                        GetVectorForKey( otherEnt, "origin", finalAngle );
+                        VectorSubtract( finalAngle, temp, temp );
+                        VectorToAngles( temp, temp );
+                        foundAngles = true;
+                    }
                 }
             }
         }
@@ -133,7 +137,7 @@ void getEntityAngles( entity_t *inputEntity, vec3_t finalAngle ) {
                 }
             }
         }
-        // Now let's copy the angles we've found to the output vec3
+        // Now let's copy the angles we've found (Or not found) to the output vec3
         VectorCopy( temp, finalAngle );
     }
 }
@@ -1564,7 +1568,7 @@ void MRU_AddFile( const char *str ){
 
     MRU_SetText( 0, str );
 	gtk_widget_set_sensitive( MRU_items[0], TRUE );
-    gtk_widget_show( MRU_items[MRU_used - 2] );
+    gtk_widget_show( MRU_items[MRU_used - 1] );
 }
 
 void MRU_Activate( int index ){

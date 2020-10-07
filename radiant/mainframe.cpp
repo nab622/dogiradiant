@@ -101,6 +101,9 @@ extern GtkWidget *PatchInspector;
 
 GtkAccelGroup* global_accel;
 
+// NAB622: Initialize the grid distance increment to 1
+int gridZoomPosition = 0;
+
 // NAB622: These variables are used to trigger window updates when a user is done resizing things
 int XYResizeCountdown = 0;
 int CameraResizeCountdown = 0;
@@ -5379,62 +5382,87 @@ void MainFrame::OnView100(){
 	Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
 
+float calculateRepeatMult( float input, int repeats, float multiplier ) {
+    if( repeats == 0 ) return input;
+    if( repeats > 0 ) {
+
+    for( repeats; repeats > 0; repeats-- ) {
+            input *= multiplier;
+        }
+    } else {
+        for( repeats; repeats < 0; repeats++ ) {
+            input *= multiplier;
+        }
+    }
+
+    return input;
+}
+
+float MainFrame::calculateGridIncrementChange( bool direction ) {
+    // Direction TRUE means zoom in, direction FALSE means zoom out
+    float output, minScale;
+
+    float zoomInIncrement = 1.25;   // This value must be a positive number greater than 1 to work correctly
+    float zoomOutIncrement = 1 / zoomInIncrement;   // Don't change this
+
+    float minZoomMultiplier = 1.375;
+
+    // Determine the minimum scale
+    if ( m_pXYWnd && m_pXYWnd->Active() ) {
+        minScale = MIN( m_pXYWnd->Width(),m_pXYWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+    } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
+        minScale = MIN( m_pXZWnd->Width(),m_pXZWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+    } else if ( m_pYZWnd && m_pYZWnd->Active() ) {
+        minScale = MIN( m_pYZWnd->Width(),m_pYZWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+    }
+
+    //Don't change gridZoomPosition if we're already at the outer limits!
+    if( direction ) {
+    if ( gridZoomPosition < 0 || calculateRepeatMult( 1.0, gridZoomPosition, zoomInIncrement ) < MAX_GRID_ZOOM_BLOCKSIZE ) {
+            gridZoomPosition++;
+        }
+    } else {
+    if ( gridZoomPosition > 0 || calculateRepeatMult( 1.0, gridZoomPosition, zoomOutIncrement ) > minScale ) {
+            gridZoomPosition--;
+        }
+    }
+
+    if( gridZoomPosition == 0 ) {
+        return 1;
+    }
+    else if( gridZoomPosition > 0 ) {
+        return CLAMP( calculateRepeatMult( 1.0, gridZoomPosition, zoomInIncrement ), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
+    } else if( gridZoomPosition < 0 ) {
+        return CLAMP( calculateRepeatMult( 1.0, gridZoomPosition, zoomOutIncrement ), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
+    }
+}
+
 void MainFrame::OnViewZoomin(){
-	if ( m_pXYWnd && m_pXYWnd->Active() ) {
-		m_pXYWnd->SetScale( m_pXYWnd->Scale() * 5.0 / 4 );
-        if ( m_pXYWnd->Scale() > MAX_GRID_ZOOM_BLOCKSIZE ) {
-            m_pXYWnd->SetScale( MAX_GRID_ZOOM_BLOCKSIZE );
-		}
-	}
+    if ( m_pXYWnd && m_pXYWnd->Active() ) {
+        m_pXYWnd->SetScale( calculateGridIncrementChange( true ) );
+    } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
+        m_pXZWnd->SetScale( calculateGridIncrementChange( true ) );
+    } else if ( m_pYZWnd && m_pYZWnd->Active() ) {
+        m_pYZWnd->SetScale( calculateGridIncrementChange( true ) );
+    }
 
-	if ( m_pXZWnd && m_pXZWnd->Active() ) {
-		m_pXZWnd->SetScale( m_pXZWnd->Scale() * 5.0 / 4 );
-        if ( m_pXZWnd->Scale() > MAX_GRID_ZOOM_BLOCKSIZE ) {
-            m_pXZWnd->SetScale( MAX_GRID_ZOOM_BLOCKSIZE );
-		}
-	}
-
-	if ( m_pYZWnd && m_pYZWnd->Active() ) {
-		m_pYZWnd->SetScale( m_pYZWnd->Scale() * 5.0 / 4 );
-        if ( m_pYZWnd->Scale() > MAX_GRID_ZOOM_BLOCKSIZE ) {
-            m_pYZWnd->SetScale( MAX_GRID_ZOOM_BLOCKSIZE );
-		}
-	}
-
-	Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
+    Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
 
 // NOTE: the zoom out factor is 4/5, we could think about customizing it
 //  we don't go below a zoom factor corresponding to 10% of the max world size
 //  (this has to be computed against the window size)
 void MainFrame::OnViewZoomout(){
-	float min_scale;
-	if ( m_pXYWnd && m_pXYWnd->Active() ) {
-		m_pXYWnd->SetScale( m_pXYWnd->Scale() * 4.0 / 5 );
-        min_scale = MIN( m_pXYWnd->Width(),m_pXYWnd->Height() ) / ( 1.375 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
-		if ( m_pXYWnd->Scale() < min_scale ) {
-			m_pXYWnd->SetScale( min_scale );
-		}
-	}
+    if ( m_pXYWnd && m_pXYWnd->Active() ) {
+        m_pXYWnd->SetScale( calculateGridIncrementChange( false ) );
+    } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
+        m_pXZWnd->SetScale( calculateGridIncrementChange( false ) );
+    } else if ( m_pYZWnd && m_pYZWnd->Active() ) {
+        m_pYZWnd->SetScale( calculateGridIncrementChange( false ) );
+    }
 
-	if ( m_pXZWnd && m_pXZWnd->Active() ) {
-		m_pXZWnd->SetScale( m_pXZWnd->Scale() * 4.0 / 5 );
-        min_scale = MIN( m_pXZWnd->Width(),m_pXZWnd->Height() ) / ( 1.375 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
-		if ( m_pXZWnd->Scale() < min_scale ) {
-			m_pXZWnd->SetScale( min_scale );
-		}
-	}
-
-	if ( m_pYZWnd && m_pYZWnd->Active() ) {
-		m_pYZWnd->SetScale( m_pYZWnd->Scale() * 4.0 / 5 );
-        min_scale = MIN( m_pYZWnd->Width(),m_pYZWnd->Height() ) / ( 1.375 * ( g_MaxWorldCoord - g_MinWorldCoord ) );
-		if ( m_pYZWnd->Scale() < min_scale ) {
-			m_pYZWnd->SetScale( min_scale );
-		}
-	}
-	Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
+    Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
-
 
 /*
 // NAB622: Disabling the Z window. It serves no purpose

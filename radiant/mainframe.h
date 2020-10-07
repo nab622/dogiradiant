@@ -37,6 +37,8 @@
 #define __toascii( c )    ( ( c ) & 0x7f )
 #endif
 
+extern int gridZoomPosition;
+
 extern int XYResizeCountdown;
 extern int CameraResizeCountdown;
 
@@ -72,6 +74,9 @@ struct SKeyInfo
 #define ID_EDIT_UNDO 0xE12B
 #define ID_EDIT_REDO 0xE12C
 #define ID_HELP 0xE146
+
+
+// NAB622: Make sure these are uninterrupted, consecutive numbers or it will mess up a handler
 #define ID_FILE_RECENT1 0xE110
 #define ID_FILE_RECENT2 0xE111
 #define ID_FILE_RECENT3 0xE112
@@ -92,6 +97,7 @@ struct SKeyInfo
 #define ID_FILE_RECENT18 0xE127
 #define ID_FILE_RECENT19 0xE128
 #define ID_FILE_RECENT20 0xE129
+
 
 #define IDC_BTN_FACEFIT                 1143
 #define ID_ENTITY_START                 22800
@@ -671,6 +677,7 @@ void OnViewTexture();
 void OnViewUpfloor();
 void OnViewXy();
 void OnViewZ100();
+float calculateGridIncrementChange( bool direction );
 void OnViewZoomin();
 void OnViewZoomout();
 void OnViewZzoomin();
