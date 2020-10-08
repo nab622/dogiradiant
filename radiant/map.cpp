@@ -524,7 +524,7 @@ void Map_Import( IDataStream *in, const char *type, bool bAddSelected ){
    Map_LoadFile
    ================
  */
-void Map_LoadFile( const char *filename ){
+void Map_LoadFile( const char *filename ) {
 	clock_t start, finish;
 	double elapsed_time;
 	start = clock();
@@ -622,6 +622,9 @@ void Map_LoadFile( const char *filename ){
 	QERApp_SortActiveShaders();
 
 	Sys_UpdateWindows( W_ALL );
+
+    // NAB622: Clear the undo buffer when loading a new level
+    Undo_Clear();
 
     g_bIgnoreCommands--;
 }
@@ -863,6 +866,10 @@ void Map_New( void ){
 
 	Sys_UpdateWindows( W_ALL );
 	modified = false;
+
+    // NAB622: Clear the undo buffer
+    Undo_Clear();
+
 }
 
 /*

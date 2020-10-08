@@ -5379,6 +5379,7 @@ void MainFrame::OnView100(){
 	if ( m_pYZWnd ) {
 		m_pYZWnd->SetScale( 1 );
 	}
+    gridZoomPosition = 0;
 	Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
 
@@ -5386,12 +5387,11 @@ float MainFrame::calculateGridIncrementChange( bool direction ) {
     // Direction TRUE means zoom in, direction FALSE means zoom out
     float output, minScale;
 
-    float zoomInIncrement = 1.25;   // This value must be a positive number greater than 1 to work correctly
-    float zoomOutIncrement = 1 / zoomInIncrement;   // Don't change this
+    // NAB622: This value is a multiplier for how much the grid zoom changes with each zoom increment. It must be a positive number greater than 1 to work correctly
+    float zoomIncrementAmount = 1.25;
 
+    // Determine the minimum scale allowed for the size of the XY window
     float minZoomMultiplier = 1.375;
-
-    // Determine the minimum scale
     if ( m_pXYWnd && m_pXYWnd->Active() ) {
         minScale = MIN( m_pXYWnd->Width(),m_pXYWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
     } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
@@ -5402,23 +5402,16 @@ float MainFrame::calculateGridIncrementChange( bool direction ) {
 
     //Don't change gridZoomPosition if we're already at the outer limits!
     if( direction ) {
-    if ( gridZoomPosition < 0 || pow( zoomInIncrement, abs( gridZoomPosition ) ) <= MAX_GRID_ZOOM_BLOCKSIZE ) {
+    if ( pow( zoomIncrementAmount, gridZoomPosition) <= MAX_GRID_ZOOM_BLOCKSIZE ) {
             gridZoomPosition++;
         }
     } else {
-    if ( gridZoomPosition > 0 || pow( zoomOutIncrement, abs( gridZoomPosition ) ) >= minScale ) {
+    if ( pow( zoomIncrementAmount, gridZoomPosition ) >= minScale ) {
             gridZoomPosition--;
         }
     }
 
-    if( gridZoomPosition == 0 ) {
-        return 1;
-    }
-    else if( gridZoomPosition > 0 ) {
-        return CLAMP( pow( zoomInIncrement, abs( gridZoomPosition ) ), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
-    } else if( gridZoomPosition < 0 ) {
-        return CLAMP( pow( zoomOutIncrement, abs( gridZoomPosition ) ), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
-    }
+    return CLAMP( pow( zoomIncrementAmount, gridZoomPosition), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
 }
 
 void MainFrame::OnViewZoomin(){
@@ -5433,9 +5426,6 @@ void MainFrame::OnViewZoomin(){
     Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
 
-// NOTE: the zoom out factor is 4/5, we could think about customizing it
-//  we don't go below a zoom factor corresponding to 10% of the max world size
-//  (this has to be computed against the window size)
 void MainFrame::OnViewZoomout(){
     if ( m_pXYWnd && m_pXYWnd->Active() ) {
         m_pXYWnd->SetScale( calculateGridIncrementChange( false ) );
