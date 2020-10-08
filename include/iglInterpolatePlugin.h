@@ -85,3 +85,17 @@ inline void qglRasterPos3fv_convertFloat( vec3_t input ) {
     }
     g_QglTable.m_pfn_qglRasterPos3fv( output );
 }
+
+// for lights
+inline void qglVertex6_convertFloat( vec3_t *points ) {
+    vecFloat3_t points_float[6];
+
+    for( int i = 0; i < 6; i++ ) {
+        for( int h = 0; h < 3; h++ ) {
+            points_float[i][h] = (float) points[i][h];
+        }
+    }
+
+    g_QglTable.m_pfn_qglVertexPointer( 3, GL_FLOAT, 0, points_float );
+
+}

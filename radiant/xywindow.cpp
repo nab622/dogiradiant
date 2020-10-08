@@ -761,7 +761,9 @@ void XYWnd::SetOrigin( vec3_t org ){
 void XYWnd::OnSize( int cx, int cy ){
 	m_nWidth = cx;
     m_nHeight = cy;
-    XYResizeCountdown = 2;
+    XYResizeCountdown = 1;
+    // In addition to the timed redraw, redraw immediately as well
+    Sys_UpdateWindows( W_XY_OVERLAY );
 }
 
 brush_t hold_brushes;
@@ -3284,7 +3286,7 @@ void XYWnd::XY_Draw(){
 		qglEnable( GL_LINE_STIPPLE );
 		qglLineStipple( 3, 0xaaaa );
 	}
-	qglLineWidth( 2 );
+    qglLineWidth( 2 );
 
 	vec3_t vMinBounds;
 	vec3_t vMaxBounds;

@@ -148,13 +148,7 @@ eclass_t *Eclass_InitFromText( char *text ){
 		return e;
 	}
 
-
-    vec_t temp[3];
-    for( int i = 0; i < 3; i++ ) {
-        temp[i] = (float) e->color[i];
-    }
-
-    sprintf( color, "(%f %f %f)", temp[0], temp[1], temp[2] );
+    sprintf( color, "(%lf %lf %lf)", e->color[0], e->color[1], e->color[2] );
 
     //strcpy (e->texdef.name, color);
 	e->texdef.SetName( color );

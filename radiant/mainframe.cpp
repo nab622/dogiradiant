@@ -4103,17 +4103,17 @@ void MainFrame::OnTimer(){
     // NAB622: If the windows were resized, they need redrawn or they can be glitched out.
     // If we wait until two retriggers after the user is done resizing, we can avoid bogging
     // down the program until the user is done.
+    if( CameraResizeCountdown > 0 ) {
+        CameraResizeCountdown--;
+        if ( CameraResizeCountdown == 0 ) {
+            Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
+        }
+    }
+
     if( XYResizeCountdown > 0 ) {
         XYResizeCountdown--;
         if ( XYResizeCountdown == 0 ) {
             Sys_UpdateWindows( W_XY_OVERLAY );
-        }
-    }
-
-    if( CameraResizeCountdown > 0 ) {
-        CameraResizeCountdown--;
-        if ( CameraResizeCountdown == 0 ) {
-            Sys_UpdateWindows( W_CAMERA_IFON );
         }
     }
 

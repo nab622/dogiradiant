@@ -842,7 +842,7 @@ void Map_SaveFile( const char *filename, qboolean use_region ){
    ===========
  */
 void Map_New( void ){
-	Sys_Printf( "Map_New\n" );
+    Sys_Printf( "New Map\n" );
 	Map_Free();
 
 	strcpy( currentmap, "unnamed.map" );

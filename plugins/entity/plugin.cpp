@@ -98,7 +98,7 @@ bool CSynapseClientEntity::RequestAPI( APIDescriptor_t *pAPI ){
 		pTable->m_pfnEntity_RemoveFromList = &Entity_RemoveFromList;
 		pTable->m_pfnEntity_LinkBrush = &Entity_LinkBrush;
 		pTable->m_pfnEntity_UnlinkBrush = &Entity_UnlinkBrush;
-		pTable->m_pfnDrawLight = &DrawLight;
+        pTable->m_pfnDrawLight = &DrawLight;
 		pTable->m_pfnEntity_MemorySize = &Entity_MemorySize;
 		pTable->m_pfnAllocateEpair = &Entity_AllocateEpair;
 		pTable->m_pfnGetEntityKeyValList = &Entity_GetKeyValList;

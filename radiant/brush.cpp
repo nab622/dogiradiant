@@ -725,7 +725,11 @@ void DrawBrushEntityName( brush_t *b ){
 	// TTimo: Brush_DrawFacingAngle is for camera view rendering, this function is called for 2D views
 	// FIXME - spog - not sure who put this here.. Brush_DrawFacingAngle() does this job?
 	// Brush_DrawFacingAngle() works when called, but is not being called.
-	if ( g_qeglobals.d_savedinfo.show_angles && ( b->owner->eclass->nShowFlags & ECLASS_ANGLE ) ) {
+
+    if ( g_qeglobals.d_savedinfo.show_angles && ( b->owner->eclass->nShowFlags & ECLASS_ANGLE )
+         && !( b->owner->eclass->nShowFlags & ECLASS_LIGHT ) ) {
+        // NAB622: Make sure the entity needs an angle arrow, and that we aren't drawing an angle arrow on a light...
+
 		// draw the angle pointer
         vec3_t entAngles;
         getEntityAngles( b->owner, entAngles );
@@ -3123,10 +3127,8 @@ void Brush_DrawFacingAngle( brush_t *b, entity_t *e ){
 	VectorScale( start, 0.5, start );
 	dist = ( b->maxs[0] - start[0] ) * 2.5;
 
-//    FacingVectors( e, forward, right, up );
     getEntityAngles( e, angles );
 
-    // Pitch kept coming out upside-down, so reverse it
     angles[PITCH] = -angles[PITCH];
 
     AngleVectors( angles, forward, right, up );
@@ -3347,7 +3349,7 @@ void Brush_DrawXY( brush_t *b, int nViewType ){
 	if ( b->owner->eclass->fixedsize ) {
 		if ( g_PrefsDlg.m_bNewLightDraw && ( b->owner->eclass->nShowFlags & ECLASS_LIGHT ) ) {
 #if 1 // requires vertex arrays enabled
-			DrawLight( b->owner, DRAW_GL_WIRE, ( IsBrushSelected( b ) ) ? g_PrefsDlg.m_nLightRadiuses : 0, nViewType );
+            DrawLight( b->owner, DRAW_GL_WIRE, ( IsBrushSelected( b ) ) ? g_PrefsDlg.m_nLightRadiuses : 0, nViewType );
 #else
 			vec3_t vCorners[4];
 			float fMid = b->mins[2] + ( b->maxs[2] - b->mins[2] ) / 2;

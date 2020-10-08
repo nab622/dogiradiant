@@ -315,7 +315,7 @@ unsigned short indices[24] = { 0, 2, 3, 0, 3, 4, 0, 4, 5, 0, 5, 2,
 							   1, 2, 5, 1, 5, 4, 1, 4, 3, 1, 3, 2 };
 
 void DrawLight( entity_t* e, int nGLState, int pref, int nViewType ){
-//  int i;
+    //  int i;
 	// top, bottom, tleft, tright, bright, bleft
 	vec3_t points[6];
 	vec3_t vMid, vMin, vMax;
@@ -435,7 +435,7 @@ void DrawLight( entity_t* e, int nGLState, int pref, int nViewType ){
 	}
 	else
 	{
-		g_QglTable.m_pfn_qglVertexPointer( 3, GL_FLOAT, 0, points );
+        qglVertex6_convertFloat( points );
 		g_QglTable.m_pfn_qglDrawElements( GL_TRIANGLES, 24, GL_UNSIGNED_SHORT, indices );
 	}
 
@@ -506,7 +506,7 @@ void DrawLight( entity_t* e, int nGLState, int pref, int nViewType ){
             vec_t* envelope = ( pref == 1 ) ? e->fLightEnvelope1 : e->fLightEnvelope2;
 			for ( int iPass = 0; iPass < nPasses; iPass++ )
 			{
-				float fRadius = envelope[iPass];
+                vec_t fRadius = envelope[iPass];
 
 				g_QglTable.m_pfn_qglBegin( GL_LINE_LOOP );
 
@@ -519,7 +519,7 @@ void DrawLight( entity_t* e, int nGLState, int pref, int nViewType ){
 				{
 					if ( fRadius > 0 ) {
 						int i;
-						float ds, dc;
+                        vec_t ds, dc;
 
 						for ( i = 0; i <= 24; i++ )
 						{

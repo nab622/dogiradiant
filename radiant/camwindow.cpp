@@ -125,6 +125,10 @@ void CamWnd::OnSize( int cx, int cy ){
 	m_Camera.height = cy;
     gtk_widget_queue_draw( m_pWidget );
     CameraResizeCountdown = 2;
+
+    // If the camera window was resized, the grid will need the FOV indicators redrawn, so cancel any grid redraws
+    XYResizeCountdown = 0;
+    Sys_UpdateWindows( W_XY_OVERLAY );
 }
 
 rectangle_t rectangle_from_area_cam(){
