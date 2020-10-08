@@ -5382,22 +5382,6 @@ void MainFrame::OnView100(){
 	Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
 
-float calculateRepeatMult( float input, int repeats, float multiplier ) {
-    if( repeats == 0 ) return input;
-    if( repeats > 0 ) {
-
-    for( repeats; repeats > 0; repeats-- ) {
-            input *= multiplier;
-        }
-    } else {
-        for( repeats; repeats < 0; repeats++ ) {
-            input *= multiplier;
-        }
-    }
-
-    return input;
-}
-
 float MainFrame::calculateGridIncrementChange( bool direction ) {
     // Direction TRUE means zoom in, direction FALSE means zoom out
     float output, minScale;
@@ -5418,11 +5402,11 @@ float MainFrame::calculateGridIncrementChange( bool direction ) {
 
     //Don't change gridZoomPosition if we're already at the outer limits!
     if( direction ) {
-    if ( gridZoomPosition < 0 || calculateRepeatMult( 1.0, gridZoomPosition, zoomInIncrement ) < MAX_GRID_ZOOM_BLOCKSIZE ) {
+    if ( gridZoomPosition < 0 || pow( zoomInIncrement, abs( gridZoomPosition ) ) <= MAX_GRID_ZOOM_BLOCKSIZE ) {
             gridZoomPosition++;
         }
     } else {
-    if ( gridZoomPosition > 0 || calculateRepeatMult( 1.0, gridZoomPosition, zoomOutIncrement ) > minScale ) {
+    if ( gridZoomPosition > 0 || pow( zoomOutIncrement, abs( gridZoomPosition ) ) >= minScale ) {
             gridZoomPosition--;
         }
     }
@@ -5431,9 +5415,9 @@ float MainFrame::calculateGridIncrementChange( bool direction ) {
         return 1;
     }
     else if( gridZoomPosition > 0 ) {
-        return CLAMP( calculateRepeatMult( 1.0, gridZoomPosition, zoomInIncrement ), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
+        return CLAMP( pow( zoomInIncrement, abs( gridZoomPosition ) ), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
     } else if( gridZoomPosition < 0 ) {
-        return CLAMP( calculateRepeatMult( 1.0, gridZoomPosition, zoomOutIncrement ), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
+        return CLAMP( pow( zoomOutIncrement, abs( gridZoomPosition ) ), minScale, MAX_GRID_ZOOM_BLOCKSIZE );
     }
 }
 
