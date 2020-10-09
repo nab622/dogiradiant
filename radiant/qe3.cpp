@@ -54,21 +54,27 @@ bool areWeOutOfBounds( vec3_t inputVectors ) {
     return false;
 }
 
-vec_t clampBoundaries( vec_t input ) {
-    return CLAMP( input, g_MinWorldCoord, g_MaxWorldCoord );
+void clampBoundaries( vec3_t input ) {
+    for( int i = 0; i < 3; i++ ) {
+        input[i] = CLAMP( input[i], g_MinWorldCoord, g_MaxWorldCoord );
+    }
 }
 
-vec_t clampCameraBoundaries( vec_t input ) {
+void clampCameraBoundaries( vec3_t input ) {
     // NAB622: This cushion multiplier will allow the camera outside the grid, just slightly
     float cushion = 1.015;
-    return CLAMP( input, g_MinWorldCoord * cushion, g_MaxWorldCoord * cushion );
+    vec_t max = g_MaxWorldCoord * cushion;
+    vec_t min = g_MinWorldCoord * cushion;
+    for( int i = 0; i < 3; i++ ) {
+        input[i] = CLAMP( input[i], min, max );
+    }
 }
 
 void fixUpsideDownAngles( vec3_t input, vec3_t output ) {
     for( int i = 0; i < 3; i++ ) {
         output[i] = calculateVecRotatingValueBeneathMax( input[i], 360 );
         // NAB622: Roll over BOTH the input and output vectors. Since we calculated this, may as
-        // well apply it to the input array. This will assure that the camera angles are covered
+        // well apply it to the input array. This will ensure that the camera angles are covered
         input[i] = output[i];
     }
 
@@ -1049,11 +1055,11 @@ void QE_CountBrushesAndUpdateStatusBar( void ){
         {
             next = b->next;
             if ( b->brush_faces ) {
-                if ( !b->owner->eclass->fixedsize ) {
-                    g_numbrushes++;
+                if ( b->owner->eclass->fixedsize ) {
+                    g_numentities++;
                 }
                 else{
-                    g_numentities++;
+                    g_numbrushes++;
                 }
             }
         }
@@ -1064,11 +1070,11 @@ void QE_CountBrushesAndUpdateStatusBar( void ){
         {
             next = b->next;
             if ( b->brush_faces ) {
-                if ( !b->owner->eclass->fixedsize ) {
-                    g_numbrushes++;
+                if ( b->owner->eclass->fixedsize ) {
+                    g_numentities++;
                 }
                 else{
-                    g_numentities++;
+                    g_numbrushes++;
                 }
             }
         }

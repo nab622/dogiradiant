@@ -41,6 +41,7 @@ extern int gridZoomPosition;
 
 extern int XYResizeCountdown;
 extern int CameraResizeCountdown;
+extern int statusBarDelay;
 
 extern GtkWidget *cubicClippingCheckbox;
 extern GtkWidget *xrayOutlineCheck;

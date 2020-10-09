@@ -174,7 +174,7 @@ void CamWnd::OnMouseMove( guint32 flags, int pointx, int pointy ){
 
 int CamWnd::calculateSpeed() {
     // If movement speed is not attached to the grid, return the normal movement speed
-    if(!g_PrefsDlg.m_nAttachCameraToGrid) {
+    if( !g_PrefsDlg.m_nAttachCameraToGrid ) {
         //m_nMoveSpeed is an integer. Must round it up
         return (int) ceil( g_PrefsDlg.m_nMoveSpeed );
     }
@@ -184,7 +184,7 @@ int CamWnd::calculateSpeed() {
     int max = 2048;
 
     float newSpeed = g_qeglobals.d_gridsize;
-    newSpeed = CLAMP(newSpeed, min, max);
+    newSpeed = CLAMP( newSpeed, min, max );
 
     //m_nMoveSpeed is an integer. Must round it up
     return (int) ceil( newSpeed );
@@ -199,9 +199,7 @@ void CamWnd::OnMouseWheel( bool bUp, int pointx, int pointy ){
     }
 
     // Make sure the camera isn't out of bounds
-    for( int i = 0; i < 3; i++ ) {
-        m_Camera.origin[i] = clampCameraBoundaries( m_Camera.origin[i] );
-    }
+    clampCameraBoundaries( m_Camera.origin );
 
     int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );
 	Sys_UpdateWindows( nUpdate );
@@ -351,9 +349,7 @@ void CamWnd::Cam_ChangeFloor( qboolean up ){
 	m_Camera.origin[2] += current - bestd;
 
     // Make sure the camera isn't out of bounds
-    for( int i = 0; i < 3; i++ ) {
-        m_Camera.origin[i] = clampCameraBoundaries( m_Camera.origin[i] );
-    }
+    clampCameraBoundaries( m_Camera.origin );
 
 	Sys_UpdateWindows( W_CAMERA | W_Z_OVERLAY );
 }
@@ -380,9 +376,7 @@ void CamWnd::Cam_PositionDrag( int buttons ){
         Sys_SetCursorPos( m_ptCursorX, m_ptCursorY );
 
         // Make sure the camera isn't out of bounds
-        for( int i = 0; i < 3; i++ ) {
-            m_Camera.origin[i] = clampCameraBoundaries( m_Camera.origin[i] );
-        }
+        clampCameraBoundaries( m_Camera.origin );
     }
 }
 
@@ -524,9 +518,7 @@ void CamWnd::Cam_KeyControl( float dtime ) {
 	}
 
     // Make sure the camera isn't out of bounds
-    for( int i = 0; i < 3; i++ ) {
-        m_Camera.origin[i] = clampCameraBoundaries( m_Camera.origin[i] );
-    }
+    clampCameraBoundaries( m_Camera.origin );
 
 	// Save a screen update (when m_bFreeMove is enabled, mousecontrol does the update)
 	if ( !m_bFreeMove && m_Camera.movementflags ) {
@@ -1406,7 +1398,7 @@ void CamWnd::Cam_Draw(){
 
 	screenaspect = (float)m_Camera.width / m_Camera.height;
 	yfov = 2 * atan( (float)m_Camera.height / m_Camera.width ) * 180 / Q_PI;
-    qgluPerspective( yfov,  screenaspect,  8,  g_PrefsDlg.m_nRenderDistance );
+    qgluPerspective( yfov,  screenaspect,  2,  g_PrefsDlg.m_nRenderDistance );
 
 	// we're too lazy to calc projection matrix ourselves!!!
     qglGetProjectionMatrixAsVec_t( m_Camera.projection );

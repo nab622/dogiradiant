@@ -104,9 +104,19 @@ GtkAccelGroup* global_accel;
 // NAB622: Initialize the grid distance increment to 1
 int gridZoomPosition = 0;
 
+
+// NAB622: The main window uses a timer for various things (Checking autosave, partial status bar refresh)
+// This value is how many milliseconds there are between updates
+#define TIMER_FREQUENCY 250
+// NAB622: Since we don't want to update the status bar as frequently as everything else, we'll use this delay for it
+#define STATUSBAR_FREQUENCY 1500
+
 // NAB622: These variables are used to trigger window updates when a user is done resizing things
 int XYResizeCountdown = 0;
 int CameraResizeCountdown = 0;
+
+// NAB622: This variable is used to track how long it has been since the last full status bar update
+int statusBarDelay = 0;
 
 void Select_Ungroup();
 
@@ -123,11 +133,6 @@ void Select_Ungroup();
 //
 #define SPEED_MOVE  32
 #define SPEED_TURN  22.5
-
-
-// NAB622: The main window uses a timer for various things (Checking autosave, partial status bar refresh)
-// This value is how many milliseconds there are between updates
-#define TIMER_FREQUENCY 250
 
 
 // NOTE: the menu item field is REQUIRED, Gtk uses it to bind the keyboard shortcut
@@ -4095,10 +4100,15 @@ void MainFrame::OnTimer(){
 	gdk_display_get_pointer( display, NULL, NULL, NULL, &mask );
 #endif
 
-	if ( ( mask & ( GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK ) ) == 0 ) {
-		QE_CountBrushesAndUpdateStatusBar();
-		QE_CheckAutoSave();
-	}
+
+    if( !( statusBarDelay >= STATUSBAR_FREQUENCY ) ) {
+        statusBarDelay += TIMER_FREQUENCY;
+    }
+    else if ( ( mask & ( GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK ) ) == 0 ) {
+        statusBarDelay = 0;
+        QE_CountBrushesAndUpdateStatusBar();
+        QE_CheckAutoSave();
+    }
 
     // NAB622: If the windows were resized, they need redrawn or they can be glitched out.
     // If we wait until two retriggers after the user is done resizing, we can avoid bogging
@@ -7608,7 +7618,8 @@ void MainFrame::OnSelectFuncGroup(){
 }
 
 void MainFrame::OnCameraForward( bool keydown ){
-	if ( g_PrefsDlg.m_bCamDiscrete && ( m_pCamWnd && !m_pCamWnd->m_bFreeMove ) ) {
+
+    if ( g_PrefsDlg.m_bCamDiscrete && ( m_pCamWnd && !m_pCamWnd->m_bFreeMove ) ) {
 		if ( keydown ) {
 			VectorMA( m_pCamWnd->Camera()->origin, SPEED_MOVE, m_pCamWnd->Camera()->forward, m_pCamWnd->Camera()->origin );
 			int nUpdate = ( g_PrefsDlg.m_bCamXYUpdate ) ? ( W_CAMERA | W_XY ) : ( W_CAMERA );

@@ -734,8 +734,6 @@ void DrawBrushEntityName( brush_t *b ){
         vec3_t entAngles;
         getEntityAngles( b->owner, entAngles );
 
-Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", entAngles[PITCH], entAngles[YAW], entAngles[ROLL] );
-
         switch ( g_pParentWnd->ActiveXY()->GetViewType() ) {
             case YZ:
                 a = entAngles[PITCH];
@@ -3537,10 +3535,10 @@ void Brush_Print( brush_t* b ){
 	int nFace = 0;
 	for ( face_t* f = b->brush_faces ; f ; f = f->next )
 	{
-		Sys_Printf( "Face %i\n", nFace++ );
-		Sys_Printf( "%f %f %f\n", f->planepts[0][0], f->planepts[0][1], f->planepts[0][2] );
-		Sys_Printf( "%f %f %f\n", f->planepts[1][0], f->planepts[1][1], f->planepts[1][2] );
-		Sys_Printf( "%f %f %f\n", f->planepts[2][0], f->planepts[2][1], f->planepts[2][2] );
+        Sys_Printf( "Face %i:\n", nFace++ );
+        Sys_Printf( "%lf %lf %lf\n", f->planepts[0][0], f->planepts[0][1], f->planepts[0][2] );
+        Sys_Printf( "%lf %lf %lf\n", f->planepts[1][0], f->planepts[1][1], f->planepts[1][2] );
+        Sys_Printf( "%lf %lf %lf\n", f->planepts[2][0], f->planepts[2][1], f->planepts[2][2] );
 	}
 }
 

@@ -744,10 +744,10 @@ bool DispatchOnLButtonUp( guint32 nFlags, int x, int y );
 #include "icamera.h"
 
 
-// NAB Functions
+// NAB622 Functions
 bool areWeOutOfBounds( vec3_t inputVectors );
-vec_t clampBoundaries( vec_t input );
-vec_t clampCameraBoundaries( vec_t input );
+void clampBoundaries( vec3_t input );
+void clampCameraBoundaries( vec3_t input );
 void fixUpsideDownAngles( vec3_t input, vec3_t output );
 void getEntityAngles( entity_t* inputEntity, vec3_t finalAngle );
 

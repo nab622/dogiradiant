@@ -1232,8 +1232,7 @@ void XYWnd::OnTimer(){
 	m_vOrigin[nDim2] -= m_ptDragAdjY / m_fScale;
 
     // Make sure the camera isn't out of bounds
-    m_vOrigin[nDim1] = clampCameraBoundaries(m_vOrigin[nDim1]);
-    m_vOrigin[nDim2] = clampCameraBoundaries(m_vOrigin[nDim2]);
+    clampCameraBoundaries( m_vOrigin );
 
     Sys_UpdateWindows( W_XY | W_CAMERA | W_ENTITY | W_SURFACE | W_PATCH );
 	m_ptDragX += m_ptDragAdjX;
@@ -1879,8 +1878,7 @@ void XYWnd::XY_MouseMoved( int x, int y, int buttons ){
 			Sys_SetCursorPos( m_ptCursorX, m_ptCursorY );
 
             // NAB622: Make sure we aren't outside the grid
-            m_vOrigin[nDim1] = clampBoundaries( m_vOrigin[nDim1] );
-            m_vOrigin[nDim2] = clampBoundaries( m_vOrigin[nDim2] );
+            clampBoundaries( m_vOrigin );
 
 			// create an empty cursor
 			if ( !g_bWaitCursor ) {
@@ -1929,9 +1927,7 @@ void XYWnd::moveCamera( int x, int y, vec3_t point ) {
     SnapToPoint( x, y, point );
 
     // Make sure the camera isn't out of bounds
-    for( int i = 0; i < 3; i++ ) {
-        point[i] = clampCameraBoundaries( point[i] );
-    }
+    clampCameraBoundaries( point );
 
     VectorCopyXY( point, g_pParentWnd->GetCamWnd()->Camera()->origin );
 
@@ -2002,12 +1998,15 @@ void XYWnd::angleCamera( int x, int y, vec3_t point ) {
             g_pParentWnd->GetCamWnd()->Camera()->angles[YAW] = tempAngle[YAW];
             break;
     }
-//Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
     Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
 }
 
 bool XYWnd::areWeOffTheGrid( int x, int y ) {
     vec3_t testPoint;
+
+    // NAB622: These *MUST* be initialized, because XY_ToPoint does not and can not
+    VectorClear( testPoint );
+
     XY_ToPoint( x, m_pWidget->allocation.height - 1 - y, testPoint );
 
     if( areWeOutOfBounds( testPoint ) ) {
