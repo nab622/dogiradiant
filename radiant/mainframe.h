@@ -38,6 +38,7 @@
 #endif
 
 extern int gridZoomPosition;
+extern float zoomIncrementAmount;
 
 extern int XYResizeCountdown;
 extern int CameraResizeCountdown;
@@ -47,6 +48,10 @@ extern GtkWidget *cubicClippingCheckbox;
 extern GtkWidget *xrayOutlineCheck;
 extern GtkWidget *cubicClippingSpin;
 extern GtkWidget *outlineComboBox;
+extern GtkWidget *renderDistanceSpin;
+extern GtkWidget *xfovSpin;
+extern GtkWidget *vertexEdgeHandleSpin;
+
 
 const int RAD_SHIFT =   0x01;
 const int RAD_ALT =     0x02;
@@ -678,7 +683,7 @@ void OnViewTexture();
 void OnViewUpfloor();
 void OnViewXy();
 void OnViewZ100();
-float calculateGridIncrementChange( bool direction );
+float calculateGridIncrement( int change );
 void OnViewZoomin();
 void OnViewZoomout();
 void OnViewZzoomin();

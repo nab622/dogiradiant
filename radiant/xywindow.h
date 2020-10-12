@@ -31,6 +31,8 @@
 const float gridCameraSymbolColor[3] = { 0.25, 0.8, 1.0 };
 const float cameraSymbolOutlineColor[3] = { 0.0, 0.0, 0.0 };
 
+extern int gridZoomPosition;
+extern float zoomIncrementAmount;
 
 // The fourth value on these colors is the alpha
 const bool drawZSymbolOnGrid = false;     // NAB622: Disabling the Z window. It serves no purpose

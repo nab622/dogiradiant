@@ -111,6 +111,7 @@ void Cam_Init();
 void Cam_BuildMatrix();
 void Cam_PositionDrag( int buttons );
 void Cam_KeyControl( float dtime );
+void CalculateClickDirection( int x, int y, vec3_t dir );
 void Cam_MouseDown( int x, int y, int buttons );
 void Cam_MouseUp( int x, int y, int buttons );
 void Cam_MouseMoved( int x, int y, int buttons );
@@ -138,6 +139,7 @@ vec3_t m_vCull1;
 vec3_t m_vCull2;
 int m_nCullv1[3];
 int m_nCullv2[3];
+float yfov;     // NAB622: Moved this here for better scope
 bool m_bClipMode;
 guint m_FocusOutHandler_id;
 

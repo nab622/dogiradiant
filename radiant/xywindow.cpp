@@ -2260,7 +2260,7 @@ void XYWnd::XY_Init(){
 	m_vOrigin[0] = 0;
 	m_vOrigin[1] = 20;
 	m_vOrigin[2] = 46;
-	m_fScale = 1;
+    m_fScale = pow( zoomIncrementAmount, gridZoomPosition);
 }
 
 void XYWnd::SnapToPoint( int x, int y, vec3_t point ){
@@ -2794,7 +2794,7 @@ void XYWnd::DrawRotateIcon(){
 
 void XYWnd::DrawCameraIcon(){
     float x, y, a, fov, box, fovScale, fovAngle;
-
+    double xfovRad , yfovRad;
     fov = 48 / m_fScale;
 	box = 16 / m_fScale;
 
@@ -2810,8 +2810,8 @@ void XYWnd::DrawCameraIcon(){
             fovScale = abs( fmod( g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH] - 180, 90) );
             fovScale /= 90;
         }
-        // NAB622: The camera window forces 90 degree visibility on this axis, always
-        fovAngle = 90;
+
+        fovAngle = 180 - (float) g_PrefsDlg.m_nXfov;
         break;
     case XZ:
         x = g_pParentWnd->GetCamWnd()->Camera()->origin[0];
@@ -2834,8 +2834,13 @@ void XYWnd::DrawCameraIcon(){
                 fovScale = 1 - ( fovScale / 90 );
             }
         }
+
         // NAB622: Calculate the FOV
-        fovAngle = 2 * atan( (float)g_pParentWnd->GetCamWnd()->Camera()->width / g_pParentWnd->GetCamWnd()->Camera()->height ) * 180 / Q_PI;
+        // NAB622: This works, I'm done playing with it
+        xfovRad = (float) g_PrefsDlg.m_nXfov * Q_PI / 180;
+        yfovRad = 2 * atan( tan( xfovRad / 2 ) * ( (float)g_pParentWnd->GetCamWnd()->Camera()->height / g_pParentWnd->GetCamWnd()->Camera()->width ) );
+        fovAngle = (float) yfovRad * 180 / Q_PI;
+        fovAngle = 180 - fovAngle * -1;
         break;
     case YZ:
         x = g_pParentWnd->GetCamWnd()->Camera()->origin[1];
@@ -2858,8 +2863,13 @@ void XYWnd::DrawCameraIcon(){
                 fovScale /= 90;
             }
         }
+
         // NAB622: Calculate the FOV
-        fovAngle = 2 * atan( (float)g_pParentWnd->GetCamWnd()->Camera()->width / g_pParentWnd->GetCamWnd()->Camera()->height ) * 180 / Q_PI;
+        // NAB622: This works, I'm done playing with it
+        xfovRad = (float) g_PrefsDlg.m_nXfov * Q_PI / 180;
+        yfovRad = 2 * atan( tan( xfovRad / 2 ) * ( (float)g_pParentWnd->GetCamWnd()->Camera()->height / g_pParentWnd->GetCamWnd()->Camera()->width ) );
+        fovAngle = (float) yfovRad * 180 / Q_PI;
+        fovAngle = 180 - fovAngle * -1;
         break;
     }
 

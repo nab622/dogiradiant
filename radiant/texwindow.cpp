@@ -1953,7 +1953,8 @@ void TexWnd::OnMButtonDown( guint32 flags, int pointx, int pointy ){
 
 void TexWnd::OnLButtonUp( guint32 flags, int pointx, int pointy ){
 	ReleaseCapture();
-	DragDropTexture( flags, pointx, pointy );
+// NAB622: Disabled due to horrendous bugs
+//	DragDropTexture( flags, pointx, pointy );
 }
 
 void TexWnd::OnRButtonUp( guint32 flags, int pointx, int pointy ){
@@ -2077,7 +2078,8 @@ void TexWnd::DragDropTexture( guint32 flags, int pointx, int pointy ){
 	y = g_pParentWnd->GetCamWnd()->Camera()->height - 1 - ( m_ptY - y );
 	u = (float)( y - ( g_pParentWnd->GetCamWnd()->Camera()->height * .5f ) ) / ( g_pParentWnd->GetCamWnd()->Camera()->height * .5f );
 	r = (float)( x - ( g_pParentWnd->GetCamWnd()->Camera()->width * .5f ) ) / ( g_pParentWnd->GetCamWnd()->Camera()->width * .5f );
-	f = 1;
+    // NAB622: This will need to get the FOV value now. I didn't bother because the entire mess was broken anyway, so I disabled it
+    f = 1;
 
 	for ( i = 0 ; i < 3 ; i++ )
 		dir[i] = g_pParentWnd->GetCamWnd()->Camera()->vpn[i] * f +

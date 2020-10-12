@@ -174,12 +174,11 @@ vec_t VectorNormalize( const vec3_t in, vec3_t out ) {
 	// I don't see a reason why using a double outright (instead of using the
 	// vec_accu_t alias for example) could possibly be frowned upon.
 
-    // NAB622: Since vectors are no longer floats...this may as well be made as precise as possible
-    long double x, y, z, length;
+    double x, y, z, length;
 
-    x = (long double) in[0];
-    y = (long double) in[1];
-    z = (long double) in[2];
+    x = (double) in[0];
+    y = (double) in[1];
+    z = (double) in[2];
 
 	length = sqrt( ( x * x ) + ( y * y ) + ( z * z ) );
 	if ( length == 0 ) {
@@ -372,7 +371,7 @@ void AngleVectors( vec3_t angles, vec3_t forward, vec3_t right, vec3_t up ){
 	static float sr, sp, sy, cr, cp, cy;
 	// static to help MS compiler fp bugs
 
-	angle = angles[YAW] * ( M_PI * 2.0f / 360.0f );
+    angle = angles[YAW] * ( M_PI * 2.0f / 360.0f );
 	sy = (vec_t)sin( angle );
 	cy = (vec_t)cos( angle );
 	angle = angles[PITCH] * ( M_PI * 2.0f / 360.0f );

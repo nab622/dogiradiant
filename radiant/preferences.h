@@ -657,6 +657,7 @@ int m_nAngleSpeed;
 int m_nMoveSpeed;
 int m_nAutoSave;
 int m_nRenderDistance;
+int m_nXfov;
 bool m_bCubicClipping;
 int m_nCubicIncrement;
 int m_nCubicClipMin;

@@ -277,8 +277,10 @@ void CamWnd::Cam_BuildMatrix(){
     vec_t matrix[4][4];
 	int i;
 
-	if ( !m_bFreeMove ) {
-		ya = m_Camera.angles[1] / 180 * Q_PI;
+/*
+// NAB622: I always hated how the camera moved on a 2D plane when freelook wasn't active. Commenting this out and putting the relevant bit below
+    if ( !m_bFreeMove ) {
+        ya = m_Camera.angles[1] / 180 * Q_PI;
 
 		// the movement matrix is kept 2d
 		m_Camera.forward[0] = cos( ya );
@@ -289,11 +291,16 @@ void CamWnd::Cam_BuildMatrix(){
 	}
 	else
 	{
-		AngleVectors( m_Camera.angles, m_Camera.forward, m_Camera.right, NULL );
+        CameraAngleVectors( m_Camera.angles, m_Camera.forward, m_Camera.right, NULL );
 		m_Camera.forward[2] = -m_Camera.forward[2];
 	}
+*/
+    // NAB622: From now on, always calculate the camera's movement on a 3D plane.
+    AngleVectors( m_Camera.angles, m_Camera.forward, m_Camera.right, NULL );
+    m_Camera.forward[2] = -m_Camera.forward[2];
 
-	memcpy( matrix, m_Camera.projection, sizeof( m4x4_t ) );
+
+    memcpy( matrix, m_Camera.projection, sizeof( m4x4_t ) );
 	m4x4_multiply_by_m4x4( &matrix[0][0], &m_Camera.modelview[0][0] );
 
 	//qglGetFloatv (GL_PROJECTION_MATRIX, &matrix[0][0]);
@@ -351,13 +358,13 @@ void CamWnd::Cam_ChangeFloor( qboolean up ){
     // Make sure the camera isn't out of bounds
     clampCameraBoundaries( m_Camera.origin );
 
-	Sys_UpdateWindows( W_CAMERA | W_Z_OVERLAY );
+    Sys_UpdateWindows( W_XY_OVERLAY | W_CAMERA );
 }
 
 void CamWnd::Cam_PositionDrag( int buttons ){
     int x, y;
 
-    //Bring this value in and greatly reduce it before use. MAKE SURE it's a float before the division or the decimal is lost!
+    //Bring this value in and greatly reduce it before use
     float multiplier = ( (float) calculateSpeed() ) / 16;
 
     //Impose a min and max so it doesn't get too crazy
@@ -622,22 +629,26 @@ void CamWnd::ToggleFreeMove(){
 	g_pParentWnd->OnTimer();
 }
 
-void CamWnd::Cam_MouseDown( int x, int y, int buttons ){
-	vec3_t dir;
-    vec_t f, r, u;
-	int i;
+void CamWnd::CalculateClickDirection( int x, int y, vec3_t dir ) {
+    vec_t u, r, f;
 
-
-	//
-	// calc ray direction
-	//
     u = (vec_t)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
     r = (vec_t)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
-	f = 1;
 
-	for ( i = 0 ; i < 3 ; i++ )
-		dir[i] = m_Camera.vpn[i] * f + m_Camera.vright[i] * r + m_Camera.vup[i] * u;
-	VectorNormalize( dir, dir );
+    double xfovRad = (double) g_PrefsDlg.m_nXfov * Q_PI / 180;
+    f = cos( xfovRad / 2 ) / sin( xfovRad / 2);
+
+    for ( int i = 0 ; i < 3 ; i++ ) {
+        dir[i] = m_Camera.vpn[i] * f + m_Camera.vright[i] * r + m_Camera.vup[i] * u;
+    }
+
+    VectorNormalize( dir, dir );
+}
+
+void CamWnd::Cam_MouseDown( int x, int y, int buttons ){
+	vec3_t dir;
+
+    CalculateClickDirection( x, y, dir );
 
 	Sys_GetCursorPos( &m_ptCursorX, &m_ptCursorY );
 
@@ -713,19 +724,8 @@ void CamWnd::Cam_MouseMoved( int x, int y, int buttons ){
 
 			if ( bDoDragMultiSelect ) {
 				vec3_t dir;
-                vec_t f, r, u;
-				int i;
 
-				//
-				// calc ray direction
-				//
-                u = (vec_t)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
-                r = (vec_t)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
-				f = 1;
-
-				for ( i = 0 ; i < 3 ; i++ )
-					dir[i] = m_Camera.vpn[i] * f + m_Camera.vright[i] * r + m_Camera.vup[i] * u;
-				VectorNormalize( dir,dir );
+                CalculateClickDirection( x, y, dir );
 
 				switch ( g_qeglobals.d_select_mode )
 				{
@@ -746,19 +746,8 @@ void CamWnd::Cam_MouseMoved( int x, int y, int buttons ){
 		else if ( g_qeglobals.d_select_mode == sel_facets_on || g_qeglobals.d_select_mode == sel_facets_off ) {
 			if ( buttons == ( MK_LBUTTON | MK_CONTROL | MK_SHIFT ) ) {
 				vec3_t dir;
-                vec_t f, r, u;
-				int i;
 
-				//
-				// calc ray direction
-				//
-                u = (vec_t)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
-                r = (vec_t)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
-				f = 1;
-
-				for ( i = 0 ; i < 3 ; i++ )
-					dir[i] = m_Camera.vpn[i] * f + m_Camera.vright[i] * r + m_Camera.vup[i] * u;
-				VectorNormalize( dir,dir );
+                CalculateClickDirection( x, y, dir );
 
 				switch ( g_qeglobals.d_select_mode )
 				{
@@ -815,9 +804,9 @@ void CamWnd::InitCull(){
 			m_nCullv2[i] = 3 + i;
 		}
 		else{
-			m_nCullv2[i] = i;
+            m_nCullv2[i] = i;
 		}
-	}
+    }
 }
 
 qboolean CamWnd::CullBrush( brush_t *b, float distance ){
@@ -825,6 +814,11 @@ qboolean CamWnd::CullBrush( brush_t *b, float distance ){
     vec3_t point;
     float d;
 
+    // *************
+    // DISTANCE CULL
+    // *************
+
+    // Cull anything that is outside of the render distance or cubic clipping distance
     point[0] = m_Camera.origin[0] - distance;
     point[1] = m_Camera.origin[1] - distance;
     point[2] = m_Camera.origin[2] - distance;
@@ -843,22 +837,33 @@ qboolean CamWnd::CullBrush( brush_t *b, float distance ){
             return true;
         }
 
-	for ( i = 0 ; i < 3 ; i++ )
-		point[i] = b->mins[m_nCullv1[i]] - m_Camera.origin[i];
+    // **********
+    // ANGLE CULL
+    // **********
 
-	d = DotProduct( point, m_vCull1 );
-	if ( d < -1 ) {
+    // If the horizontal FOV is greater than 90, the culling method below won't work. Bypass it!
+    // NAB622: FIXME: See if this can be improved later...this can't be good for performance. Maybe a frustum cull??
+    if( g_PrefsDlg.m_nXfov > 90 ) {
+        return false;
+    }
+
+    // Cull the brushes not visible off the right side of the camera
+    for ( i = 0 ; i < 3 ; i++ )
+        point[i] = b->mins[m_nCullv1[i]] - m_Camera.origin[i];
+
+    d = DotProduct( point, m_vCull1 );
+    if ( d < -1 ) {
 		return true;
 	}
 
-	for ( i = 0 ; i < 3 ; i++ )
-		point[i] = b->mins[m_nCullv2[i]] - m_Camera.origin[i];
+    // Cull the brushes not visible off the left side of the camera
+    for ( i = 0 ; i < 3 ; i++ )
+        point[i] = b->mins[m_nCullv2[i]] - m_Camera.origin[i];
 
-	d = DotProduct( point, m_vCull2 );
-	if ( d < -1 ) {
-		return true;
+    d = DotProduct( point, m_vCull2 );
+    if ( d < -1 ) {
+        return true;
 	}
-
 	return false;
 }
 
@@ -1359,8 +1364,7 @@ void CamWnd::Cam_Draw(){
 	brush_t   *brush;
 	face_t    *face;
 	float screenaspect;
-	float yfov;
-	double start = 0.0, end;
+    double start = 0.0, end;
 	int i;
     vec3_t correctedAngles;
 
@@ -1397,10 +1401,17 @@ void CamWnd::Cam_Draw(){
 	qglLoadIdentity();
 
 	screenaspect = (float)m_Camera.width / m_Camera.height;
-	yfov = 2 * atan( (float)m_Camera.height / m_Camera.width ) * 180 / Q_PI;
+
+//    yfov = 2 * ( atan( (float)m_Camera.height / m_Camera.width ) * 180 / Q_PI );      // Original
+
+    // NAB622: This works, I'm done playing with it
+    double xfovRad = (double) g_PrefsDlg.m_nXfov * Q_PI / 180;
+    double yfovRad = 2 * atan( tan( xfovRad / 2 ) * ( (float)m_Camera.height / m_Camera.width ) );
+    yfov = (float) yfovRad * 180 / Q_PI;
+
     qgluPerspective( yfov,  screenaspect,  2,  g_PrefsDlg.m_nRenderDistance );
 
-	// we're too lazy to calc projection matrix ourselves!!!
+    // we're too lazy to calc projection matrix ourselves!!!
     qglGetProjectionMatrixAsVec_t( m_Camera.projection );
 
     vec3_t vec;
@@ -1415,9 +1426,11 @@ void CamWnd::Cam_Draw(){
     VectorSet( vec, 0, 0, -correctedAngles[YAW] );
     m4x4_rotate_by_vec3( &m_Camera.modelview[0][0], vec, eXYZ );
 
-    // NAB622: Added this because what the help
+/*
+// NAB622: If you want the camera to be able to roll, here's where you'd do it. Don't bother, though, because it'll mess up soooo much stuff.
     VectorSet( vec, -correctedAngles[ROLL], 0, 0 );
     m4x4_rotate_by_vec3( &m_Camera.modelview[0][0], vec, eXYZ );
+*/
 
     VectorSet( vec, -m_Camera.origin[0],  -m_Camera.origin[1],  -m_Camera.origin[2] );
 	m4x4_translate_by_vec3( &m_Camera.modelview[0][0], vec );

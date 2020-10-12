@@ -101,9 +101,6 @@ extern GtkWidget *PatchInspector;
 
 GtkAccelGroup* global_accel;
 
-// NAB622: Initialize the grid distance increment to 1
-int gridZoomPosition = 0;
-
 
 // NAB622: The main window uses a timer for various things (Checking autosave, partial status bar refresh)
 // This value is how many milliseconds there are between updates
@@ -1447,10 +1444,10 @@ void MainFrame::create_main_menu( GtkWidget *window, GtkWidget *vbox ){
                                                  G_CALLBACK( HandleCommand ), ID_GRID_8, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_8", item );
     item = create_radio_menu_item_with_mnemonic( menu, item, _( "16 Units" ),
-                                                 G_CALLBACK( HandleCommand ), ID_GRID_16, TRUE );
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_16, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_16", item );
     item = create_radio_menu_item_with_mnemonic( menu, item, _( "32 Units" ),
-												 G_CALLBACK( HandleCommand ), ID_GRID_32, FALSE );
+                                                 G_CALLBACK( HandleCommand ), ID_GRID_32, FALSE );
 	g_object_set_data( G_OBJECT( window ), "menu_grid_32", item );
     item = create_radio_menu_item_with_mnemonic( menu, item, _( "64 Units" ),
 												 G_CALLBACK( HandleCommand ), ID_GRID_64, FALSE );
@@ -5052,6 +5049,7 @@ void MainFrame::OnPrefs() {
     int nCubicScale = g_PrefsDlg.m_nCubicScale;
     int nMRUCount = g_PrefsDlg.m_nMRUCount;
     int nVertexEdgeHandleSize = g_PrefsDlg.m_nVertexEdgeHandleSize;
+    int nXfov = g_PrefsDlg.m_nXfov;
 
 
     if( g_PrefsDlg.DoModal() == IDOK ) {
@@ -5106,18 +5104,26 @@ void MainFrame::OnPrefs() {
         if ( g_PrefsDlg.m_nRenderDistance != nRenderDistance ||
              g_PrefsDlg.m_bCubicClipping != bCubicClipping ||
              g_PrefsDlg.m_nCubicScale != nCubicScale ||
-             g_PrefsDlg.m_nVertexEdgeHandleSize != nVertexEdgeHandleSize ) {
+             g_PrefsDlg.m_nVertexEdgeHandleSize != nVertexEdgeHandleSize ||
+            g_PrefsDlg.m_nXfov != nXfov ) {
 
 
+                g_PrefsDlg.m_nXfov = nXfov;
                 g_PrefsDlg.m_nRenderDistance = nRenderDistance;
                 g_PrefsDlg.m_bCubicClipping = bCubicClipping;
                 g_PrefsDlg.m_nCubicScale = nCubicScale;
                 g_PrefsDlg.m_nVertexEdgeHandleSize = nVertexEdgeHandleSize;
 
                 // Checkbox needs to be switched back to the original state or it'll get out of sync
-                gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
+                gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), bCubicClipping );
 
-                Sys_UpdateWindows( W_CAMERA );
+                // Set the spin buttons back to the original values
+                gtk_spin_button_set_value( GTK_SPIN_BUTTON( renderDistanceSpin ), nRenderDistance );
+                gtk_spin_button_set_value( GTK_SPIN_BUTTON( cubicClippingSpin ), nCubicScale );
+                gtk_spin_button_set_value( GTK_SPIN_BUTTON( xfovSpin ), nXfov );
+                gtk_spin_button_set_value( GTK_SPIN_BUTTON( vertexEdgeHandleSpin ), nVertexEdgeHandleSize );
+
+                Sys_UpdateWindows( W_XY_OVERLAY | W_CAMERA );
         }
 
     }
@@ -5393,15 +5399,13 @@ void MainFrame::OnView100(){
 	Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
 
-float MainFrame::calculateGridIncrementChange( bool direction ) {
-    // Direction TRUE means zoom in, direction FALSE means zoom out
+float MainFrame::calculateGridIncrement( int change ) {
+    // Positive values for 'change' will increment, negative values will decrement. 0 will perform no changes
     float output, minScale;
-
-    // NAB622: This value is a multiplier for how much the grid zoom changes with each zoom increment. It must be a positive number greater than 1 to work correctly
-    float zoomIncrementAmount = 1.25;
 
     // Determine the minimum scale allowed for the size of the XY window
     float minZoomMultiplier = 1.375;
+
     if ( m_pXYWnd && m_pXYWnd->Active() ) {
         minScale = MIN( m_pXYWnd->Width(),m_pXYWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
     } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
@@ -5411,12 +5415,14 @@ float MainFrame::calculateGridIncrementChange( bool direction ) {
     }
 
     //Don't change gridZoomPosition if we're already at the outer limits!
-    if( direction ) {
-    if ( pow( zoomIncrementAmount, gridZoomPosition) <= MAX_GRID_ZOOM_BLOCKSIZE ) {
+    if( change > 0 ) {
+        if ( pow( zoomIncrementAmount, gridZoomPosition) <= MAX_GRID_ZOOM_BLOCKSIZE ) {
+            // NAB622: Only change it by 1, there's little point calculating out the entire mess to find out the max
             gridZoomPosition++;
         }
-    } else {
-    if ( pow( zoomIncrementAmount, gridZoomPosition ) >= minScale ) {
+    } else if ( change < 0 ) {
+        if ( pow( zoomIncrementAmount, gridZoomPosition ) >= minScale ) {
+            // NAB622: Only change it by 1, there's little point calculating out the entire mess to find out the max
             gridZoomPosition--;
         }
     }
@@ -5426,11 +5432,11 @@ float MainFrame::calculateGridIncrementChange( bool direction ) {
 
 void MainFrame::OnViewZoomin(){
     if ( m_pXYWnd && m_pXYWnd->Active() ) {
-        m_pXYWnd->SetScale( calculateGridIncrementChange( true ) );
+        m_pXYWnd->SetScale( calculateGridIncrement( 1 ) );
     } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
-        m_pXZWnd->SetScale( calculateGridIncrementChange( true ) );
+        m_pXZWnd->SetScale( calculateGridIncrement( 1 ) );
     } else if ( m_pYZWnd && m_pYZWnd->Active() ) {
-        m_pYZWnd->SetScale( calculateGridIncrementChange( true ) );
+        m_pYZWnd->SetScale( calculateGridIncrement( 1 ) );
     }
 
     Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
@@ -5438,11 +5444,11 @@ void MainFrame::OnViewZoomin(){
 
 void MainFrame::OnViewZoomout(){
     if ( m_pXYWnd && m_pXYWnd->Active() ) {
-        m_pXYWnd->SetScale( calculateGridIncrementChange( false ) );
+        m_pXYWnd->SetScale( calculateGridIncrement( -1 ) );
     } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
-        m_pXZWnd->SetScale( calculateGridIncrementChange( false ) );
+        m_pXZWnd->SetScale( calculateGridIncrement( -1 ) );
     } else if ( m_pYZWnd && m_pYZWnd->Active() ) {
-        m_pYZWnd->SetScale( calculateGridIncrementChange( false ) );
+        m_pYZWnd->SetScale( calculateGridIncrement( -1 ) );
     }
 
     Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
@@ -5699,19 +5705,22 @@ void MainFrame::OnViewCubicclipping(){
 	GtkWidget *w;
 
     g_PrefsDlg.m_bCubicClipping ^= 1;
-	g_bIgnoreCommands++;
+
+    g_bIgnoreCommands++;
+
 	w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_view_cubicclipping" ) );
 	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
 	w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "ttb_view_cubicclipping" ) );
     gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
-	g_bIgnoreCommands--;
 
     if ( GTK_IS_WIDGET( cubicClippingCheckbox ) ) {
+Sys_Printf( g_PrefsDlg.m_bCubicClipping ? "TRUE\n" : "FALSE\n" );
         // NAB622: If the preferences window is open, we need to update it
         gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
     }
     g_PrefsDlg.SavePrefs();
 
+    g_bIgnoreCommands--;
 
 	//Map_BuildBrushData ();
 	Sys_UpdateWindows( W_CAMERA );
@@ -6185,7 +6194,7 @@ void MainFrame::OnGrid( unsigned int nID ){
         case ID_GRID_2048: g_qeglobals.d_gridsize = 2048.0; break;
         case ID_GRID_4096: g_qeglobals.d_gridsize = 4096.0; break;
         default:
-            g_qeglobals.d_gridsize = 16.0;
+            g_qeglobals.d_gridsize = 32.0;
     }
 
     // NAB622: g_qeglobals.d_bSmallGrid and Sys_UpdateWindows are handled in the following function, no need for it here
@@ -7960,7 +7969,6 @@ void MainFrame::applyGridSize( float newSize ) {
     g_bIgnoreCommands--;
 
     // SnapTToGrid option: need to check everywhere the grid size is changed
-    // this is a bit clumsy, have to do in OnGrid OnGridPrev and OnGridNext
     if ( g_PrefsDlg.m_bSnapTToGrid ) {
         DoSnapTToGrid();
     }

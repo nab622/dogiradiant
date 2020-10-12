@@ -92,6 +92,7 @@
 #define CUBICMAX_KEY            "CubicMax"
 #define CUBICMIN_KEY            "CubicMin"
 #define RENDER_DIST_KEY         "RenderDistance"
+#define XFOV_KEY                "Xfov"
 #define ALTEDGE_KEY             "ALTEdgeDrag"
 #define FACECOLORS_KEY          "FaceColors"
 #define SNAPT_KEY               "SnapT"
@@ -241,10 +242,16 @@
 //Setting this up here so it can be used several places
 int maximumRenderDistance = abs( (int) ceil( ( g_MaxWorldCoord - g_MinWorldCoord ) * sqrt(3) ) );
 
+// NAB622: These are set up here for convenience. FOV is bounds-checked when loaded, so
+// it is good to have a single define for all the GTK and bounds-check stuff
+#define DEFAULT_FOV 100
+#define MIN_FOV 70
+#define MAX_FOV 130
 
 // Declaring these up here...
-GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *xrayOutlineCheck, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox, *cameraMovementSlider, *vertexEdgeHandleSpin;
+GtkWidget *renderDistanceSpin, *resetRenderDistanceButton, *cubicClippingCheckbox, *xrayOutlineCheck, *cubicClippingSpin, *cubicClippingCalculatedDistanceLabel, *outlineComboBox, *cameraMovementSlider, *vertexEdgeHandleSpin, *xfovSpin;
 
+static void updateXFov();
 static void updateVertexEdgeHandles();
 static void xraySelectionToggled();
 static void resetRenderDistanceSpin();
@@ -679,6 +686,7 @@ PrefsDlg::PrefsDlg (){
 	m_nRotation = 0;
     m_nVertexEdgeHandleSize = 10;
     m_nRenderDistance = DEFAULT_RENDER_DISTANCE;
+    m_nXfov = 110;
     m_bCubicClipping = FALSE;
     m_nCubicIncrement = 1024;
     m_nCubicClipMin = 1;
@@ -1980,6 +1988,44 @@ void PrefsDlg::BuildDialog(){
             updateCubicClippingDistance();
 
 
+        // Horizontal FOV
+        // container
+        table = gtk_table_new( 3, 1, FALSE );
+        gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
+        gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
+        gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+        gtk_widget_show( table );
+
+            // label
+            label = gtk_label_new( _( "Horizontal FOV:" ) );
+            gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+            gtk_widget_show( label );
+
+            xfovSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_FOV, MIN_FOV, MAX_FOV, 1, 5, 110 ) ), 1, 0 );
+            gtk_widget_set_tooltip_text( xfovSpin, "This value will adjust the horizontal FOV of the camera" );
+            gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( xfovSpin ), TRUE );
+            gtk_widget_set_sensitive( GTK_WIDGET( xfovSpin ), TRUE );
+            gtk_entry_set_alignment( GTK_ENTRY( xfovSpin ), 1.0 ); //right
+            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( xfovSpin ), GTK_UPDATE_ALWAYS );
+            g_object_set( xfovSpin, "xalign", 1.0, (char*)NULL );
+            gtk_table_attach( GTK_TABLE( table ), xfovSpin, 1, 2, 0, 1,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_widget_show( xfovSpin );
+            AddDialogData( xfovSpin, &m_nXfov, DLG_SPIN_INT );
+            g_signal_connect( (gpointer) xfovSpin, "value-changed", G_CALLBACK( updateXFov ), NULL );
+
+            // label
+            label = gtk_label_new( _( "Caution: FOV above 90 may impact renderer performance!" ) );
+            gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 0, 1,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+            gtk_widget_show( label );
+
     // Outlines
     table = gtk_table_new( 2, 1, FALSE );
     gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
@@ -3190,10 +3236,17 @@ void PrefsDlg::BuildDialog(){
 
 // end new prefs dialog
 
+
+static void updateXFov() {
+    g_PrefsDlg.m_nXfov = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( xfovSpin ) );
+    Sys_UpdateWindows( W_XY_OVERLAY | W_CAMERA_IFON );
+}
+
 static void updateVertexEdgeHandles() {
     g_PrefsDlg.m_nVertexEdgeHandleSize = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( vertexEdgeHandleSpin ) );
     Sys_UpdateWindows( W_CAMERA_IFON );
 }
+
 static void xraySelectionToggled() {
     g_PrefsDlg.m_bXraySelection ^= 1;
     Sys_UpdateWindows( W_CAMERA_IFON );
@@ -3436,6 +3489,8 @@ void PrefsDlg::LoadPrefs(){
     mLocalPrefs.GetPref( CAMDISCRETE_KEY,        &m_bCamDiscrete,                TRUE );
     mLocalPrefs.GetPref( LIGHTDRAW_KEY,          &m_bNewLightDraw,               TRUE );
     mLocalPrefs.GetPref( RENDER_DIST_KEY,        &m_nRenderDistance,             DEFAULT_RENDER_DISTANCE );
+    mLocalPrefs.GetPref( XFOV_KEY,               &m_nXfov,                       DEFAULT_FOV );
+            m_nXfov = CLAMP( m_nXfov, MIN_FOV, MAX_FOV );    // NAB622: This should be bounds-checked so the camera doesn't get messed up if someone edited this manually
     mLocalPrefs.GetPref( CUBICCLIP_KEY,          &m_bCubicClipping,              FALSE );
     mLocalPrefs.GetPref( CUBICINCREMENT_KEY,     &m_nCubicIncrement,             1024 );
     mLocalPrefs.GetPref( CUBICMIN_KEY,           &m_nCubicClipMin,               1 );

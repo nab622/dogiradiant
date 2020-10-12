@@ -44,6 +44,15 @@ QEGlobals_t g_qeglobals;
 QEGlobals_GUI_t g_qeglobals_gui;
 
 
+// NAB622: Initialize the grid distance increment
+int gridZoomPosition = -4;
+
+// NAB622: This value is a multiplier for how much the grid zoom changes with each zoom increment. It must be a positive number greater than 1 to work correctly
+float zoomIncrementAmount = 1.25;
+
+// NAB622: Declaring this here so it's easier to find
+#define DEFAULT_GRID_SIZE 32
+
 // NAB622: Not sure where to put these, so here they are for now
 bool areWeOutOfBounds( vec3_t inputVectors ) {
     for( int i = 0; i < 3; i++ ) {
@@ -1003,10 +1012,12 @@ void QE_Init( void ){
 	/*
 	** initialize variables
 	*/
-    g_qeglobals.d_gridsize = 16;
+    g_qeglobals.d_gridsize = DEFAULT_GRID_SIZE;
 	g_qeglobals.d_showgrid = true;
+    // NAB622: Apply the default grid size this way so the GTK stuff is always right
+    g_pParentWnd->applyGridSize( g_qeglobals.d_gridsize );
 
-	QE_InitVFS();
+    QE_InitVFS();
 
 	Eclass_Init();
 	FillClassList();    // list in entity window
