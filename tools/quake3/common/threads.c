@@ -24,6 +24,7 @@
 // pthreads extensions like pthread_mutexattr_settype
 #define _GNU_SOURCE
 #include <pthread.h>
+#include <stdint.h>
 #endif
 
 #include "cmdlib.h"
