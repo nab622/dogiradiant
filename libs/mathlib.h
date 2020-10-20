@@ -81,6 +81,9 @@ qboolean VectorCompare( vec3_t v1, vec3_t v2 );
 
 #define Q_rint( in ) ( floor( in + 0.5 ) )
 
+// Cotangent
+double cot( double angle );
+
 qboolean VectorIsOnAxis( vec3_t v );
 qboolean VectorIsOnAxialPlane( vec3_t v );
 

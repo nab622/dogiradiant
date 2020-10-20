@@ -232,7 +232,15 @@ void Map_StartPosition(){
 
     } else {
         VectorCopy( vec3_origin, g_pParentWnd->GetCamWnd()->Camera()->origin );
-        VectorCopy( vec3_origin, g_pParentWnd->GetXYWnd()->GetOrigin() );
+        if ( g_pParentWnd->GetXYWnd() ) {
+            VectorCopy( vec3_origin, g_pParentWnd->GetXYWnd()->GetOrigin() );
+        }
+        if ( g_pParentWnd->GetXYWnd() ) {
+            VectorCopy( vec3_origin, g_pParentWnd->GetXZWnd()->GetOrigin() );
+        }
+        if ( g_pParentWnd->GetXYWnd() ) {
+            VectorCopy( vec3_origin, g_pParentWnd->GetYZWnd()->GetOrigin() );
+        }
     }
 }
 

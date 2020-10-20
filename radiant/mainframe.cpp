@@ -102,15 +102,12 @@ extern GtkWidget *PatchInspector;
 GtkAccelGroup* global_accel;
 
 
-// NAB622: The main window uses a timer for various things (Checking autosave, partial status bar refresh)
-// This value is how many milliseconds there are between updates
-#define TIMER_FREQUENCY 250
-// NAB622: Since we don't want to update the status bar as frequently as everything else, we'll use this delay for it
-#define STATUSBAR_FREQUENCY 1500
+// NAB622: This value is used to determine if the preferences dialog is currently open
+bool prefsDlgOpen = false;
 
 // NAB622: These variables are used to trigger window updates when a user is done resizing things
-int XYResizeCountdown = 0;
-int CameraResizeCountdown = 0;
+int XYRenderCountdown = 0;
+int CameraRenderCountdown = 0;
 
 // NAB622: This variable is used to track how long it has been since the last full status bar update
 int statusBarDelay = 0;
@@ -3311,7 +3308,7 @@ void MainFrame::Create(){
 
 	m_bDoLoop = true;
 
-    m_nTimer = g_timeout_add( TIMER_FREQUENCY, timer, this );
+    m_nTimer = g_timeout_add( MAINFRAME_TIMER_FREQUENCY, timer, this );
 }
 
 // =============================================================================
@@ -4097,32 +4094,39 @@ void MainFrame::OnTimer(){
 	gdk_display_get_pointer( display, NULL, NULL, NULL, &mask );
 #endif
 
-
-    if( !( statusBarDelay >= STATUSBAR_FREQUENCY ) ) {
-        statusBarDelay += TIMER_FREQUENCY;
-    }
-    else if ( ( mask & ( GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK ) ) == 0 ) {
-        statusBarDelay = 0;
-        QE_CountBrushesAndUpdateStatusBar();
-        QE_CheckAutoSave();
-    }
-
-    // NAB622: If the windows were resized, they need redrawn or they can be glitched out.
-    // If we wait until two retriggers after the user is done resizing, we can avoid bogging
-    // down the program until the user is done.
-    if( CameraResizeCountdown > 0 ) {
-        CameraResizeCountdown--;
-        if ( CameraResizeCountdown == 0 ) {
-            Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
+    // NAB622: Only perform the status update if we aren't waiting on something
+    if( g_bIgnoreCommands <= 0 ) {
+        if( !( statusBarDelay >= STATUSBAR_FREQUENCY ) ) {
+            statusBarDelay += MAINFRAME_TIMER_FREQUENCY;
+        } else if ( ( mask & ( GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK ) ) == 0 ) {
+            statusBarDelay = 0;
+            QE_CountBrushesAndUpdateStatusBar();
+            QE_CheckAutoSave();
         }
     }
 
-    if( XYResizeCountdown > 0 ) {
-        XYResizeCountdown--;
-        if ( XYResizeCountdown == 0 ) {
-            Sys_UpdateWindows( W_XY_OVERLAY );
+        // NAB622: If the windows were resized, they need redrawn or they can be glitched out.
+        // We should wait a bit after the user is done resizing to can avoid bogging down radiant
+        // This is also used to trigger a re-render when the preferences are changed
+        // Note that this MUST occur even when g_bIgnoreCommands is active, because the preferences
+        // window will trigger these redraws, but it also sets g_bIgnoreCommands.
+        if( CameraRenderCountdown > 0 ) {
+            CameraRenderCountdown -= MAINFRAME_TIMER_FREQUENCY;
+            if ( CameraRenderCountdown <= 0 ) {
+                // The camera re-render will also have to re-render the grid because of the camera icon, so cancel the grid countdown
+                XYRenderCountdown = 0;
+                CameraRenderCountdown = 0;
+                Sys_UpdateWindows( W_CAMERA_IFON | W_XY_OVERLAY );
+            }
         }
-    }
+
+        if( XYRenderCountdown > 0 ) {
+            XYRenderCountdown -= MAINFRAME_TIMER_FREQUENCY;
+            if ( XYRenderCountdown <= 0 ) {
+                XYRenderCountdown = 0;
+                Sys_UpdateWindows( W_XY_OVERLAY );
+            }
+        }
 
     if( g_pParentWnd->GetCamWnd()->m_bFreeMove ) {
         if( !gtk_window_is_active( GTK_WINDOW( m_pWidget ) ) ) {
@@ -5050,7 +5054,9 @@ void MainFrame::OnPrefs() {
     int nMRUCount = g_PrefsDlg.m_nMRUCount;
     int nVertexEdgeHandleSize = g_PrefsDlg.m_nVertexEdgeHandleSize;
     int nXfov = g_PrefsDlg.m_nXfov;
+    int selectionVisibility = g_qeglobals.d_savedinfo.iSelectedOutlinesStyle;
 
+    prefsDlgOpen = true;
 
     if( g_PrefsDlg.DoModal() == IDOK ) {
         if((g_PrefsDlg.m_nLatchedView               != nView            ) ||
@@ -5060,7 +5066,7 @@ void MainFrame::OnPrefs() {
            (g_PrefsDlg.m_bLatchedPluginToolbar      != bPluginToolbar   ) ||
            (g_PrefsDlg.m_nLatchedShader             != nShader          ) ||
            (g_PrefsDlg.m_nLatchedTextureQuality     != nTextureQuality  ) || 
-           (g_PrefsDlg.m_bLatchedFloatingZ          != bFloatingZ       ) ||
+//           (g_PrefsDlg.m_bLatchedFloatingZ          != bFloatingZ       ) ||      // NAB622: Disabling the Z window. It serves no purpose
 		   (g_PrefsDlg.m_bShowTexDirList            != bShowTexDirList)) {
                 gtk_MessageBoxNew(m_pWidget, _( "You must restart Radiant for the "
                               "changes to take effect." ), _( "Restart Radiant" ), 
@@ -5099,34 +5105,49 @@ void MainFrame::OnPrefs() {
     } else {
         //NAB622: If prefs changes were canceled, we end up here
 
+        bool renderGrid = false;
+        bool renderCamera = false;
+
+
+        if( g_PrefsDlg.m_nVertexEdgeHandleSize != nVertexEdgeHandleSize ) {
+                gtk_spin_button_set_value( GTK_SPIN_BUTTON( vertexEdgeHandleSpin ), nVertexEdgeHandleSize );
+                // This affects both the grid and the camera, update both
+                renderGrid = true;
+                renderCamera = true;
+        }
 
         // NAB622: If the renderer settings were touched and the changes were canceled, we need to restore the original settings and redraw the camera window
-        if ( g_PrefsDlg.m_nRenderDistance != nRenderDistance ||
-             g_PrefsDlg.m_bCubicClipping != bCubicClipping ||
-             g_PrefsDlg.m_nCubicScale != nCubicScale ||
-             g_PrefsDlg.m_nVertexEdgeHandleSize != nVertexEdgeHandleSize ||
-            g_PrefsDlg.m_nXfov != nXfov ) {
-
-
-                g_PrefsDlg.m_nXfov = nXfov;
-                g_PrefsDlg.m_nRenderDistance = nRenderDistance;
-                g_PrefsDlg.m_bCubicClipping = bCubicClipping;
-                g_PrefsDlg.m_nCubicScale = nCubicScale;
-                g_PrefsDlg.m_nVertexEdgeHandleSize = nVertexEdgeHandleSize;
+        if ( ( g_PrefsDlg.m_nRenderDistance != nRenderDistance ) ||
+             ( g_PrefsDlg.m_bCubicClipping != bCubicClipping ) ||
+             ( g_PrefsDlg.m_nCubicScale != nCubicScale ) ||
+             ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle != selectionVisibility ) ||
+             ( g_PrefsDlg.m_nXfov != nXfov ) ) {
 
                 // Checkbox needs to be switched back to the original state or it'll get out of sync
                 gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), bCubicClipping );
+
+                // Combo box needs to be switched back to the original state or it'll get out of sync
+                g_qeglobals.d_savedinfo.iSelectedOutlinesStyle = selectionVisibility;
+                gtk_combo_box_set_active( GTK_COMBO_BOX( outlineComboBox ), selectionVisibility );
 
                 // Set the spin buttons back to the original values
                 gtk_spin_button_set_value( GTK_SPIN_BUTTON( renderDistanceSpin ), nRenderDistance );
                 gtk_spin_button_set_value( GTK_SPIN_BUTTON( cubicClippingSpin ), nCubicScale );
                 gtk_spin_button_set_value( GTK_SPIN_BUTTON( xfovSpin ), nXfov );
-                gtk_spin_button_set_value( GTK_SPIN_BUTTON( vertexEdgeHandleSpin ), nVertexEdgeHandleSize );
 
-                Sys_UpdateWindows( W_XY_OVERLAY | W_CAMERA );
+                renderCamera = true;
         }
 
+        if( renderGrid ) {
+            Sys_UpdateWindows( W_XY );
+        }
+
+        if( renderCamera ) {
+            Sys_UpdateWindows( W_CAMERA );
+        }
     }
+
+    prefsDlgOpen = false;
 
     g_bIgnoreCommands++;
     GtkWidget *w;
@@ -5704,23 +5725,23 @@ void MainFrame::OnEntitiesSetViewAs( int mode ){
 void MainFrame::OnViewCubicclipping(){
 	GtkWidget *w;
 
-    g_PrefsDlg.m_bCubicClipping ^= 1;
-
-    g_bIgnoreCommands++;
-
-	w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_view_cubicclipping" ) );
-	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
-	w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "ttb_view_cubicclipping" ) );
-    gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
-
     if ( GTK_IS_WIDGET( cubicClippingCheckbox ) ) {
-Sys_Printf( g_PrefsDlg.m_bCubicClipping ? "TRUE\n" : "FALSE\n" );
-        // NAB622: If the preferences window is open, we need to update it
-        gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
-    }
-    g_PrefsDlg.SavePrefs();
+        // NAB622: If the preferences window was open, we need to update the preference through it
+        gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping ^ 1 );
+    } else {
+        g_PrefsDlg.m_bCubicClipping ^= 1;
 
-    g_bIgnoreCommands--;
+        g_bIgnoreCommands++;
+
+        w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_view_cubicclipping" ) );
+        gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
+        w = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "ttb_view_cubicclipping" ) );
+        gtk_toggle_tool_button_set_active( GTK_TOGGLE_TOOL_BUTTON( w ), g_PrefsDlg.m_bCubicClipping ? TRUE : FALSE );
+
+        g_bIgnoreCommands--;
+    }
+
+    g_PrefsDlg.SavePrefs();
 
 	//Map_BuildBrushData ();
 	Sys_UpdateWindows( W_CAMERA );
@@ -5968,7 +5989,8 @@ void MainFrame::OnSelectionNoOutline(){
 }
 
 void MainFrame::OnSelectionOutlineStyle(){
-	if ( ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle & OUTLINE_ZBUF ) && ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle & OUTLINE_BSEL ) ) {
+    g_bIgnoreCommands++;
+    if ( ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle & OUTLINE_ZBUF ) && ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle & OUTLINE_BSEL ) ) {
 		g_qeglobals.d_savedinfo.iSelectedOutlinesStyle &= ~OUTLINE_ZBUF;
 	}
 	else if ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle & OUTLINE_BSEL ) {
@@ -5980,11 +6002,18 @@ void MainFrame::OnSelectionOutlineStyle(){
 	else{
 		g_qeglobals.d_savedinfo.iSelectedOutlinesStyle |= OUTLINE_ZBUF;
 	}
-	GtkWidget *item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_selection_nooutline" ) );
-	g_bIgnoreCommands++;
-	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( item ), ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle & OUTLINE_ZBUF ) );
-	g_bIgnoreCommands--;
-	Sys_UpdateWindows( W_CAMERA );
+
+    GtkWidget *item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_selection_nooutline" ) );
+    gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( item ), ( g_qeglobals.d_savedinfo.iSelectedOutlinesStyle & OUTLINE_ZBUF ) );
+    g_bIgnoreCommands--;
+
+    if( GTK_IS_WIDGET( outlineComboBox ) ) {
+        gtk_combo_box_set_active( GTK_COMBO_BOX( outlineComboBox ), g_qeglobals.d_savedinfo.iSelectedOutlinesStyle );
+    } else {
+        // If the prefs window was previously open, it will trigger the redraw
+        Sys_UpdateWindows( W_CAMERA_IFON );
+    }
+
 }
 
 void MainFrame::OnSelectionSelectcompletetall(){
@@ -6194,7 +6223,7 @@ void MainFrame::OnGrid( unsigned int nID ){
         case ID_GRID_2048: g_qeglobals.d_gridsize = 2048.0; break;
         case ID_GRID_4096: g_qeglobals.d_gridsize = 4096.0; break;
         default:
-            g_qeglobals.d_gridsize = 32.0;
+            g_qeglobals.d_gridsize = DEFAULT_GRID_SIZE;
     }
 
     // NAB622: g_qeglobals.d_bSmallGrid and Sys_UpdateWindows are handled in the following function, no need for it here
@@ -7913,7 +7942,7 @@ void MainFrame::applyGridSize( float newSize ) {
 
     newSize = CLAMP( newSize, MIN_GRID_PRECISION, 4096 );
 
-    g_qeglobals.d_gridsize = newSize;
+    g_qeglobals.d_gridsize = (vec_t) newSize;
 
     if( g_qeglobals.d_gridsize < 1.0 ) {
         g_qeglobals.d_bSmallGrid = true;
@@ -7959,7 +7988,7 @@ void MainFrame::applyGridSize( float newSize ) {
         item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_4096" ) );
     } else {
         // Default grid size
-        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_16" ) );
+        item = GTK_WIDGET( g_object_get_data( G_OBJECT( m_pWidget ), "menu_grid_32" ) );
     }
 
     SetGridStatus();

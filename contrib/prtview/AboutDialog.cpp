@@ -36,7 +36,7 @@ void DoAboutDlg( GtkWidget *parent ){
 	GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
 
 	dialog = gtk_dialog_new_with_buttons( _( "About Portal Viewer" ), NULL, flags, NULL );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( parent) );

@@ -110,7 +110,8 @@ void FindTextureDialog::BuildDialog(){
 
 	dlg = m_pWidget;
 	gtk_window_set_title( GTK_WINDOW( dlg ), _( "Find / Replace Texture(s)" ) );
-	gtk_window_set_transient_for( GTK_WINDOW( dlg ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
+    gtk_window_set_position( GTK_WINDOW( dlg ), GTK_WIN_POS_CENTER_ON_PARENT );
+    gtk_window_set_transient_for( GTK_WINDOW( dlg ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
 	hbox = gtk_hbox_new( FALSE, 5 );
 	gtk_container_add( GTK_CONTAINER( dlg ), hbox );
@@ -202,28 +203,28 @@ void FindTextureDialog::BuildDialog(){
 	gtk_box_pack_start( GTK_BOX( hbox ), vbox, TRUE, TRUE, 0 );
 	gtk_widget_show( vbox );
 
-	button = gtk_button_new_with_label( _( "Find" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Find" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( OnFind ), NULL );
 	gtk_widget_set_size_request( button, 60, -1 );
 	gtk_widget_show( button );
 
-	button = gtk_button_new_with_label( _( "OK" ) );
+    button = gtk_button_new_with_mnemonic( _( "_OK" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( OnOK ), NULL );
 	gtk_widget_set_size_request( button, 60, -1 );
 	gtk_widget_show( button );
 
-	button = gtk_button_new_with_label( _( "Apply" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Apply" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( OnApply ), NULL );
 	gtk_widget_set_size_request( button, 60, -1 );
 	gtk_widget_show( button );
 
-	button = gtk_button_new_with_label( _( "Close" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Close" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( OnClose ), NULL );

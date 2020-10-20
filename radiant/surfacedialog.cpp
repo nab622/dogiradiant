@@ -854,19 +854,19 @@ void SurfaceDlg::BuildDialog() {
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox2, FALSE, TRUE, 0 );
 	gtk_widget_show( hbox2 );
 
-	button = gtk_button_new_with_label( _( "Done" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Done" ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), button, FALSE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( OnDone ), NULL );
 
-	button = gtk_button_new_with_label( _( "Apply" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Apply" ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), button, FALSE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( OnApply ), NULL );
 
-	button = gtk_button_new_with_label( _( "Cancel" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Cancel" ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), button, FALSE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked",

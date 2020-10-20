@@ -32,6 +32,8 @@
 // included by most files
 // on Win32 builds this one is used for precompiled headers
 
+#pragma once
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

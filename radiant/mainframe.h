@@ -37,11 +37,13 @@
 #define __toascii( c )    ( ( c ) & 0x7f )
 #endif
 
+extern bool prefsDlgOpen;
+
 extern int gridZoomPosition;
 extern float zoomIncrementAmount;
 
-extern int XYResizeCountdown;
-extern int CameraResizeCountdown;
+extern int XYRenderCountdown;
+extern int CameraRenderCountdown;
 extern int statusBarDelay;
 
 extern GtkWidget *cubicClippingCheckbox;

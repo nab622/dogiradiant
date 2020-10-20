@@ -1886,7 +1886,7 @@ static void on_rotate_180_button_clicked( GtkButton *button, gpointer user_data 
 static void on_reset_increments_button_clicked( GtkButton *button, gpointer user_data ) {
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( hshift_step_spinbutton), DEFAULT_SHIFT_INCREMENT_VALUE );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( vshift_step_spinbutton), DEFAULT_SHIFT_INCREMENT_VALUE );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( rotate_step_spinbutton), DEFAULT_ROTATE_INCREMENT_VALUE );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( hscale_step_spinbutton), DEFAULT_SCALE_INCREMENT_VALUE );
     gtk_spin_button_set_value( GTK_SPIN_BUTTON( vscale_step_spinbutton), DEFAULT_SCALE_INCREMENT_VALUE );
-    gtk_spin_button_set_value( GTK_SPIN_BUTTON( rotate_step_spinbutton), DEFAULT_ROTATE_INCREMENT_VALUE );
 }

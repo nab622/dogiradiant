@@ -941,7 +941,7 @@ int WINAPI gtk_MessageBoxNew( void *parent, const char *message,
 	switch( flags & MB_TYPEMASK ) {
 	case MB_OK:
 	default: {
-		GtkWidget *btn_ok = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+        GtkWidget *btn_ok = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 		gtk_widget_set_can_default( btn_ok, TRUE );
 		gtk_widget_add_accelerator( btn_ok, "clicked", accel, GDK_KEY_Escape, (GdkModifierType)0, (GtkAccelFlags)0 );
 		gtk_widget_add_accelerator( btn_ok, "clicked", accel, GDK_KEY_Return, (GdkModifierType)0, (GtkAccelFlags)0 );
@@ -949,9 +949,9 @@ int WINAPI gtk_MessageBoxNew( void *parent, const char *message,
 		break;
 	}
 	case MB_OKCANCEL: {
-		GtkWidget *btn_ok = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+        GtkWidget *btn_ok = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 		gtk_widget_add_accelerator( btn_ok, "clicked", accel, GDK_KEY_Return, (GdkModifierType)0, (GtkAccelFlags)0 );
-		GtkWidget *btn_cancel = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+        GtkWidget *btn_cancel = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 		gtk_widget_add_accelerator( btn_cancel, "clicked", accel, GDK_KEY_Escape, (GdkModifierType)0, (GtkAccelFlags)0 );
 		ret = IDCANCEL;
 		break;
@@ -962,16 +962,16 @@ int WINAPI gtk_MessageBoxNew( void *parent, const char *message,
 	}
 	case MB_YESNOCANCEL: {
 		//! @todo accelerators?
-		gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Yes" ), GTK_RESPONSE_YES );
-		gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "No" ), GTK_RESPONSE_NO );
-		gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+        gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Yes" ), GTK_RESPONSE_YES );
+        gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_No" ), GTK_RESPONSE_NO );
+        gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 		ret = IDCANCEL;
 		break;
 	}
 	case MB_YESNO: {
 		//! @todo accelerators?
-		gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Yes" ), GTK_RESPONSE_YES );
-		gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "No" ), GTK_RESPONSE_NO );
+        gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Yes" ), GTK_RESPONSE_YES );
+        gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_No" ), GTK_RESPONSE_NO );
 		ret = IDNO;
 		break;
 	}
@@ -989,7 +989,7 @@ int WINAPI gtk_MessageBoxNew( void *parent, const char *message,
 
 	// optionally add URL button
 	if( URL ) {
-		GtkWidget *btn_url = gtk_button_new_with_label( _( "Go to URL" ) );
+        GtkWidget *btn_url = gtk_button_new_with_mnemonic( _( "Go to _URL" ) );
 		gtk_box_pack_start( GTK_BOX( buttons_hbox ), btn_url, TRUE, TRUE, 0 ); 
 		g_signal_connect( G_OBJECT( btn_url ), "clicked",
 							G_CALLBACK( dialog_url_callback ), NULL );
@@ -1062,7 +1062,7 @@ int WINAPI gtk_MessageBox( void *parent, const char* lpText, const char* lpCapti
 
 	mode = ( uType & MB_TYPEMASK );
 	if ( mode == MB_OK ) {
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 		gtk_widget_add_accelerator( w, "clicked", accel, GDK_KEY_Escape, (GdkModifierType)0, (GtkAccelFlags)0 );
 		gtk_widget_add_accelerator( w, "clicked", accel, GDK_KEY_Return, (GdkModifierType)0, (GtkAccelFlags)0 );
 		gtk_widget_set_can_default( w, TRUE );
@@ -1071,31 +1071,31 @@ int WINAPI gtk_MessageBox( void *parent, const char* lpText, const char* lpCapti
 		ret = IDOK;
 	}
 	else if ( mode ==  MB_OKCANCEL ) {
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 		gtk_widget_add_accelerator( w, "clicked", accel, GDK_KEY_Return, (GdkModifierType)0, (GtkAccelFlags)0 );
 
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 		gtk_widget_add_accelerator( w, "clicked", accel, GDK_KEY_Escape, (GdkModifierType)0, (GtkAccelFlags)0 );
 
 		ret = IDCANCEL;
 	}
 	else if ( mode == MB_YESNOCANCEL ) {
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Yes" ), GTK_RESPONSE_YES );
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "No" ), GTK_RESPONSE_NO );
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Yes" ), GTK_RESPONSE_YES );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_No" ), GTK_RESPONSE_NO );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 		ret = IDCANCEL;
 	}
 	else /* if (mode == MB_YESNO) */
 	{
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Yes" ), GTK_RESPONSE_YES );
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "No" ), GTK_RESPONSE_NO );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Yes" ), GTK_RESPONSE_YES );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_No" ), GTK_RESPONSE_NO );
 
 		ret = IDNO;
 	}
 
 	if ( URL ) {
-		w = gtk_button_new_with_label( _( "Go to URL" ) );
+        w = gtk_button_new_with_mnemonic( _( "Go to _URL" ) );
 		gtk_box_pack_start( GTK_BOX( hbox ), w, TRUE, TRUE, 0 );
 		g_signal_connect( G_OBJECT( w ), "clicked",
 							G_CALLBACK( dialog_url_callback ), NULL );
@@ -1450,8 +1450,8 @@ const char* file_dialog( void *parent, gboolean open, const char* title, const c
 
 	action = open ? GTK_FILE_CHOOSER_ACTION_OPEN : GTK_FILE_CHOOSER_ACTION_SAVE;
 	file_sel = gtk_file_chooser_dialog_new( title, GTK_WINDOW( parent ), action, NULL, (char*)NULL );
-	gtk_dialog_add_button( GTK_DIALOG( file_sel ), open ? _( "Open" ) : _("Save" ), GTK_RESPONSE_ACCEPT );
-	gtk_dialog_add_button( GTK_DIALOG( file_sel ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( file_sel ), open ? _( "_Open" ) : _("Save" ), GTK_RESPONSE_ACCEPT );
+    gtk_dialog_add_button( GTK_DIALOG( file_sel ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	gtk_file_chooser_set_current_folder( GTK_FILE_CHOOSER( file_sel ), new_path );
 	delete[] new_path;
@@ -1573,8 +1573,8 @@ char* WINAPI dir_dialog( void *parent, const char* title, const char* path ){
 	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
 
 	file_sel = gtk_file_chooser_dialog_new( title, GTK_WINDOW( parent ), action, NULL, (char*)NULL );
-	gtk_dialog_add_button( GTK_DIALOG( file_sel ), _( "OK" ), GTK_RESPONSE_ACCEPT );
-	gtk_dialog_add_button( GTK_DIALOG( file_sel ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( file_sel ), _( "_OK" ), GTK_RESPONSE_ACCEPT );
+    gtk_dialog_add_button( GTK_DIALOG( file_sel ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	if ( path != NULL ) {
 		gtk_file_chooser_set_current_folder( GTK_FILE_CHOOSER( file_sel ), path );

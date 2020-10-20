@@ -32,7 +32,7 @@
 #include "iglInterpolate.h"
 
 extern void DrawPathLines();
-extern void Select_ShiftTexture( int x, int y, qtexture_t *tex );
+extern void Select_ShiftTexture( int x, int y );
 extern void Select_RotateTexture( int amt );
 
 extern int g_nPatchClickedView;
@@ -40,6 +40,9 @@ extern int g_nPatchClickedView;
 brush_t* g_pSplitList = NULL;
 
 bool freehandTextureAlignment = false;
+
+// NAB622: Moved this here for better scope
+float yfov;
 
 
 // =============================================================================
@@ -124,11 +127,11 @@ void CamWnd::OnSize( int cx, int cy ){
 	m_Camera.width = cx;
 	m_Camera.height = cy;
     gtk_widget_queue_draw( m_pWidget );
-    CameraResizeCountdown = 2;
 
-    // If the camera window was resized, the grid will need the FOV indicators redrawn, so cancel any grid redraws
-    XYResizeCountdown = 0;
-    Sys_UpdateWindows( W_XY_OVERLAY );
+    CameraRenderCountdown = 500;
+
+    // If the camera window was resized, the grid will need the FOV indicators redrawn - but redrawing the camera will also redraw the grid, so cancel any grid redraws
+    XYRenderCountdown = 0;
 }
 
 rectangle_t rectangle_from_area_cam(){
@@ -278,7 +281,7 @@ void CamWnd::Cam_BuildMatrix(){
 	int i;
 
 /*
-// NAB622: I always hated how the camera moved on a 2D plane when freelook wasn't active. Commenting this out and putting the relevant bit below
+// NAB622: I always hated how the camera moved on a 2D plane when freelook wasn't active. Commenting this out and pasting the relevant bit below
     if ( !m_bFreeMove ) {
         ya = m_Camera.angles[1] / 180 * Q_PI;
 
@@ -301,18 +304,18 @@ void CamWnd::Cam_BuildMatrix(){
 
 
     memcpy( matrix, m_Camera.projection, sizeof( m4x4_t ) );
-	m4x4_multiply_by_m4x4( &matrix[0][0], &m_Camera.modelview[0][0] );
+    m4x4_multiply_by_m4x4( &matrix[0][0], &m_Camera.modelview[0][0] );
 
-	//qglGetFloatv (GL_PROJECTION_MATRIX, &matrix[0][0]);
+    //qglGetProjectionMatrixAsVec_t( matrix );
 
 	for ( i = 0 ; i < 3 ; i++ )
 	{
-		m_Camera.vright[i] = matrix[i][0];
-		m_Camera.vup[i] = matrix[i][1];
+        m_Camera.vright[i] = matrix[i][0];
+        m_Camera.vup[i] = matrix[i][1];
 		m_Camera.vpn[i] = matrix[i][2];
 	}
 
-	VectorNormalize( m_Camera.vright, m_Camera.vright );
+    VectorNormalize( m_Camera.vright, m_Camera.vright );
 	VectorNormalize( m_Camera.vup, m_Camera.vup );
 	VectorNormalize( m_Camera.vpn, m_Camera.vpn );
 }
@@ -400,7 +403,8 @@ void CamWnd::Cam_MouseControl( float dtime ){
             return;
         }
 
-        if ( m_nCambuttonstate & MK_CONTROL || m_nCambuttonstate & MK_SHIFT || Sys_AltDown() ) {
+        if ( m_nCambuttonstate & MK_CONTROL ) {
+            // If the camera is strafing, don't change the view angle
             return;
         }
 
@@ -632,11 +636,12 @@ void CamWnd::ToggleFreeMove(){
 void CamWnd::CalculateClickDirection( int x, int y, vec3_t dir ) {
     vec_t u, r, f;
 
+    // U is up
     u = (vec_t)( y - ( m_Camera.height * .5f ) ) / ( m_Camera.width * .5f );
+    // R is right
     r = (vec_t)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
-
-    double xfovRad = (double) g_PrefsDlg.m_nXfov * Q_PI / 180;
-    f = cos( xfovRad / 2 ) / sin( xfovRad / 2);
+    // F is forward (FOV)
+    f = cot( xfovRad );
 
     for ( int i = 0 ; i < 3 ; i++ ) {
         dir[i] = m_Camera.vpn[i] * f + m_Camera.vright[i] * r + m_Camera.vup[i] * u;
@@ -786,33 +791,81 @@ void CamWnd::Cam_MouseMoved( int x, int y, int buttons ){
 	}
 }
 
+void printVec3( vec3_t input ) {
+    // NAB622: For debugging
+    Sys_Printf( " %lf, %lf, %lf\n", input[0], input[1], input[2] );
+}
+
+void printInt3( int input[3] ) {
+    // NAB622: For debugging
+    Sys_Printf( " %i, %i, %i\n", input[0], input[1], input[2] );
+}
+
 void CamWnd::InitCull(){
     int i;
+    vec3_t horizontalVec, verticalVec;
+    double horizontal, vertical;
 
-	VectorSubtract( m_Camera.vpn, m_Camera.vright, m_vCull1 );
-	VectorAdd( m_Camera.vpn, m_Camera.vright, m_vCull2 );
+    //m_vCull1 is right
+    //m_vCull2 is left
+    //m_vCull3 is top
+    //m_vCull4 is bottom
 
-	for ( i = 0 ; i < 3 ; i++ )
+    // NAB622: We need to add the FOV to the vectors, or none of this will work right
+    horizontal = cot( xfovRad );
+    vertical = yfovRad;
+    if ( horizontal == 0 ) {
+        // NAB622: Just in case...I'm sure this won't happen but you never know...
+        horizontal = 0.0001;
+    }
+    for( i = 0; i < 3; i++ ) {
+        horizontalVec[i] = m_Camera.vpn[i] * 1 / horizontal;
+        verticalVec[i] = m_Camera.vpn[i] * vertical;
+    }
+
+    VectorSubtract( horizontalVec, m_Camera.vright, m_vCull1 );
+    VectorAdd( horizontalVec, m_Camera.vright, m_vCull2 );
+    VectorSubtract( verticalVec, m_Camera.vup, m_vCull3 );
+    VectorAdd( verticalVec, m_Camera.vup, m_vCull4 );
+
+
+    // CULL SETUP
+    for ( i = 0 ; i < 3 ; i++ )
 	{
-		if ( m_vCull1[i] > 0 ) {
-			m_nCullv1[i] = 3 + i;
-		}
-		else{
-			m_nCullv1[i] = i;
-		}
-		if ( m_vCull2[i] > 0 ) {
-			m_nCullv2[i] = 3 + i;
-		}
-		else{
+        // HORIZONTAL CULLING
+        if ( m_vCull1[i] > 0 ) {
+            m_nCullv1[i] = 3 + i;
+        }
+        else{
+            m_nCullv1[i] = i;
+        }
+        if ( m_vCull2[i] > 0 ) {
+            m_nCullv2[i] = 3 + i;
+        }
+        else{
             m_nCullv2[i] = i;
-		}
+        }
+
+        // VERTICAL CULLING
+        if ( m_vCull3[i] > 0 ) {
+            m_nCullv3[i] = 3 + i;
+        }
+        else{
+            m_nCullv3[i] = i;
+        }
+        if ( m_vCull4[i] > 0 ) {
+            m_nCullv4[i] = 3 + i;
+        }
+        else{
+            m_nCullv4[i] = i;
+        }
     }
 }
 
-qboolean CamWnd::CullBrush( brush_t *b, float distance ){
+qboolean CamWnd::CullBrush( brush_t *b, double distance ){
 	int i;
-    vec3_t point;
-    float d;
+    vec3_t point, point2;
+    float d, d2;
 
     // *************
     // DISTANCE CULL
@@ -837,34 +890,53 @@ qboolean CamWnd::CullBrush( brush_t *b, float distance ){
             return true;
         }
 
+
     // **********
     // ANGLE CULL
     // **********
 
-    // If the horizontal FOV is greater than 90, the culling method below won't work. Bypass it!
-    // NAB622: FIXME: See if this can be improved later...this can't be good for performance. Maybe a frustum cull??
-    if( g_PrefsDlg.m_nXfov > 90 ) {
-        return false;
-    }
 
-    // Cull the brushes not visible off the right side of the camera
-    for ( i = 0 ; i < 3 ; i++ )
+    // Cull the brush if it is not visible off the right side
+    for ( i = 0 ; i < 3 ; i++ ) {
         point[i] = b->mins[m_nCullv1[i]] - m_Camera.origin[i];
+    }
 
     d = DotProduct( point, m_vCull1 );
     if ( d < -1 ) {
-		return true;
-	}
+        return true;
+    }
 
-    // Cull the brushes not visible off the left side of the camera
-    for ( i = 0 ; i < 3 ; i++ )
+
+    // Cull the brush if it is not visible off the left tside
+    for ( i = 0 ; i < 3 ; i++ ) {
         point[i] = b->mins[m_nCullv2[i]] - m_Camera.origin[i];
-
+    }
     d = DotProduct( point, m_vCull2 );
     if ( d < -1 ) {
         return true;
-	}
-	return false;
+    }
+
+
+    // Cull the brush if it is not visible off the top
+    for ( i = 0 ; i < 3 ; i++ ) {
+        point[i] = b->mins[m_nCullv3[i]] - m_Camera.origin[i];
+    }
+    d = DotProduct( point, m_vCull3 );
+    if ( d < -1 ) {
+        return true;
+    }
+
+
+    // Cull the brush if it is not visible off the bottom
+    for ( i = 0 ; i < 3 ; i++ ) {
+        point[i] = b->mins[m_nCullv4[i]] - m_Camera.origin[i];
+    }
+    d = DotProduct( point, m_vCull4 );
+    if ( d < -1 ) {
+        return true;
+    }
+
+    return false;
 }
 
 // project a 3D point onto the camera space
@@ -1140,14 +1212,14 @@ void CamWnd::Cam_DrawStuff(){
 	VectorSet( identity, 0.8f, 0.8f, 0.8f );
 	brush_t *b;
 
-    float distance;
+    double distance;
 
     if ( g_PrefsDlg.m_bCubicClipping ) {
         // NAB622: If cubic clipping is enabled, set the cull distance to that
-        distance = (float) g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement;
+        distance = (double) g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement;
     } else {
         // NAB622: If cubic clipping is not enabled, set the cull distance to the maximum render distance
-        distance = (float) g_PrefsDlg.m_nRenderDistance;
+        distance = (double) g_PrefsDlg.m_nRenderDistance;
     }
 
 	for ( b = active_brushes.next; b != &active_brushes; b = b->next )
@@ -1402,11 +1474,9 @@ void CamWnd::Cam_Draw(){
 
 	screenaspect = (float)m_Camera.width / m_Camera.height;
 
-//    yfov = 2 * ( atan( (float)m_Camera.height / m_Camera.width ) * 180 / Q_PI );      // Original
-
-    // NAB622: This works, I'm done playing with it
-    double xfovRad = (double) g_PrefsDlg.m_nXfov * Q_PI / 180;
-    double yfovRad = 2 * atan( tan( xfovRad / 2 ) * ( (float)m_Camera.height / m_Camera.width ) );
+    // NAB622: Vertical FOV must be calculated from the horizontal FOV and the window size
+    xfovRad = (double) g_PrefsDlg.m_nXfov * Q_PI / 180;
+    yfovRad = 2 * atan( tan( xfovRad / 2 ) * ( (float)m_Camera.height / m_Camera.width ) );
     yfov = (float) yfovRad * 180 / Q_PI;
 
     qgluPerspective( yfov,  screenaspect,  2,  g_PrefsDlg.m_nRenderDistance );

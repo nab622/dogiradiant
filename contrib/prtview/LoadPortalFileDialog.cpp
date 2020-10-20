@@ -72,8 +72,8 @@ int DoLoadPortalFileDialog( GtkWidget *parent ){
 	dialog = gtk_dialog_new_with_buttons( _( "Load .prt" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( parent ) );
 
-	ok_button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	cancel_button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    ok_button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    cancel_button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 

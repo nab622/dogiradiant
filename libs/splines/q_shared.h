@@ -422,7 +422,7 @@ extern mat3_t axisDefault;
 
 #define IS_NAN( x ) ( ( ( *(int *)&x ) & nanmask ) == nanmask )
 
-float Q_fabs( float f );
+vec_t Q_fabs( vec_t f );
 float Q_rsqrt( float f );       // reciprocal square root
 
 #define SQRTFAST( x ) ( 1.0f / Q_rsqrt( x ) )

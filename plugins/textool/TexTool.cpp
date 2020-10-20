@@ -141,27 +141,27 @@ int DoMessageBox( const char* lpText, const char* lpCaption, guint32 uType ){
 
 	mode = ( uType & MB_TYPEMASK );
 	if ( mode == MB_OK ) {
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 
 		ret = IDOK;
 	}
 	else if ( mode ==  MB_OKCANCEL ) {
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 		ret = IDCANCEL;
 	}
 	else if ( mode == MB_YESNOCANCEL ) {
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Yes" ), GTK_RESPONSE_YES );
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "No" ), GTK_RESPONSE_NO );
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Yes" ), GTK_RESPONSE_YES );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_No" ), GTK_RESPONSE_NO );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 		ret = IDCANCEL;
 	}
 	else /* if (mode == MB_YESNO) */
 	{
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Yes" ), GTK_RESPONSE_YES );
-		w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "No" ), GTK_RESPONSE_NO );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Yes" ), GTK_RESPONSE_YES );
+        w = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_No" ), GTK_RESPONSE_NO );
 
 		ret = IDNO;
 	}

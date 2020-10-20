@@ -418,12 +418,12 @@ void Patch_UpdateSelected( vec3_t vMove );
 //void Patch_AdjustRows(patchMesh_t *p, int nRows);
 void Patch_AdjustSelected( bool bInsert, bool bColumn, bool bFlag );
 patchMesh_t* Patch_Duplicate( patchMesh_t *pFrom );
-void Patch_RotateTexture( patchMesh_t *p, float fAngle );
-void Patch_ScaleTexture( patchMesh_t *p, float fx, float fy, bool bFixup = true );
+void Patch_RotateTexture( patchMesh_t *p, vec_t fAngle );
+void Patch_ScaleTexture( patchMesh_t *p, vec_t fx, vec_t fy, bool bFixup = true );
 // shift of some pixel amount
-void Patch_ShiftTexture( patchMesh_t *p, float fx, float fy );
+void Patch_ShiftTexture( patchMesh_t *p, vec_t fx, vec_t fy );
 // shift of ST increments
-void Patch_ShiftTextureST( patchMesh_t *p, float fx, float fy );
+void Patch_ShiftTextureST( patchMesh_t *p, vec_t fx, vec_t fy );
 void Patch_DrawCam( patchMesh_t *p );
 void Patch_DrawXY( patchMesh_t *p );
 void Patch_InsertColumn( patchMesh_t *p, bool bAdd );

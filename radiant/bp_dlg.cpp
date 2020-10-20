@@ -45,9 +45,9 @@ int BP_MessageBox( int status ){
 	accel = gtk_accel_group_new();
 	gtk_window_add_accel_group( GTK_WINDOW( dialog ), accel );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Convert" ), 1 );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Change default" ), 2 );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Abort load" ), 0 );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "C_onvert" ), 1 );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "C_hange default" ), 2 );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Abort load" ), 0 );
 	
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 

@@ -116,7 +116,19 @@
     }
 
 
+// MAINFRAME TIMERS
+
+    // NAB622: The main window uses a timer for various things (Checking autosave, partial status bar refresh)
+    // This value is how many milliseconds there are between updates
+    #define MAINFRAME_TIMER_FREQUENCY 250
+    // NAB622: Since we don't want to update the status bar as frequently as everything else, we'll use this delay for it
+    #define STATUSBAR_FREQUENCY 1500
+
+
 // GRID DEFINES
+
+    // NAB622: This is the default size of the grid on startup. Be careful not to give an invalid value!
+    #define DEFAULT_GRID_SIZE 32
 
     // NAB622: Grid precisions down to 0.03125 have been added and they work - however, they're too precise to guarantee accuracy in a compiled map.
     // This define will limit the minimum grid setting. Changing this define prevents smaller grid sizes from appearing in the menu, and will not
@@ -127,7 +139,6 @@
 
     // NAB622: This is used to determine how many decimal places are in the lowest grid precision
     #define GRID_DECIMAL_PRECISION getFloatDecimalPrecision( (float) MIN_GRID_PRECISION )
-
 
     // NAB622: This value is the maximum zoom-in distance on the grid. The numeric value specified here corresponds to the maximum
     // number of pixels the grid can render per block before it stops zooming in, at the smallest precision available

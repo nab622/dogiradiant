@@ -28,6 +28,8 @@
 
 #include "dialogs/dialogs-gtk.h"
 
+#include "iglInterpolatePlugin.h"
+
 DTrainDrawer::DTrainDrawer() {
 	refCount = 1;
 	m_bHooked = FALSE;

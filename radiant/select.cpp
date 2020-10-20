@@ -235,7 +235,7 @@ singleselect:
 		Select_GetBounds( vMin, vMax );
 		VectorSubtract( vMax, vMin, vSize );
 		CString strStatus;
-        strStatus.Format( "Selection X: %.1f   Y: %.1f   Z: %.1f", vSize[0], vSize[1], vSize[2] );
+        strStatus.Format( "Selection X: %g   Y: %g   Z: %g", vSize[0], vSize[1], vSize[2] );
 		g_pParentWnd->SetStatusText( 2, strStatus );
 	}
 }
@@ -503,7 +503,7 @@ void Select_Move( vec3_t delta, bool bSnap ){
     vec3_t vMin, vMax;
 	Select_GetBounds( vMin, vMax );
 	CString strStatus;
-    strStatus.Format( "Origin X: %.1f   Y: %.1f   Z: %.1f", vMin[0], vMax[1], vMax[2] );
+    strStatus.Format( "Origin X: %g   Y: %g   Z: %g", vMin[0], vMax[1], vMax[2] );
 	g_pParentWnd->SetStatusText( 2, strStatus );
 
     //Sys_UpdateWindows (W_ALL);
@@ -1701,7 +1701,7 @@ void Select_ShiftTexture( int x, int y ) {
 		Brush_Build( b,true,true,false,false ); // don't filter
 		if ( b->patchBrush ) {
             // NAB622: FIXME: Add code for patches' texdefs to be clamped as well
-            Patch_ShiftTexture( b->pPatch, -(x * multiplier), y * multiplier );
+            Patch_ShiftTexture( b->pPatch, (vec_t) -(x * multiplier), (vec_t) y * multiplier );
 		}
 	}
 
@@ -1776,7 +1776,7 @@ void Select_ScaleTexture( float x, float y ) {
 		}
 		Brush_Build( b,true,true,false,false ); // don't filter
 		if ( b->patchBrush ) {
-            Patch_ScaleTexture( b->pPatch, 1 + -( x * patchMultiplier ), 1 + -( y * patchMultiplier ), false );
+            Patch_ScaleTexture( b->pPatch, (vec_t) 1 + -( x * patchMultiplier ), (vec_t) 1 + -( y * patchMultiplier ), false );
 		}
 	}
 
@@ -1857,7 +1857,7 @@ void Select_RotateTexture( int amt ){
 		if ( b->patchBrush ) {
 			//Patch_RotateTexture(b->nPatchID, amt);
             // NAB622: FIXME: Patches need added to this
-            Patch_RotateTexture( b->pPatch, amt * multiplier );
+            Patch_RotateTexture( b->pPatch, (vec_t) amt * multiplier );
 		}
 	}
 

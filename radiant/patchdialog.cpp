@@ -43,9 +43,10 @@ GtkWidget *patch_texture_combo, *patch_texture_combo_entry;
 GtkWidget *rowColumnDropdownTable, *nodeCoordinatesTable, *textureCoordinatesTable;
 GtkWidget *patchTextureWidthLabel, *patchTextureHeightLabel;
 GtkWidget *patch_special_hscale_spinbutton, *patch_special_vscale_spinbutton;
+GtkWidget *patch_hshift_spinbutton, *patch_vshift_spinbutton, *patch_rotate_spinbutton, *patch_hscale_spinbutton, *patch_vscale_spinbutton;
 GtkAdjustment *adj;
 GList *lst, *cells;
-GtkSizeGroup *size_group;
+GtkSizeGroup *size_group, *plusMinusSizeGroup, *scaleSizeGroup;
 GtkWidget *cap_button, *set_button, *nat_button, *grid_size_scale_button, *reset_special_scale_button, *fit_button;
 
 GtkWidget *hseparator;
@@ -54,12 +55,8 @@ GtkWidget *hseparator;
 float patchFitWidth = 1.0;
 float patchFitHeight = 1.0;
 
-//These are the values for the scale buttons
-float patchHScale = g_PrefsDlg.m_fDefTextureScale;
-float patchVScale = g_PrefsDlg.m_fDefTextureScale;
-
-//I need to make sure the hScale and vScale variables are getting data.......why won't this compile???
-//Sys_Printf( "HScale: %f   -   VScale: %f\n", patchHScale, patchVScale );
+extern float patchHScale;
+extern float patchVScale;
 
 //This is for the unlock button in the nodes section
 bool nodeLock = true;
@@ -160,12 +157,20 @@ static void OnBtnPatchnatural( GtkWidget *widget, gpointer data ){
     Sys_UpdateWindows( W_ALL );
 }
 
-static void grid_size_scale_button_clicked() {
+static void reset_special_scale_button_clicked() {
+    patchHScale = g_PrefsDlg.m_fDefTextureScale;
+    patchVScale = g_PrefsDlg.m_fDefTextureScale;
 
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ), patchHScale );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ), patchVScale );
 }
 
-static void reset_special_scale_button_clicked() {
+static void swap_special_scale_button_clicked() {
+    patchVScale = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ) );
+    patchHScale = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ) );
 
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ), patchHScale );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ), patchVScale );
 }
 
 static void OnBtnPatchreset( GtkWidget *widget, gpointer data ){
@@ -176,6 +181,16 @@ static void OnBtnPatchreset( GtkWidget *widget, gpointer data ){
 	Sys_UpdateWindows( W_ALL );
 }
 
+static void on_reset_patch_increments_button_clicked() {
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_hshift_spinbutton), DEFAULT_SHIFT_INCREMENT_VALUE );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_vshift_spinbutton), DEFAULT_SHIFT_INCREMENT_VALUE );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_rotate_spinbutton), DEFAULT_ROTATE_INCREMENT_VALUE );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_hscale_spinbutton), 1 );
+    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_vscale_spinbutton), 1 );
+}
+
+/*
+// NAB622: This old function has been deprecated
 static void OnSpinChanged( GtkAdjustment *adj, gpointer data ){
 	texdef_t td;
 
@@ -194,7 +209,7 @@ static void OnSpinChanged( GtkAdjustment *adj, gpointer data ){
 		l_pPIIncrement->shift[0] = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data ) );
 
 		if ( gtk_adjustment_get_value( adj ) > 0 ) {
-			td.shift[0] = l_pPIIncrement->shift[0];
+            td.shift[0] = l_pPIIncrement->shift[0];
 		}
 		else{
 			td.shift[0] = -l_pPIIncrement->shift[0];
@@ -269,13 +284,174 @@ static void OnSpinChanged( GtkAdjustment *adj, gpointer data ){
 		}
 	}
 
-	gtk_adjustment_set_value( adj, 0 );
+    gtk_adjustment_set_value( adj, 0 );
 
-	// will scale shift rotate the patch accordingly
+    // will scale shift rotate the patch accordingly
 	Patch_SetTextureInfo( &td );
 	// update the point-by-point view
 	OnSelchangeComboColRow( NULL,NULL );
 	Sys_UpdateWindows( W_CAMERA );
+}
+*/
+
+static void increaseHShift(){
+    texdef_t td;
+
+    td.rotate = 0;
+    td.scale[0] = td.scale[1] = 0;
+    td.shift[0] = td.shift[1] = 0;
+    td.contents = 0;
+    td.flags = 0;
+    td.value = 0;
+
+    l_pPIIncrement->shift[0] = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_hshift_spinbutton ) );
+    td.shift[0] = l_pPIIncrement->shift[0];
+
+    // will scale shift rotate the patch accordingly
+    Patch_SetTextureInfo( &td );
+    // update the point-by-point view
+    OnSelchangeComboColRow( NULL,NULL );
+    Sys_UpdateWindows( W_CAMERA );
+}
+
+static void decreaseHShift(){
+    texdef_t td;
+
+    td.rotate = 0;
+    td.scale[0] = td.scale[1] = 0;
+    td.shift[0] = td.shift[1] = 0;
+    td.contents = 0;
+    td.flags = 0;
+    td.value = 0;
+
+    l_pPIIncrement->shift[0] = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_hshift_spinbutton ) );
+    td.shift[0] = -l_pPIIncrement->shift[0];
+
+    // will scale shift rotate the patch accordingly
+    Patch_SetTextureInfo( &td );
+    // update the point-by-point view
+    OnSelchangeComboColRow( NULL,NULL );
+    Sys_UpdateWindows( W_CAMERA );
+}
+
+static void increaseVShift(){
+    texdef_t td;
+
+    td.rotate = 0;
+    td.scale[0] = td.scale[1] = 0;
+    td.shift[0] = td.shift[1] = 0;
+    td.contents = 0;
+    td.flags = 0;
+    td.value = 0;
+
+    l_pPIIncrement->shift[1] = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_vshift_spinbutton ) );
+    td.shift[1] = l_pPIIncrement->shift[1];
+
+    // will scale shift rotate the patch accordingly
+    Patch_SetTextureInfo( &td );
+    // update the point-by-point view
+    OnSelchangeComboColRow( NULL,NULL );
+    Sys_UpdateWindows( W_CAMERA );
+}
+
+static void decreaseVShift(){
+    texdef_t td;
+
+    td.rotate = 0;
+    td.scale[0] = td.scale[1] = 0;
+    td.shift[0] = td.shift[1] = 0;
+    td.contents = 0;
+    td.flags = 0;
+    td.value = 0;
+
+    l_pPIIncrement->shift[1] = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_vshift_spinbutton ) );
+    td.shift[1] = -l_pPIIncrement->shift[1];
+
+    // will scale shift rotate the patch accordingly
+    Patch_SetTextureInfo( &td );
+    // update the point-by-point view
+    OnSelchangeComboColRow( NULL,NULL );
+    Sys_UpdateWindows( W_CAMERA );
+}
+
+static void increaseRotation(){
+    texdef_t td;
+
+    td.rotate = 0;
+    td.scale[0] = td.scale[1] = 0;
+    td.shift[0] = td.shift[1] = 0;
+    td.contents = 0;
+    td.flags = 0;
+    td.value = 0;
+
+    l_pPIIncrement->rotate = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_rotate_spinbutton ) );
+    td.rotate = l_pPIIncrement->rotate;
+
+    // will scale shift rotate the patch accordingly
+    Patch_SetTextureInfo( &td );
+    // update the point-by-point view
+    OnSelchangeComboColRow( NULL,NULL );
+    Sys_UpdateWindows( W_CAMERA );
+}
+
+static void decreaseRotation(){
+    texdef_t td;
+
+    td.rotate = 0;
+    td.scale[0] = td.scale[1] = 0;
+    td.shift[0] = td.shift[1] = 0;
+    td.contents = 0;
+    td.flags = 0;
+    td.value = 0;
+
+    l_pPIIncrement->rotate = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_rotate_spinbutton ) );
+    td.rotate = -l_pPIIncrement->rotate;
+
+    // will scale shift rotate the patch accordingly
+    Patch_SetTextureInfo( &td );
+    // update the point-by-point view
+    OnSelchangeComboColRow( NULL,NULL );
+    Sys_UpdateWindows( W_CAMERA );
+}
+
+static void changeHScale(){
+    texdef_t td;
+
+    td.rotate = 0;
+    td.scale[0] = td.scale[1] = 0;
+    td.shift[0] = td.shift[1] = 0;
+    td.contents = 0;
+    td.flags = 0;
+    td.value = 0;
+
+    l_pPIIncrement->scale[0] = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_hscale_spinbutton ) );
+    td.scale[0] = 1.0f / l_pPIIncrement->scale[0];
+
+    // will scale shift rotate the patch accordingly
+    Patch_SetTextureInfo( &td );
+    // update the point-by-point view
+    OnSelchangeComboColRow( NULL,NULL );
+    Sys_UpdateWindows( W_CAMERA );
+}
+
+static void changeVScale(){
+    texdef_t td;
+
+    td.rotate = 0;
+    td.scale[0] = td.scale[1] = 0;
+    td.shift[0] = td.shift[1] = 0;
+    td.contents = 0;
+    td.flags = 0;
+    td.value = 0;
+
+    l_pPIIncrement->scale[1] = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_vscale_spinbutton ) );
+    td.scale[1] = 1.0f / l_pPIIncrement->scale[1];
+
+    // will scale shift rotate the patch accordingly
+    Patch_SetTextureInfo( &td );
+    // update the point-by-point view
+    OnSelchangeComboColRow( NULL,NULL );
+    Sys_UpdateWindows( W_CAMERA );
 }
 
 static gint OnDialogKey( GtkWidget* widget, GdkEventKey* event, gpointer data ){
@@ -294,7 +470,11 @@ static gint OnDialogKey( GtkWidget* widget, GdkEventKey* event, gpointer data ){
 // Global Functions
 
 void DoPatchInspector(){
-	// do we need to create the dialog?
+    // Copy the default scale from the preferences
+    patchHScale = g_PrefsDlg.m_fDefTextureScale;
+    patchVScale = g_PrefsDlg.m_fDefTextureScale;
+
+    // do we need to create the dialog?
 	if ( g_PatchDialog.GetWidget() == NULL ) {
 		g_PatchDialog.Create();
 		g_PatchDialog.UpdateData( FALSE );
@@ -361,6 +541,7 @@ void PatchDialog::BuildDialog(){
     dlg = m_pWidget;
 
     char tempTooltip[256];
+    char scaleTooltip[256] = "Scaling on patches is a multiplier. A value of 1 will make no change, 2 will double the texture scale, and 0.5 will reduce the scale to half.";
 
     load_window_pos( dlg, g_PrefsDlg.mWindowInfo.posPatchWnd );
 
@@ -459,162 +640,222 @@ void PatchDialog::BuildDialog(){
                               (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
             gtk_widget_show( patchTextureCoordinatesFrame );
 
-                table = gtk_table_new( 5, 3, FALSE );
+                table = gtk_table_new( 10, 7, FALSE );
                 gtk_container_add( GTK_CONTAINER( patchTextureCoordinatesFrame ), table );
                 gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
                 gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
                 gtk_widget_show( table );
 
-                    label = gtk_label_new( _( "Horizontal Shift Increment" ) );
+                    label = gtk_label_new( _( "Increment" ) );
                     gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 0, 1,
                                       (GtkAttachOptions) ( GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
                     gtk_widget_show( label );
 
-                    label = gtk_label_new( _( "Vertical Shift Step" ) );
-                    gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 1, 2,
+                    label = gtk_label_new( _( "Action" ) );
+                    gtk_table_attach( GTK_TABLE( table ), label, 3, 5, 0, 1,
                                       (GtkAttachOptions) ( GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
                     gtk_widget_show( label );
 
-                    label = gtk_label_new( _( "Horizontal Stretch Step" ) );
-                    gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 2, 3,
+                    label = gtk_label_new( _( "Horizontal Shift:" ) );
+                    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 1, 2,
                                       (GtkAttachOptions) ( GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
                     gtk_widget_show( label );
 
-                    label = gtk_label_new( _( "Vertical Stretch Step" ) );
-                    gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 3, 4,
+                    label = gtk_label_new( _( "Vertical Shift:" ) );
+                    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 2, 3,
                                       (GtkAttachOptions) ( GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
                     gtk_widget_show( label );
 
-                    label = gtk_label_new( _( "Rotate Step" ) );
-                    gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 4, 5,
+                        hseparator = gtk_hseparator_new();
+                        gtk_table_attach( GTK_TABLE( table ), hseparator, 1, 6, 3, 4,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( hseparator );
+
+                    label = gtk_label_new( _( "Rotate:" ) );
+                    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 4, 5,
                                       (GtkAttachOptions) ( GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
                     gtk_widget_show( label );
+
+                        hseparator = gtk_hseparator_new();
+                        gtk_table_attach( GTK_TABLE( table ), hseparator, 1, 6, 5, 6,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( hseparator );
+
+                    label = gtk_label_new( _( "Horizontal Scale:" ) );
+                    gtk_widget_set_tooltip_text( label, _( scaleTooltip ) );
+                    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 6, 7,
+                                      (GtkAttachOptions) ( GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+                    gtk_widget_show( label );
+
+                    label = gtk_label_new( _( "Vertical Scale:" ) );
+                    gtk_widget_set_tooltip_text( label, _( scaleTooltip ) );
+                    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 7, 8,
+                                      (GtkAttachOptions) ( GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );
+                    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+                    gtk_widget_show( label );
+
+                    scaleSizeGroup = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 10, 0 ) );
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SHIFT_PRECISION );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 0, 1,
+                    patch_hshift_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SHIFT_PRECISION );
+                    gtk_table_attach( GTK_TABLE( table ), patch_hshift_spinbutton, 2, 3, 1, 2,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
+                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( patch_hshift_spinbutton ), FALSE );
+                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_hshift_spinbutton ), TRUE );
+                    gtk_entry_set_alignment( GTK_ENTRY( patch_hshift_spinbutton ), 1.0 ); //right
+                    gtk_size_group_add_widget( scaleSizeGroup, patch_hshift_spinbutton );
+                    gtk_widget_show( patch_hshift_spinbutton );
 
                     // we fill in this data, if no patch is selected the widgets are unmodified when the inspector is raised
                     // so we need to have at least one initialisation somewhere
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->shift[0] );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_hshift_spinbutton ), DEFAULT_SHIFT_INCREMENT_VALUE );
 
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
-                    g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
-                    g_object_set_data( G_OBJECT( m_pWidget ), "hshift_adj", adj );
+                        plusMinusSizeGroup = gtk_size_group_new( GTK_SIZE_GROUP_BOTH );
 
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 0, 1,
-                                      (GtkAttachOptions) ( 0 ),
-                                      (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
+                        button = gtk_button_new_with_label( _( " - " ) );
+                        gtk_widget_modify_font(button, pango_font_description_from_string("Sans 16"));
+                        gtk_table_attach( GTK_TABLE( table ), button, 3, 4, 1, 2,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( button );
+                        gtk_size_group_add_widget( plusMinusSizeGroup, button );
+                        g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( decreaseHShift ), NULL );
+
+                        button = gtk_button_new_with_label( _( " + " ) );
+                        gtk_widget_modify_font(button, pango_font_description_from_string("Sans 16"));
+                        gtk_table_attach( GTK_TABLE( table ), button, 4, 5, 1, 2,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( button );
+                        gtk_size_group_add_widget( plusMinusSizeGroup, button );
+                        g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( increaseHShift ), NULL );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SHIFT_INCREMENT, MAX_SHIFT_INCREMENT, 1, 10, 0 ) );
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SHIFT_PRECISION );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 1, 2,
-                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                                      (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->shift[1] );
-
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
-                    g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
-                    g_object_set_data( G_OBJECT( m_pWidget ), "vshift_adj", adj );
-
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 1, 2,
-                                      (GtkAttachOptions) ( 0 ),
-                                      (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
-
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 10, 0 ) );
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SCALE_PRECISION );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 2, 3,
+                    patch_vshift_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SHIFT_PRECISION );
+                    gtk_table_attach( GTK_TABLE( table ), patch_vshift_spinbutton, 2, 3, 2, 3,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->scale[0] );
+                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( patch_vshift_spinbutton ), FALSE );
+                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_vshift_spinbutton ), TRUE );
+                    gtk_entry_set_alignment( GTK_ENTRY( patch_vshift_spinbutton ), 1.0 ); //right
+                    gtk_size_group_add_widget( scaleSizeGroup, patch_vshift_spinbutton );
+                    gtk_widget_show( patch_vshift_spinbutton );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_vshift_spinbutton ), DEFAULT_SHIFT_INCREMENT_VALUE );
 
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
-                    g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
-                    g_object_set_data( G_OBJECT( m_pWidget ), "hscale_adj", adj );
+                    g_object_unref( size_group );
 
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 2, 3,
-                                      (GtkAttachOptions) ( 0 ),
-                                      (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
+                        button = gtk_button_new_with_label( _( "-" ) );
+                        gtk_widget_modify_font(button, pango_font_description_from_string("Sans 16"));
+                        gtk_table_attach( GTK_TABLE( table ), button, 3, 4, 2, 3,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( button );
+                        gtk_size_group_add_widget( plusMinusSizeGroup, button );
+                        g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( decreaseVShift ), NULL );
 
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_SCALE_INCREMENT, MAX_SCALE_INCREMENT, 1, 10, 0 ) );
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SCALE_PRECISION );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 3, 4,
-                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                                      (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->scale[1] );
-
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
-                    g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
-                    g_object_set_data( G_OBJECT( m_pWidget ), "vscale_adj", adj );
-
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 3, 4,
-                                      (GtkAttachOptions) ( 0 ),
-                                      (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
+                        button = gtk_button_new_with_label( _( "+" ) );
+                        gtk_widget_modify_font(button, pango_font_description_from_string("Sans 16"));
+                        gtk_table_attach( GTK_TABLE( table ), button, 4, 5, 2, 3,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( button );
+                        gtk_size_group_add_widget( plusMinusSizeGroup, button );
+                        g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( increaseVShift ), NULL );
 
                     adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -MAX_ROTATE_INCREMENT, MAX_ROTATE_INCREMENT, 1, 10, 0 ) );
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_ROTATE_PRECISION );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 0, 1, 4, 5,
+                    patch_rotate_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_ROTATE_PRECISION );
+                    gtk_table_attach( GTK_TABLE( table ), patch_rotate_spinbutton, 2, 3, 4, 5,
                                       (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
-                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( spin ), (float) l_pPIIncrement->rotate );
+                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( patch_rotate_spinbutton ), TRUE );
+                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_rotate_spinbutton ), TRUE );
+                    gtk_entry_set_alignment( GTK_ENTRY( patch_rotate_spinbutton ), 1.0 ); //right
+                    gtk_widget_show( patch_rotate_spinbutton );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_rotate_spinbutton ), DEFAULT_ROTATE_INCREMENT_VALUE );
 
-                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, 0, 0, 1, 1, 0 ) );
-                    g_signal_connect( adj, "value-changed", G_CALLBACK( OnSpinChanged ), spin );
-                    g_object_set_data( G_OBJECT( m_pWidget ), "rotate_adj", adj );
+                        button = gtk_button_new_with_label( _( "-" ) );
+                        gtk_widget_modify_font(button, pango_font_description_from_string("Sans 16"));
+                        gtk_table_attach( GTK_TABLE( table ), button, 3, 4, 4, 5,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( button );
+                        gtk_size_group_add_widget( plusMinusSizeGroup, button );
+                        g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( decreaseRotation ), NULL );
 
-                    spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
-                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
-                    gtk_table_attach( GTK_TABLE( table ), spin, 1, 2, 4, 5,
-                                      (GtkAttachOptions) ( 0 ),
+                        button = gtk_button_new_with_label( _( "+" ) );
+                        gtk_widget_modify_font(button, pango_font_description_from_string("Sans 16"));
+                        gtk_table_attach( GTK_TABLE( table ), button, 4, 5, 4, 5,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( button );
+                        gtk_size_group_add_widget( plusMinusSizeGroup, button );
+                        g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( increaseRotation ), NULL );
+
+                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 1, pow( 10, -TEXTURE_SCALE_PRECISION ), MAX_SCALE_INCREMENT, 0.05, 0.25, 0 ) );
+                    patch_hscale_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SCALE_PRECISION );
+                    gtk_widget_set_tooltip_text( patch_hscale_spinbutton, _( scaleTooltip ) );
+                    gtk_table_attach( GTK_TABLE( table ), patch_hscale_spinbutton, 2, 3, 6, 7,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                                       (GtkAttachOptions) ( 0 ), 0, 0 );
-                    gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
-                    gtk_widget_show( spin );
+                    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( patch_hscale_spinbutton ), FALSE );
+                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_hscale_spinbutton ), TRUE );
+                    gtk_entry_set_alignment( GTK_ENTRY( patch_hscale_spinbutton ), 1.0 ); //right
+                    gtk_widget_show( patch_hscale_spinbutton );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_hscale_spinbutton ), 1 );
+
+                        button = gtk_button_new_with_label( _( "Apply" ) );
+                        gtk_widget_set_tooltip_text( button, _( scaleTooltip ) );
+                        gtk_widget_modify_font(button, pango_font_description_from_string("Sans 16"));
+                        gtk_table_attach( GTK_TABLE( table ), button, 3, 5, 6, 7,
+                                          (GtkAttachOptions) ( GTK_FILL ),
+                                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                        gtk_widget_show( button );
+                        g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( changeHScale ), NULL );
+
+                    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 1, pow( 10, -TEXTURE_SCALE_PRECISION ), MAX_SCALE_INCREMENT, 0.05, 0.25, 0 ) );
+                    patch_vscale_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, TEXTURE_SCALE_PRECISION );
+                    gtk_widget_set_tooltip_text( patch_vscale_spinbutton, _( scaleTooltip ) );
+                    gtk_table_attach( GTK_TABLE( table ), patch_vscale_spinbutton, 2, 3, 7, 8,
+                                      (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                                      (GtkAttachOptions) ( 0 ), 0, 0 );	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( patch_vscale_spinbutton ), FALSE );
+                    gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_vscale_spinbutton ), TRUE );
+                    gtk_entry_set_alignment( GTK_ENTRY( patch_vscale_spinbutton ), 1.0 ); //right
+                    gtk_widget_show( patch_vscale_spinbutton );
+                    gtk_spin_button_set_value( GTK_SPIN_BUTTON( patch_vscale_spinbutton ), 1 );
+
+                    button = gtk_button_new_with_label( _( "Apply" ) );
+                    gtk_widget_set_tooltip_text( button, _( scaleTooltip ) );
+                    gtk_widget_modify_font(button, pango_font_description_from_string("Sans 16"));
+                    gtk_table_attach( GTK_TABLE( table ), button, 3, 5, 7, 8,
+                                      (GtkAttachOptions) ( GTK_FILL ),
+                                      (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                    gtk_widget_show( button );
+                    g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( changeVScale ), NULL );
+
+                g_object_unref( plusMinusSizeGroup );
+
+                button = gtk_button_new_with_label( _( "Reset Increments" ) );
+                gtk_table_attach( GTK_TABLE( table ), button, 2, 3, 8, 9,
+                                  (GtkAttachOptions) ( GTK_FILL ),
+                                  (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                gtk_widget_show( button );
+                g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( on_reset_patch_increments_button_clicked ), NULL );
 
     functionLayoutTable = gtk_table_new( 3, 1, FALSE );
     gtk_box_pack_start( GTK_BOX( hbox ), functionLayoutTable, TRUE, TRUE, 0 );
@@ -643,61 +884,21 @@ void PatchDialog::BuildDialog(){
         gtk_widget_show( specialScaleTable );
 
             label = gtk_label_new( _( "Horizontal Scale" ) );
-            gtk_table_attach( GTK_TABLE( specialScaleTable ), label, 0, 1, 0, 1,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
-            gtk_widget_show( label );
-
-            label = gtk_label_new( _( "Vertical Scale" ) );
             gtk_table_attach( GTK_TABLE( specialScaleTable ), label, 1, 2, 0, 1,
                               (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                               (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
             gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
             gtk_widget_show( label );
 
-            patch_special_hscale = GTK_ADJUSTMENT( gtk_adjustment_new( patchHScale, -MAX_SCALE_VALUE, MAX_SCALE_VALUE, 0.1, 1, 0 ) );
-            patch_special_hscale_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_special_hscale ), 1, TEXTURE_SCALE_PRECISION );
-            sprintf( tempTooltip, "This is the horizontal scale of the texture when a 'Natural' or 'Cap' operation is applied." );
-            gtk_widget_set_tooltip_text( patch_special_hscale_spinbutton, _( tempTooltip ) );
-            gtk_table_attach( GTK_TABLE( specialScaleTable ), patch_special_hscale_spinbutton, 0, 1, 1, 2,
+            label = gtk_label_new( _( "Vertical Scale" ) );
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), label, 3, 4, 0, 1,
                               (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                               (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ), TRUE );
-            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ), GTK_UPDATE_ALWAYS );
-            gtk_entry_set_alignment( GTK_ENTRY( patch_special_hscale_spinbutton ), 1.0 ); //right
-            gtk_widget_show( patch_special_hscale_spinbutton );
-            g_signal_connect( (gpointer) patch_special_vscale_spinbutton, "value-changed", G_CALLBACK( on_patch_hscale_changed ), NULL );
-
-            patch_special_vscale = GTK_ADJUSTMENT( gtk_adjustment_new( patchVScale, -MAX_SCALE_VALUE, MAX_SCALE_VALUE, 0.1, 1, 0 ) );
-            patch_special_vscale_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_special_vscale ), 1, TEXTURE_SCALE_PRECISION );
-            sprintf( tempTooltip, "This is the vertical scale of the texture when a 'Natural' or 'Cap' operation is applied." );
-            gtk_widget_set_tooltip_text( patch_special_vscale_spinbutton, _( tempTooltip ) );
-            gtk_table_attach( GTK_TABLE( specialScaleTable ), patch_special_vscale_spinbutton, 1, 2, 1, 2,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ), TRUE );
-            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ), GTK_UPDATE_ALWAYS );
-            gtk_entry_set_alignment( GTK_ENTRY( patch_special_vscale_spinbutton ), 1.0 ); //right
-            gtk_widget_show( patch_special_vscale_spinbutton );
-            g_signal_connect( (gpointer) patch_special_vscale_spinbutton, "value-changed", G_CALLBACK( on_patch_vscale_changed ), NULL );
-
-/*
-            eventbox = gtk_event_box_new();
-            gtk_table_attach( GTK_TABLE( specialScaleTable ), eventbox, 2, 3, 1, 2,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_widget_show( eventbox );
-            grid_size_scale_button = gtk_button_new_with_mnemonic( _( "Grid" ) );
-            gtk_widget_set_tooltip_text( grid_size_scale_button, _( "This will set the scale field to match the current grid size" ) );
-            gtk_container_add( GTK_CONTAINER( eventbox ), grid_size_scale_button );
-            gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
-            gtk_widget_show( grid_size_scale_button );
-            g_signal_connect( G_OBJECT( reset_special_scale_button ), "clicked", G_CALLBACK( grid_size_scale_button_clicked ), NULL );
-*/
+            gtk_misc_set_alignment( GTK_MISC( label ), 0.5, 0.5 );
+            gtk_widget_show( label );
 
             eventbox = gtk_event_box_new();
-            gtk_table_attach( GTK_TABLE( specialScaleTable ), eventbox, 3, 4, 1, 2,
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), eventbox, 0, 1, 1, 2,
                               (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
                               (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
             gtk_widget_show( eventbox );
@@ -708,6 +909,59 @@ void PatchDialog::BuildDialog(){
             gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
             gtk_widget_show( reset_special_scale_button );
             g_signal_connect( G_OBJECT( reset_special_scale_button ), "clicked", G_CALLBACK( reset_special_scale_button_clicked ), NULL );
+
+            patch_special_hscale = GTK_ADJUSTMENT( gtk_adjustment_new( patchHScale, -MAX_SCALE_VALUE, MAX_SCALE_VALUE, 0.1, 1, 0 ) );
+            patch_special_hscale_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_special_hscale ), 1, TEXTURE_SCALE_PRECISION );
+            sprintf( tempTooltip, "This is the horizontal scale of the texture when a 'Natural' or 'Cap' operation is applied." );
+            gtk_widget_set_tooltip_text( patch_special_hscale_spinbutton, _( tempTooltip ) );
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), patch_special_hscale_spinbutton, 1, 2, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ), TRUE );
+            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ), GTK_UPDATE_ALWAYS );
+            gtk_entry_set_alignment( GTK_ENTRY( patch_special_hscale_spinbutton ), 1.0 ); //right
+            gtk_widget_show( patch_special_hscale_spinbutton );
+            g_signal_connect( (gpointer) patch_special_hscale_spinbutton, "value-changed", G_CALLBACK( on_patch_hscale_changed ), NULL );
+
+            eventbox = gtk_event_box_new();
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), eventbox, 2, 3, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_widget_show( eventbox );
+
+            reset_special_scale_button = gtk_button_new_with_mnemonic( _( "Swap" ) );
+            gtk_widget_set_tooltip_text( reset_special_scale_button, _( "This will reset the scale field to the default size" ) );
+            gtk_container_add( GTK_CONTAINER( eventbox ), reset_special_scale_button );
+            gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
+            gtk_widget_show( reset_special_scale_button );
+            g_signal_connect( G_OBJECT( reset_special_scale_button ), "clicked", G_CALLBACK( swap_special_scale_button_clicked ), NULL );
+
+            patch_special_vscale = GTK_ADJUSTMENT( gtk_adjustment_new( patchVScale, -MAX_SCALE_VALUE, MAX_SCALE_VALUE, 0.1, 1, 0 ) );
+            patch_special_vscale_spinbutton = gtk_spin_button_new( GTK_ADJUSTMENT( patch_special_vscale ), 1, TEXTURE_SCALE_PRECISION );
+            sprintf( tempTooltip, "This is the vertical scale of the texture when a 'Natural' or 'Cap' operation is applied." );
+            gtk_widget_set_tooltip_text( patch_special_vscale_spinbutton, _( tempTooltip ) );
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), patch_special_vscale_spinbutton, 3, 4, 1, 2,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ), TRUE );
+            gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( patch_special_vscale_spinbutton ), GTK_UPDATE_ALWAYS );
+            gtk_entry_set_alignment( GTK_ENTRY( patch_special_vscale_spinbutton ), 1.0 ); //right
+            gtk_widget_show( patch_special_vscale_spinbutton );
+            g_signal_connect( (gpointer) patch_special_vscale_spinbutton, "value-changed", G_CALLBACK( on_patch_vscale_changed ), NULL );
+
+/*
+            eventbox = gtk_event_box_new();
+            gtk_table_attach( GTK_TABLE( specialScaleTable ), eventbox, 3, 4, 0, 1,
+                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_widget_show( eventbox );
+            grid_size_scale_button = gtk_button_new_with_mnemonic( _( "Grid" ) );
+            gtk_widget_set_tooltip_text( grid_size_scale_button, _( "This will set the scale field to match the current grid size" ) );
+            gtk_container_add( GTK_CONTAINER( eventbox ), grid_size_scale_button );
+            gtk_container_set_border_width( GTK_CONTAINER( eventbox ), 4 );
+            gtk_widget_show( grid_size_scale_button );
+            g_signal_connect( G_OBJECT( reset_special_scale_button ), "clicked", G_CALLBACK( grid_size_scale_button_clicked ), NULL );
+*/
 
         eventbox = gtk_event_box_new();
         gtk_table_attach( GTK_TABLE( specialTable ), eventbox, 0, 1, 1, 2,
@@ -1101,12 +1355,12 @@ void PatchDialog::BuildDialog(){
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox, TRUE, FALSE, 0 );
 	gtk_widget_show( hbox );
 
-	button = gtk_button_new_with_label( _( "Done" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Done" ) );
 	gtk_box_pack_end( GTK_BOX( hbox ), button, FALSE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnDone ), NULL );
 
-    button = gtk_button_new_with_label( _( "Apply" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Apply" ) );
 	gtk_box_pack_end( GTK_BOX( hbox ), button, FALSE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( OnApply ), NULL );
@@ -1304,7 +1558,6 @@ void on_patch_texture_combo_entry_activate( GtkEntry *entry, gpointer user_data 
 
 void on_patch_hscale_changed() {
     patchHScale = gtk_spin_button_get_value( GTK_SPIN_BUTTON( patch_special_hscale_spinbutton ) );
-    Sys_Printf( "sdfgsdg" );
 }
 
 void on_patch_vscale_changed() {

@@ -219,19 +219,19 @@ CBackgroundDialogPage::CBackgroundDialogPage( VIEWTYPE vt ){
 
 	gtk_widget_show( m_pFileLabel );
 
-	w = gtk_button_new_with_label( _( "Browse..." ) );
+    w = gtk_button_new_with_mnemonic( _( "_Browse..." ) );
 	g_signal_connect( G_OBJECT( w ), "clicked", G_CALLBACK( browse_callback ),
 					  ( gpointer ) this );
 	gtk_box_pack_start( GTK_BOX( hbox ),w, FALSE, FALSE, 5 );
 	gtk_widget_set_tooltip_text( w, _( "Select a file" ) );
 	gtk_widget_show( w );
 
-	w = gtk_button_new_with_label( _( "Reload" ) );
+    w = gtk_button_new_with_mnemonic( _( "_Reload" ) );
 	g_signal_connect( G_OBJECT( w ), "clicked", G_CALLBACK( reload_callback ),
 					  ( gpointer ) this );
 	// TODO disable until we have file
 	// gtk_widget_set_sensitive(w,FALSE);
-	gtk_widget_set_tooltip_text( w, _( "Reload current file" ) );
+    gtk_widget_set_tooltip_text( w, _( "Reload current file" ) );
 	gtk_box_pack_start( GTK_BOX( hbox ),w, FALSE, FALSE, 5 );
 	gtk_widget_show( w );
 
@@ -270,7 +270,7 @@ CBackgroundDialogPage::CBackgroundDialogPage( VIEWTYPE vt ){
 	gtk_container_add( GTK_CONTAINER( frame ), hbox );
 	gtk_container_set_border_width( GTK_CONTAINER( hbox ),4 );
 
-	w = gtk_button_new_with_label( _( "from selection" ) );
+    w = gtk_button_new_with_mnemonic( _( "From _selection" ) );
 	gtk_box_pack_start( GTK_BOX( hbox ),w, TRUE, FALSE, 5 );
 	g_signal_connect( G_OBJECT( w ), "clicked", G_CALLBACK( size_sel_callback ),
 					  ( gpointer ) this );
@@ -278,7 +278,7 @@ CBackgroundDialogPage::CBackgroundDialogPage( VIEWTYPE vt ){
 	gtk_widget_show( w );
 
 	if ( m_vt == XY ) {
-		w = gtk_button_new_with_label( _( "from map mins/maxs" ) );
+        w = gtk_button_new_with_mnemonic( _( "From _map mins/maxs" ) );
 		gtk_box_pack_start( GTK_BOX( hbox ),w, TRUE, FALSE, 2 );
 		g_signal_connect( G_OBJECT( w ), "clicked", G_CALLBACK( size_mm_callback ),
 						  ( gpointer ) this );

@@ -25,8 +25,9 @@
 
 void Entity_UpdateClass( entity_t *e, const char* value ){
 	if ( strcmp( value, "misc_model" ) == 0
-		 || ( strcmp( value, "misc_gamemodel" ) == 0 )
-		 || ( strcmp( value, "model_static" ) == 0 ) ) {
+         || ( strcmp( value, "misc_gamemodel" ) == 0 )
+         || ( strcmp( value, "misc_model_static" ) == 0 )
+         || ( strcmp( value, "model_static" ) == 0 ) ) {
 		if ( e->model.pRender ) {
 			e->model.pRender->DecRef();
 		}
@@ -51,7 +52,7 @@ void Entity_UpdateClass( entity_t *e, const char* value ){
 
 		model->DecRef();
 	}
-	else if ( e->eclass && e->eclass->modelpath ) {
+    else if ( e->eclass && e->eclass->modelpath ) {
 		if ( e->model.pRender ) {
 			e->model.pRender->DecRef();
 		}

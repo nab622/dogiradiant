@@ -37,6 +37,9 @@
 extern void MemFile_fprintf( MemStream* pMemFile, const char* pText, ... );
 extern face_t *Face_Alloc( void );
 
+extern float patchHScale;
+extern float patchVScale;
+
 void _Write3DMatrix( FILE *f, int y, int x, int z, float *m );
 void _Write3DMatrix( MemStream *f, int y, int x, int z, float *m );
 
@@ -657,9 +660,12 @@ float Patch_HeightDistanceTo( patchMesh_t *p, int j ){
    dist( this control point to first control point ) / dist ( last control pt to first)
  */
 void WINAPI Patch_Naturalize( patchMesh_t *p ){
-	int nWidth = (int)( p->d_texture->width * g_PrefsDlg.m_fDefTextureScale );
-	int nHeight = (int)( p->d_texture->height * g_PrefsDlg.m_fDefTextureScale );
-	float fPWidth = Patch_Width( p );
+//	int nWidth = (int)( p->d_texture->width * g_PrefsDlg.m_fDefTextureScale );
+//	int nHeight = (int)( p->d_texture->height * g_PrefsDlg.m_fDefTextureScale );
+    int nWidth = (int)( p->d_texture->width * patchHScale );
+    int nHeight = (int)( p->d_texture->height * patchVScale );
+
+    float fPWidth = Patch_Width( p );
 	float fPHeight = Patch_Height( p );
 	float xAccum = 0.0f;
 
@@ -668,11 +674,9 @@ void WINAPI Patch_Naturalize( patchMesh_t *p ){
 		float yAccum = 0.0f;
 		for ( int j = p->height - 1; j >= 0 ; j-- )
 		{
-			p->ctrl[i][j].st[0] = ( fPWidth / nWidth ) * xAccum / fPWidth;
-			p->ctrl[i][j].st[1] = ( fPHeight / nHeight ) * yAccum / fPHeight;
-			yAccum = Patch_HeightDistanceTo( p,j - 1 );
-			//p->ctrl[i][j][3] = (fPWidth / nWidth) * (float)i / (p->width - 1);
-			//p->ctrl[i][j][4] = (fPHeight/ nHeight) * (float)j / (p->height - 1);
+            p->ctrl[i][j].st[0] = ( fPWidth / nWidth ) * xAccum / fPWidth;
+            p->ctrl[i][j].st[1] = ( fPHeight / nHeight ) * yAccum / fPHeight;
+            yAccum = Patch_HeightDistanceTo( p,j - 1 );
 		}
 		xAccum = Patch_WidthDistanceTo( p,i + 1 );
 	}
@@ -823,16 +827,16 @@ void Patch_CapTexture( patchMesh_t *p, bool bFaceCycle = false ){
 		for ( int h = 0; h < p->height; h++ )
 		{
 			if ( vProjection[2] == 1.0f || ( vX[0] == 1.0f && vY[1] == -1.0f ) ) {
-				p->ctrl[w][h].st[0] = p->ctrl[w][h].xyz[0] / ( texture->width * g_PrefsDlg.m_fDefTextureScale );
-				p->ctrl[w][h].st[1] = p->ctrl[w][h].xyz[1] / ( texture->height * g_PrefsDlg.m_fDefTextureScale ) * -1;
+                p->ctrl[w][h].st[0] = p->ctrl[w][h].xyz[0] / ( texture->width * patchHScale );
+                p->ctrl[w][h].st[1] = p->ctrl[w][h].xyz[1] / ( texture->height * patchVScale ) * -1;
 			}
 			else if ( vProjection[0] == 1.0f || ( vX[1] == 1.0f && vY[2] == -1.0f ) ) {
-				p->ctrl[w][h].st[0] = p->ctrl[w][h].xyz[1] / ( texture->width * g_PrefsDlg.m_fDefTextureScale );
-				p->ctrl[w][h].st[1] = p->ctrl[w][h].xyz[2] / ( texture->height * g_PrefsDlg.m_fDefTextureScale ) * -1;
+                p->ctrl[w][h].st[0] = p->ctrl[w][h].xyz[1] / ( texture->width * patchHScale );
+                p->ctrl[w][h].st[1] = p->ctrl[w][h].xyz[2] / ( texture->height * patchVScale ) * -1;
 			}
 			else if ( vProjection[1] == 1.0f || ( vX[0] == 1.0f && vY[2] == -1.0f ) ) {
-				p->ctrl[w][h].st[0] = p->ctrl[w][h].xyz[0] / ( texture->width * g_PrefsDlg.m_fDefTextureScale );
-				p->ctrl[w][h].st[1] = p->ctrl[w][h].xyz[2] / ( texture->height * g_PrefsDlg.m_fDefTextureScale ) * -1;
+                p->ctrl[w][h].st[0] = p->ctrl[w][h].xyz[0] / ( texture->width * patchHScale );
+                p->ctrl[w][h].st[1] = p->ctrl[w][h].xyz[2] / ( texture->height * patchVScale ) * -1;
 			}
 			//Sys_Printf("(%i,%i) (%f,%f,%f) (%f,%f) %f\n",w,h,
 			//	p->ctrl[w][h].xyz[0],p->ctrl[w][h].xyz[1],p->ctrl[w][h].xyz[2],
@@ -4722,7 +4726,7 @@ void Patch_Write( patchMesh_t *p, FILE *file ){
    Patch_RotateTexture
    ==================
  */
-void Patch_RotateTexture( patchMesh_t *p, float fAngle ){
+void Patch_RotateTexture( patchMesh_t *p, vec_t fAngle ){
 	p->bDirty = true;
 	float c = cos( fAngle * Q_PI / 180 );
 	float s = sin( fAngle * Q_PI / 180 );
@@ -4736,8 +4740,8 @@ void Patch_RotateTexture( patchMesh_t *p, float fAngle ){
 			//if (g_qeglobals.d_select_mode == sel_curvepoint && PointInMoveList(p->ctrl[w][h].xyz) == -1)
 			//  continue;
 
-			float x = p->ctrl[w][h].st[0];
-			float y = p->ctrl[w][h].st[1];
+            vec_t x = p->ctrl[w][h].st[0];
+            vec_t y = p->ctrl[w][h].st[1];
 			p->ctrl[w][h].st[0] = x * c - y * s;
 			p->ctrl[w][h].st[1] = y * c + x * s;
 		}
@@ -4750,7 +4754,7 @@ void Patch_RotateTexture( patchMesh_t *p, float fAngle ){
    Patch_ScaleTexture
    ==================
  */
-void Patch_ScaleTexture( patchMesh_t *p, float fx, float fy, bool bFixup ){
+void Patch_ScaleTexture( patchMesh_t *p, vec_t fx, vec_t fy, bool bFixup ){
     // FIXME:
 	// this hack turns scales into 1.1 or 0.9
     if ( bFixup ) {
@@ -4797,7 +4801,7 @@ void Patch_ScaleTexture( patchMesh_t *p, float fx, float fy, bool bFixup ){
    shift a texture given a pixel count
    ==================
  */
-void Patch_ShiftTexture( patchMesh_t *p, float fx, float fy ){
+void Patch_ShiftTexture( patchMesh_t *p, vec_t fx, vec_t fy ){
 	qtexture_t *pTex;
 	pTex = p->pShader->getTexture();
 	fx = -1 * fx / pTex->width;
@@ -4811,7 +4815,7 @@ void Patch_ShiftTexture( patchMesh_t *p, float fx, float fy ){
    shift a patch texture given an ST increment
    ====================
  */
-void Patch_ShiftTextureST( patchMesh_t *p, float fx, float fy ){
+void Patch_ShiftTextureST( patchMesh_t *p, vec_t fx, vec_t fy ){
 #ifdef _DEBUG
 	// NOTE: when called by Patch_ShiftTexture this warning may be bogus
 	if ( ( ABS( fx ) >= 1 ) || ( ABS( fy ) >= 1 ) ) {
@@ -4974,7 +4978,7 @@ void Patch_SetTextureInfo( texdef_t *pt ){
 			}
 
 			if ( pt->scale[0] || pt->scale[1] ) {
-				Patch_ScaleTexture( pb->pPatch, pt->scale[0], pt->scale[1], false );
+                Patch_ScaleTexture( pb->pPatch, pt->scale[0], pt->scale[1], false );
 			}
 
 			patchMesh_t *p = pb->pPatch;

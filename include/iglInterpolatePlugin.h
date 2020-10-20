@@ -71,11 +71,13 @@ inline void qglColor3f_convertFloat( vec3_t const input ) {
 // m4x4 Matrix
 inline void qglMultMatrixf_convertFloat( m4x4_t const input ) {
     m4x4Float_t temp;
+
     for( int i = 0; i < 16; i++ ) {
         temp[i] = (float) input[i];
     }
     g_QglTable.m_pfn_qglMultMatrixf( temp );
 }
+
 
 // raster pos
 inline void qglRasterPos3fv_convertFloat( vec3_t input ) {
@@ -85,6 +87,7 @@ inline void qglRasterPos3fv_convertFloat( vec3_t input ) {
     }
     g_QglTable.m_pfn_qglRasterPos3fv( output );
 }
+
 
 // for lights
 inline void qglVertex6_convertFloat( vec3_t *points ) {

@@ -33,10 +33,10 @@ void Cbuf_AddText( const char *text );
 void Cbuf_Execute( void );
 }
 
-float Q_fabs( float f ) {
+vec_t Q_fabs( vec_t f ) {
 	int tmp = *( int * ) &f;
 	tmp &= 0x7FFFFFFF;
-	return *( float * ) &tmp;
+    return *( vec_t * ) &tmp;
 }
 
 // (SA) making a list of cameras so I can use

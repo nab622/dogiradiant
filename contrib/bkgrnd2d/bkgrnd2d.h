@@ -29,6 +29,8 @@
 
 // NAB622: We're going to need these for things below...
 #include "globalDefines.h"
+#include "mathlib.h"
+
 extern vec_t g_MaxWorldCoord;
 extern vec_t g_MinWorldCoord;
 extern vec_t g_MaxBrushSize;

@@ -1849,13 +1849,13 @@ GtkWidget* create_main_dialog(){
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
 	gtk_widget_show( hbox2 );
 
-	button = gtk_button_new_with_label( _( "Browse..." ) );
+    button = gtk_button_new_with_mnemonic( _( "_Browse..." ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), button, FALSE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_object_set_data( G_OBJECT( dlg ), "bmp_file_browse", button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( bitmap_browse ), NULL );
 
-	button = gtk_button_new_with_label( _( "Reload" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Reload" ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), button, FALSE, FALSE, 0 );
 	gtk_widget_show( button );
 	g_object_set_data( G_OBJECT( dlg ), "bmp_reload", button );
@@ -1989,7 +1989,7 @@ GtkWidget* create_main_dialog(){
 	g_object_set_data( G_OBJECT( dlg ), "fix_rate", entry );
 	g_signal_connect( G_OBJECT( entry ), "focus-out-event", G_CALLBACK( fix_rate_entryfocusout ), NULL );
 
-	button = gtk_button_new_with_label( _( "Free" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Free" ) );
 	gtk_table_attach( GTK_TABLE( table ), button, 2, 3, 0, 1,
 					  (GtkAttachOptions) ( GTK_EXPAND ),
 					  (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
@@ -1997,8 +1997,8 @@ GtkWidget* create_main_dialog(){
 	g_object_set_data( G_OBJECT( dlg ), "fix_free", button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( fix_free ), NULL );
 
-	button = gtk_button_new_with_label( _( "Free All" ) );
-	gtk_table_attach( GTK_TABLE( table ), button, 2, 3, 1, 2,
+    button = gtk_button_new_with_mnemonic( _( "_Free All" ) );
+    gtk_table_attach( GTK_TABLE( table ), button, 2, 3, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND ),
 					  (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
 	gtk_widget_show( button );
@@ -2163,7 +2163,7 @@ GtkWidget* create_main_dialog(){
 	gtk_box_pack_start( GTK_BOX( hbox ), vbox, FALSE, TRUE, 0 );
 	gtk_widget_show( vbox );
 
-	button = gtk_button_new_with_label( _( "OK" ) );
+    button = gtk_button_new_with_mnemonic( _( "_OK" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, TRUE, 0 );
 	gtk_widget_show( button );
 	g_object_set_data( G_OBJECT( dlg ), "go", button );
@@ -2173,25 +2173,25 @@ GtkWidget* create_main_dialog(){
 	gtk_box_pack_start( GTK_BOX( vbox ), label, FALSE, TRUE, 0 );
 	gtk_widget_show( label );
 
-	button = gtk_button_new_with_label( _( "Open..." ) );
+    button = gtk_button_new_with_mnemonic( _( "_Open..." ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, TRUE, 0 );
 	gtk_widget_show( button );
 	g_object_set_data( G_OBJECT( dlg ), "open", button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( main_open ), NULL );
 
-	button = gtk_button_new_with_label( _( "Save as..." ) );
+    button = gtk_button_new_with_mnemonic( _( "_Save as..." ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, TRUE, 0 );
 	gtk_widget_show( button );
 	g_object_set_data( G_OBJECT( dlg ), "save", button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( main_save ), NULL );
 
-	button = gtk_button_new_with_label( _( "Defaults" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Defaults" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, TRUE, 0 );
 	gtk_widget_show( button );
 	g_object_set_data( G_OBJECT( dlg ), "defaults", button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( main_defaults ), NULL );
 
-	button = gtk_button_new_with_label( _( "About..." ) );
+    button = gtk_button_new_with_mnemonic( _( "A_bout..." ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, TRUE, 0 );
 	gtk_widget_show( button );
 	g_signal_connect( G_OBJECT( button ), "clicked", G_CALLBACK( main_about ), NULL );

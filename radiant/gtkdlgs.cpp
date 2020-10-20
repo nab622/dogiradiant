@@ -124,8 +124,8 @@ static void DoProjectAddEdit( bool edit, GtkWidget *parent ){
 	}
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( parent ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -487,8 +487,8 @@ void DoProjectSettings(){
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 	gtk_window_set_default_size( GTK_WINDOW( dialog ), 550, 400 );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -505,19 +505,19 @@ void DoProjectSettings(){
 					  (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
 	gtk_widget_show( vbox );
 
-	add_button = button = gtk_button_new_with_label( _( "Add..." ) );
+    add_button = button = gtk_button_new_with_mnemonic( _( "_Add..." ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( project_add ), dialog );
 	gtk_widget_show( button );
 
-	change_button = button = gtk_button_new_with_label( _( "Change..." ) );
+    change_button = button = gtk_button_new_with_mnemonic( _( "_Change..." ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( project_change ), dialog );
 	gtk_widget_show( button );
 
-	remove_button = button = gtk_button_new_with_label( _( "Remove" ) );
+    remove_button = button = gtk_button_new_with_mnemonic( _( "_Remove" ) );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( project_remove ), dialog );
@@ -939,7 +939,7 @@ void DoMapInfo(){
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 	load_window_pos( dialog, g_PrefsDlg.mWindowInfo.posMapInfoWnd );
 
-	button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+    button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 	gtk_widget_grab_focus( button );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
@@ -953,77 +953,87 @@ void DoMapInfo(){
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox, FALSE, TRUE, 0 );
 	gtk_widget_show( hbox );
 
-    table = gtk_table_new( 5, 2, FALSE );
+    table = gtk_table_new( 5, 3, FALSE );
 	gtk_box_pack_start( GTK_BOX( hbox ), table, TRUE, TRUE, 0 );
-    gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 12 );
     gtk_table_set_col_spacings( GTK_TABLE( table ), 6 );
 	gtk_widget_show( table );
 
     brushes_label = gtk_label_new( "" );
-    gtk_table_attach( GTK_TABLE( table ), brushes_label, 1, 2, 0, 1,
+    gtk_widget_modify_font(brushes_label, pango_font_description_from_string("Mono 12"));
+    gtk_table_attach( GTK_TABLE( table ), brushes_label, 2, 3, 0, 1,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( brushes_label ), 0.0, 0.5 );
     gtk_widget_show( brushes_label );
 
     patches_label = gtk_label_new( "" );
-    gtk_table_attach( GTK_TABLE( table ), patches_label, 1, 2, 1, 2,
+    gtk_widget_modify_font(patches_label, pango_font_description_from_string("Mono 12"));
+    gtk_table_attach( GTK_TABLE( table ), patches_label, 2, 3, 1, 2,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( patches_label ), 0.0, 0.5 );
     gtk_widget_show( patches_label );
 
     entities_label = gtk_label_new( "" );
-    gtk_table_attach( GTK_TABLE( table ), entities_label, 1, 2, 2, 3,
+    gtk_widget_modify_font(entities_label, pango_font_description_from_string("Mono 12"));
+    gtk_table_attach( GTK_TABLE( table ), entities_label, 2, 3, 2, 3,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( entities_label ), 0.0, 0.5 );
 	gtk_widget_show( entities_label );
 
     net_label = gtk_label_new( "" );
-    gtk_table_attach( GTK_TABLE( table ), net_label, 1, 2, 3, 4,
+    gtk_widget_modify_font(net_label, pango_font_description_from_string("Mono 11"));
+    gtk_table_attach( GTK_TABLE( table ), net_label, 2, 3, 3, 4,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( net_label ), 0.0, 0.5 );
     gtk_widget_show( net_label );
 
     net_patches_label = gtk_label_new( "" );
-    gtk_table_attach( GTK_TABLE( table ), net_patches_label, 1, 2, 4, 5,
+    gtk_widget_modify_font(net_patches_label, pango_font_description_from_string("Mono 11"));
+    gtk_table_attach( GTK_TABLE( table ), net_patches_label, 2, 3, 4, 5,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( net_patches_label ), 0.0, 0.5 );
     gtk_widget_show( net_patches_label );
 
     label = gtk_label_new( _( "Total Brushes:" ) );
-	gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+    gtk_widget_modify_font(label, pango_font_description_from_string("Mono 12"));
+    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 0, 1,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
 	gtk_widget_show( label );
 
     label = gtk_label_new( _( "Total Patches:" ) );
-    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 1, 2,
+    gtk_widget_modify_font(label, pango_font_description_from_string("Mono 12"));
+    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 1, 2,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
     gtk_widget_show( label );
 
     label = gtk_label_new( _( "Total Entities:" ) );
-    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 2, 3,
+    gtk_widget_modify_font(label, pango_font_description_from_string("Mono 12"));
+    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 2, 3,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
     gtk_widget_show( label );
 
     label = gtk_label_new( _( "Non-entity Brush Count:" ) );
-    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 3, 4,
+    gtk_widget_modify_font(label, pango_font_description_from_string("Mono 11"));
+    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 3, 4,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
     gtk_widget_show( label );
 
     label = gtk_label_new( _( "Non-entity Patch Count:" ) );
-    gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 4, 5,
+    gtk_widget_modify_font(label, pango_font_description_from_string("Mono 11"));
+    gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 4, 5,
                       (GtkAttachOptions) ( GTK_FILL ),
                       (GtkAttachOptions) ( 0 ), 0, 0 );
     gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
@@ -1388,7 +1398,7 @@ void DoEntityList(){
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 	load_window_pos( dialog, g_PrefsDlg.mWindowInfo.posEntityInfoWnd );
 
-	button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+    button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 	gtk_widget_grab_default( button );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
@@ -1554,14 +1564,14 @@ void DoEntityList(){
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox2, FALSE, FALSE, 0 );
 	gtk_widget_show( hbox2 );
 
-	button = gtk_button_new_with_label( _( "Select" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Select" ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( entitylist_multiselect ), dialog );
 	gtk_widget_set_size_request( button, 60, -1 );
 	gtk_widget_show( button );
 
-	button = gtk_button_new_with_label( _( "Focus 2D View" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Focus 2D View" ) );
 	gtk_box_pack_start( GTK_BOX( hbox2 ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked", 
 						G_CALLBACK( entitylist_focus ), dialog );
@@ -1627,9 +1637,9 @@ void DoRotateDlg(){
 	dialog = gtk_dialog_new_with_buttons( _( "Arbitrary rotation" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Apply" ), GTK_RESPONSE_APPLY );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Apply" ), GTK_RESPONSE_APPLY );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -1666,24 +1676,24 @@ void DoRotateDlg(){
 	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
 	gtk_widget_show( label );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -359, 359, 1, 10, 0 ) );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -180, 180, 1, 10, 0 ) );
 	x = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
 	gtk_table_attach( GTK_TABLE( table ), x, 1, 2, 0, 1,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( x ), TRUE );
+    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( x ), TRUE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( x ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( x ), 1.0 ); //right align numbers
 	gtk_widget_show( x );
 	g_object_set_data( G_OBJECT( dialog ), "x", x );
 	g_signal_connect_after( x, "activate", G_CALLBACK( rotatedialog_activate ), dialog );
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -359, 359, 1, 10, 0 ) );
-	y = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -180, 180, 1, 10, 0 ) );
+    y = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
 	gtk_table_attach( GTK_TABLE( table ), y, 1, 2, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( y ), TRUE );
+    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( y ), TRUE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( y ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( y ), 1.0 ); //right align numbers
 	gtk_widget_show( y );
@@ -1691,12 +1701,12 @@ void DoRotateDlg(){
 	g_object_set_data( G_OBJECT( dialog ), "y", y );
 
 
-	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -359, 359, 1, 10, 0 ) );
-	z = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
+    adj = GTK_ADJUSTMENT( gtk_adjustment_new( 0, -180, 180, 1, 10, 0 ) );
+    z = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
 	gtk_table_attach( GTK_TABLE( table ), z, 1, 2, 2, 3,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( z ), TRUE );
+    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( z ), TRUE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( z ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( z ), 1.0 ); //right align numbers
 	gtk_widget_show( z );
@@ -1722,8 +1732,8 @@ void DoGamma(){
 	dialog = gtk_dialog_new_with_buttons( _( "Gamma" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -1936,8 +1946,8 @@ void DoFind(){
 	dialog = gtk_dialog_new_with_buttons( _( "Find Brush" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -2011,8 +2021,8 @@ void DoSides( bool bCone, bool bSphere, bool bTorus ){
 	dialog = gtk_dialog_new_with_buttons( _( "Arbitrary sides" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -2029,7 +2039,7 @@ void DoSides( bool bCone, bool bSphere, bool bTorus ){
 	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 3, 3, 100, 1, 10, 0 ) );
 	spin = gtk_spin_button_new( adj, 1, 0 );
 	gtk_box_pack_start( GTK_BOX( hbox ), spin, TRUE, TRUE, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), TRUE );
+    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
 	gtk_widget_show( spin );
@@ -2067,8 +2077,8 @@ void DoNewPatchDlg(){
 	dialog = gtk_dialog_new_with_buttons( _( "Patch density" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -2214,9 +2224,9 @@ void DoScaleDlg(){
 	dialog = gtk_dialog_new_with_buttons( _( "Scale" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Apply" ), GTK_RESPONSE_APPLY );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Apply" ), GTK_RESPONSE_APPLY );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -2254,7 +2264,7 @@ void DoScaleDlg(){
 
 	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 1.0, 0, 100, 0.1, 1, 0 ) );
 	x = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 0.1, 1 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( x ), TRUE );
+    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( x ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( x ), TRUE );
 	gtk_table_attach( GTK_TABLE( table ), x, 1, 2, 0, 1,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -2266,7 +2276,7 @@ void DoScaleDlg(){
 
 	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 1.0, 0, 100, 0.1, 1, 0 ) );
 	y = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 0.1, 1 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( y ), TRUE );
+    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( y ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( y ), TRUE );
 	gtk_table_attach( GTK_TABLE( table ), y, 1, 2, 1, 2,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -2279,7 +2289,7 @@ void DoScaleDlg(){
 
 	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 1.0, 0, 100, 0.1, 1, 0 ) );
 	z = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 0.1, 1 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( z ), TRUE );
+    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( z ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( z ), TRUE );
 	gtk_table_attach( GTK_TABLE( table ), z, 1, 2, 2, 3,
 					  (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
@@ -2308,8 +2318,8 @@ void DoThickenDlg(){
 	dialog = gtk_dialog_new_with_buttons( _( "Thicken Patch" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -2341,7 +2351,7 @@ void DoThickenDlg(){
 	adj = GTK_ADJUSTMENT( gtk_adjustment_new( 1, 1, 100, 1, 10, 0 ) );
 	amount = spin = gtk_spin_button_new( GTK_ADJUSTMENT( adj ), 1, 0 );
 	gtk_box_pack_start( GTK_BOX( hbox ), amount, FALSE, FALSE, 0 );
-	gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
+    gtk_spin_button_set_wrap( GTK_SPIN_BUTTON( spin ), FALSE );
 	gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( spin ), TRUE );
 
 	gtk_entry_set_alignment( GTK_ENTRY( spin ), 1.0 ); //right
@@ -2397,7 +2407,7 @@ void DoAbout(){
 	gtk_window_set_position( GTK_WINDOW( dialog ), GTK_WIN_POS_CENTER_ON_PARENT );
 	gtk_window_set_resizable( GTK_WINDOW( dialog ), FALSE );  
 
-	button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+    button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 	gtk_widget_grab_focus( button );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
@@ -2539,7 +2549,7 @@ void DoCommandListDlg(){
 	gtk_window_set_position( GTK_WINDOW( dialog ), GTK_WIN_POS_CENTER_ON_PARENT );
 	gtk_window_set_default_size( GTK_WINDOW( dialog ), 400, 400 );
 
-	button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+    button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 	gtk_widget_grab_focus( button );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
@@ -2689,8 +2699,8 @@ void DoTextureListDlg(){
 	dialog = gtk_dialog_new_with_buttons( _( "Textures" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Load" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Load" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	gtk_window_set_default_size( GTK_WINDOW( dialog ), 400, 400 );
 
@@ -2762,8 +2772,8 @@ int DoCapDlg( int *type, bool *b_GroupResult ){
 	dialog = gtk_dialog_new_with_buttons( _( "Cap" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -2893,9 +2903,9 @@ void DoScriptsDlg(){
 	dialog = gtk_dialog_new_with_buttons( _( "Available Scripts - Not Implemented Yet" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-//	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-//	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Close" ), GTK_RESPONSE_CANCEL );
+//	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+//	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Close" ), GTK_RESPONSE_CANCEL );
 	
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -2980,18 +2990,18 @@ void DoScriptsDlg(){
 	gtk_box_pack_start( GTK_BOX( hbox ), vbox2, FALSE, FALSE, 0 );
 	gtk_widget_show( vbox2 );
 
-	run_button = button = gtk_button_new_with_label( _( "Run" ) );
+    run_button = button = gtk_button_new_with_mnemonic( _( "_Run" ) );
 	gtk_box_pack_start( GTK_BOX( vbox2 ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( dialog_button_callback ), GINT_TO_POINTER( IDOK ) );
 	gtk_widget_show( button );
 
-	new_button = button = gtk_button_new_with_label( _( "New..." ) );
+    new_button = button = gtk_button_new_with_mnemonic( _( "_New..." ) );
 	gtk_box_pack_start( GTK_BOX( vbox2 ), button, FALSE, FALSE, 0 );
 	gtk_widget_set_sensitive( button, FALSE );
 	gtk_widget_show( button );
 
-	edit_button = button = gtk_button_new_with_label( _( "Edit..." ) );
+    edit_button = button = gtk_button_new_with_mnemonic( _( "_Edit..." ) );
 	gtk_box_pack_start( GTK_BOX( vbox2 ), button, FALSE, FALSE, 0 );
 	gtk_widget_set_sensitive( button, FALSE );
 	gtk_widget_show( button );
@@ -3035,8 +3045,8 @@ int DoBSInputDlg( const char *fields[5], float values[5] ){
 	dialog = gtk_dialog_new_with_buttons( _( "BrushScript Input" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -3110,8 +3120,8 @@ int DoTextureLayout( float *fx, float *fy ){
 	dialog = gtk_dialog_new_with_buttons( _( "Patch texture layout" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -3222,14 +3232,14 @@ char* DoNameDlg( const char* title ){
 	gtk_widget_show( vbox );
 	gtk_box_pack_start( GTK_BOX( hbox ), vbox, FALSE, FALSE, 0 );
 
-	button = gtk_button_new_with_label( _( "OK" ) );
+    button = gtk_button_new_with_mnemonic( _( "_OK" ) );
 	gtk_widget_show( button );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( dialog_button_callback ), GINT_TO_POINTER( IDOK ) );
 	gtk_widget_set_size_request( button, 60, -2 );
 
-	button = gtk_button_new_with_label( _( "Cancel" ) );
+    button = gtk_button_new_with_mnemonic( _( "_Cancel" ) );
 	gtk_widget_show( button );
 	gtk_box_pack_start( GTK_BOX( vbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
@@ -3279,8 +3289,8 @@ char* DoNewProjectDlg(){
 	dialog = gtk_dialog_new_with_buttons( _( "New Project" ), NULL, flags, NULL );
 	gtk_window_set_transient_for( GTK_WINDOW( dialog ), GTK_WINDOW( g_pParentWnd->m_pWidget ) );
 
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
-	gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
+    gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 
 	content_area = gtk_dialog_get_content_area( GTK_DIALOG( dialog ) );
 
@@ -3461,14 +3471,14 @@ static void CreateGtkTextEditor(){
 	gtk_box_pack_start( GTK_BOX( vbox ), hbox, FALSE, TRUE, 0 );
 	gtk_widget_show( hbox );
 
-	button = gtk_button_new_with_label( _( "Close" ) );
+    button = gtk_button_new_with_mnemonic( _( "Close" ) );
 	gtk_box_pack_end( GTK_BOX( hbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
 						G_CALLBACK( editor_close ), dlg );
 	gtk_widget_set_size_request( button, 60, -2 );
 	gtk_widget_show( button );
 
-	button = gtk_button_new_with_label( _( "Save" ) );
+    button = gtk_button_new_with_mnemonic( _( "Save" ) );
 	gtk_widget_show( button );
 	gtk_box_pack_end( GTK_BOX( hbox ), button, FALSE, FALSE, 0 );
 	g_signal_connect( G_OBJECT( button ), "clicked",
@@ -3657,10 +3667,10 @@ int DoLightIntensityDlg( int *intensity ){
 	GtkAccelGroup *accel_group = gtk_accel_group_new();
 	gtk_window_add_accel_group( GTK_WINDOW( dialog ), accel_group );
 
-	button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "OK" ), GTK_RESPONSE_OK );
+    button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_OK" ), GTK_RESPONSE_OK );
 	gtk_widget_add_accelerator( button, "clicked", accel_group,
 								GDK_KEY_Return, (GdkModifierType)0, GTK_ACCEL_VISIBLE );
-	button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "Cancel" ), GTK_RESPONSE_CANCEL );
+    button = gtk_dialog_add_button( GTK_DIALOG( dialog ), _( "_Cancel" ), GTK_RESPONSE_CANCEL );
 	gtk_widget_add_accelerator( button, "clicked", accel_group,
 								GDK_KEY_Escape, (GdkModifierType)0, GTK_ACCEL_VISIBLE );
 

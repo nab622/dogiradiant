@@ -34,6 +34,8 @@
 
 #define MAX_TEXTURE_QUALITY 3
 
+extern bool prefsDlgOpen;
+
 enum PrefTypes_t
 {
 	PREF_STR,

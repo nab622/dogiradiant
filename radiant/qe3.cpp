@@ -50,10 +50,11 @@ int gridZoomPosition = -4;
 // NAB622: This value is a multiplier for how much the grid zoom changes with each zoom increment. It must be a positive number greater than 1 to work correctly
 float zoomIncrementAmount = 1.25;
 
-// NAB622: Declaring this here so it's easier to find
-#define DEFAULT_GRID_SIZE 32
+// NAB622: These are the values for the patch dialog scale buttons
+float patchHScale = g_PrefsDlg.m_fDefTextureScale;
+float patchVScale = g_PrefsDlg.m_fDefTextureScale;
 
-// NAB622: Not sure where to put these, so here they are for now
+// NAB622: Bounds-checks didn't exist in Radiant before, so here they are...
 bool areWeOutOfBounds( vec3_t inputVectors ) {
     for( int i = 0; i < 3; i++ ) {
         if( inputVectors[i] < g_MinWorldCoord || inputVectors[i] > g_MaxWorldCoord ) {
@@ -71,9 +72,10 @@ void clampBoundaries( vec3_t input ) {
 
 void clampCameraBoundaries( vec3_t input ) {
     // NAB622: This cushion multiplier will allow the camera outside the grid, just slightly
-    float cushion = 1.015;
-    vec_t max = g_MaxWorldCoord * cushion;
-    vec_t min = g_MinWorldCoord * cushion;
+    float cushion = 0.015;
+    vec_t difference = ( ( g_MaxWorldCoord - g_MinWorldCoord / 2.0f ) * cushion );
+    vec_t max = g_MaxWorldCoord + difference;
+    vec_t min = g_MinWorldCoord - difference;
     for( int i = 0; i < 3; i++ ) {
         input[i] = CLAMP( input[i], min, max );
     }
@@ -1049,7 +1051,7 @@ void WINAPI QE_ConvertDOSToUnixName( char *dst, const char *src ){
 	*dst = 0;
 }
 
-int g_numbrushes, g_numentities;
+int g_numbrushes, g_numpatches, g_numentities;
 
 void QE_CountBrushesAndUpdateStatusBar( void ){
 	static int s_lastbrushcount, s_lastentitycount;
@@ -1060,6 +1062,7 @@ void QE_CountBrushesAndUpdateStatusBar( void ){
 
 	g_numbrushes = 0;
 	g_numentities = 0;
+    g_numpatches = 0;
 
     if ( active_brushes.next != NULL ) {
         for ( b = active_brushes.next ; b != NULL && b != &active_brushes ; b = next )
@@ -1068,10 +1071,13 @@ void QE_CountBrushesAndUpdateStatusBar( void ){
             if ( b->brush_faces ) {
                 if ( b->owner->eclass->fixedsize ) {
                     g_numentities++;
+                    continue;
                 }
-                else{
-                    g_numbrushes++;
+                if( b->patchBrush ) {
+                    g_numpatches++;
+                    continue;
                 }
+                g_numbrushes++;
             }
         }
     }
@@ -1485,11 +1491,11 @@ double Sys_DoubleTime( void ){
  */
 
 void Sys_UpdateStatusBar( void ){
-	extern int g_numbrushes, g_numentities;
+    extern int g_numbrushes, g_numpatches, g_numentities;
 
 	char numbrushbuffer[100] = "";
 
-    sprintf( numbrushbuffer, "Brushes: %d   Entities: %d", g_numbrushes, g_numentities );
+    sprintf( numbrushbuffer, "Brushes: %d   Patches: %d   Entities: %d", g_numbrushes, g_numpatches, g_numentities );
     g_pParentWnd->SetStatusText( 4, numbrushbuffer );
 	//Sys_Status( numbrushbuffer, 2 );
 }

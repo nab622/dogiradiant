@@ -116,7 +116,7 @@ void Cam_MouseDown( int x, int y, int buttons );
 void Cam_MouseUp( int x, int y, int buttons );
 void Cam_MouseMoved( int x, int y, int buttons );
 void InitCull();
-qboolean CullBrush( brush_t *b, float distance );
+qboolean CullBrush( brush_t *b, double distance );
 void Cam_Draw();
 void Cam_DrawStuff();
 void Cam_DrawBrushes( int mode );
@@ -137,11 +137,17 @@ int m_ptLastCamCursorY;
 face_t* m_pSide_select;
 vec3_t m_vCull1;
 vec3_t m_vCull2;
+vec3_t m_vCull3;
+vec3_t m_vCull4;
 int m_nCullv1[3];
 int m_nCullv2[3];
-float yfov;     // NAB622: Moved this here for better scope
+int m_nCullv3[3];
+int m_nCullv4[3];
 bool m_bClipMode;
 guint m_FocusOutHandler_id;
+
+double xfovRad; //XFov in radians
+double yfovRad; //YFov in radians
 
 void OnCreate();
 void OnExpose();

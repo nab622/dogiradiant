@@ -761,9 +761,7 @@ void XYWnd::SetOrigin( vec3_t org ){
 void XYWnd::OnSize( int cx, int cy ){
 	m_nWidth = cx;
     m_nHeight = cy;
-    XYResizeCountdown = 1;
-    // In addition to the timed redraw, redraw immediately as well
-    Sys_UpdateWindows( W_XY_OVERLAY );
+    XYRenderCountdown = 500;
 }
 
 brush_t hold_brushes;
@@ -2874,7 +2872,7 @@ void XYWnd::DrawCameraIcon(){
     }
 
     // Add a base amount to fovScale so it is always visible
-    fov = fov * ( fovScale + 0.4 );
+    fov = fov * ( fovScale + 0.5 );
 
     // NAB622: Save some calculation below - this can be done in advance
     fovAngle = Q_PI / ( 360 / ( 180 - fovAngle ) );
