@@ -43,7 +43,7 @@ void Entity_UpdateClass( entity_t *e, const char* value ){
 
 		CEntityMiscModel *model = new CEntityMiscModel( e );
 
-		e->model.pRender = (IRender*)model;
+        e->model.pRender = (IRender*)model;
 		e->model.pRender->IncRef();
 		e->model.pSelect = (ISelect*)model;
 		e->model.pSelect->IncRef();

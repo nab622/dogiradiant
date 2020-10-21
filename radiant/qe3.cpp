@@ -113,22 +113,19 @@ void getEntityAngles( entity_t *inputEntity, vec3_t finalAngle ) {
         const char *target, *targetName;
         entity_t *otherEnt;
 
-        // NAB622: If this entity is the type to show an angle arrow indicator in Radiant, then check for
-        // a targetname first. Otherwise we'll just use "angles" or "angle" below
-        if( inputEntity->eclass->nShowFlags & ECLASS_ANGLE ) {
-            target = ValueForKey( inputEntity, "target" );
-            if( strcmp( target, "" ) ) {
-                // If there's a targetname, find the targeted entity and aim at it
-                for ( otherEnt = entities.next ; otherEnt != &entities; otherEnt = otherEnt->next )
-                {
-                    targetName = ValueForKey( otherEnt, "targetname" );
-                    if ( !strcmp( target, targetName ) ) {
-                        GetVectorForKey( inputEntity, "origin", temp );
-                        GetVectorForKey( otherEnt, "origin", finalAngle );
-                        VectorSubtract( finalAngle, temp, temp );
-                        VectorToAngles( temp, temp );
-                        foundAngles = true;
-                    }
+        // NAB622: Check for a targetname first. Otherwise we'll just use "angles" or "angle" below
+        target = ValueForKey( inputEntity, "target" );
+        if( strcmp( target, "" ) ) {
+            // If there's a targetname, find the targeted entity and aim at it
+            for ( otherEnt = entities.next ; otherEnt != &entities; otherEnt = otherEnt->next )
+            {
+                targetName = ValueForKey( otherEnt, "targetname" );
+                if ( !strcmp( target, targetName ) ) {
+                    GetVectorForKey( inputEntity, "origin", temp );
+                    GetVectorForKey( otherEnt, "origin", finalAngle );
+                    VectorSubtract( finalAngle, temp, temp );
+                    VectorToAngles( temp, temp );
+                    foundAngles = true;
                 }
             }
         }

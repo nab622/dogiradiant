@@ -899,8 +899,8 @@ void PatchDialog::BuildDialog(){
 
             eventbox = gtk_event_box_new();
             gtk_table_attach( GTK_TABLE( specialScaleTable ), eventbox, 0, 1, 1, 2,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( eventbox );
 
             reset_special_scale_button = gtk_button_new_with_mnemonic( _( "Default" ) );

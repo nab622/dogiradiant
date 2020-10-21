@@ -1110,7 +1110,7 @@ void CGameDialog::DoGameDialog() {
 }
 
 GtkWidget* CGameDialog::GetGlobalFrame(){
-	GtkWidget *vbox, *text, *combo, *check;
+    GtkWidget *vbox, *text, *combo, *check;
 
 	if ( mFrame != NULL ) {
 		return mFrame;
@@ -1619,7 +1619,7 @@ static void OnX64Toggle( GtkWidget *widget, gpointer data ) {
 
 void PrefsDlg::BuildDialog(){
 	// Main Preferences dialog
-    GtkWidget *dialog, *mainvbox, *hbox, *sc_win, *preflabel, *windowConfigViewport, *cameraMovementViewport;
+    GtkWidget *dialog, *mainvbox, *hbox, *sc_win, *preflabel, *windowConfigViewport, *hseparator;
 
 	GtkWidget *ftw_label, *fth_label;
 	// Widgets on notebook pages
@@ -1877,20 +1877,22 @@ void PrefsDlg::BuildDialog(){
 	gtk_container_add( GTK_CONTAINER( pageframe ), vbox );
 	gtk_widget_show( vbox );
 
-        table = gtk_table_new( 4, 4, FALSE );
+        table = gtk_table_new( 1, 4, FALSE );
         gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
         gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
         gtk_table_set_col_spacings( GTK_TABLE( table ), 6 );
         gtk_widget_show( table );
 
             label = gtk_label_new( _( "Render Distance:" ) );
-            gtk_table_attach_defaults( GTK_TABLE( table ), label, 0, 1, 0, 1 );
+            gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+            (GtkAttachOptions) ( 0 ),
+            (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
             gtk_widget_show( label );
 
             // Render distance
             char RenderDistanceTooltipMsg[128];
-            sprintf( RenderDistanceTooltipMsg, "This value controls the maximum render distance of Radiant.\nFor ease of use, it will always change in increments of %i", m_nCubicIncrement );
+            sprintf( RenderDistanceTooltipMsg, "This value controls the maximum render distance.\nFor ease of use, it will always change in increments of %i", m_nCubicIncrement );
             renderDistanceSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( DEFAULT_RENDER_DISTANCE, m_nCubicClipMin * m_nCubicIncrement, maximumRenderDistance, m_nCubicIncrement, m_nCubicIncrement * 10, 0 ) ), 1, 0 );
             gtk_widget_set_tooltip_text( renderDistanceSpin, RenderDistanceTooltipMsg );
             gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( renderDistanceSpin ), TRUE );
@@ -1906,7 +1908,9 @@ void PrefsDlg::BuildDialog(){
             g_signal_connect( (gpointer) renderDistanceSpin, "value-changed", G_CALLBACK( renderDistanceSpinChanged ), NULL );
 
             label = gtk_label_new( "grid units" );
-            gtk_table_attach_defaults( GTK_TABLE( table ), label, 2, 3, 0, 1 );
+            gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 0, 1,
+            (GtkAttachOptions) ( 0 ),
+            (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
             gtk_widget_show( label );
 
@@ -1917,21 +1921,29 @@ void PrefsDlg::BuildDialog(){
             gtk_widget_set_tooltip_text( resetRenderDistanceButton, resetTooltipMsg );
             gtk_table_attach( GTK_TABLE( table ), resetRenderDistanceButton, 3, 4, 0, 1,
                               (GtkAttachOptions) ( 0 ),
-                              (GtkAttachOptions) ( 0 ), 0.5, 0.5 );
+                              (GtkAttachOptions) ( 0 ), 0.0, 0.5 );
             gtk_widget_show( resetRenderDistanceButton );
             g_signal_connect( (gpointer) resetRenderDistanceButton, "clicked", G_CALLBACK( resetRenderDistanceSpin ), NULL );
 
-            // Cubic Clipping
-            // Cubic clipping enabled
-            cubicClippingCheckbox = gtk_check_button_new_with_label( _( "Enable Cubic Clipping" ) );
-            gtk_widget_show( cubicClippingCheckbox );
-            gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
-            gtk_table_attach_defaults( GTK_TABLE( table ), cubicClippingCheckbox, 0, 5, 1, 2 );
-            g_signal_connect( (gpointer) cubicClippingCheckbox, "toggled", G_CALLBACK( cubicClippingToggled ), NULL );
+        // Cubic Clipping
+        // Cubic clipping enabled
+        cubicClippingCheckbox = gtk_check_button_new_with_label( _( "Enable Cubic Clipping" ) );
+        gtk_widget_show( cubicClippingCheckbox );
+        gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( cubicClippingCheckbox ), g_PrefsDlg.m_bCubicClipping );
+        gtk_box_pack_start( GTK_BOX( vbox ), cubicClippingCheckbox, FALSE, FALSE, 0 );
+        g_signal_connect( (gpointer) cubicClippingCheckbox, "toggled", G_CALLBACK( cubicClippingToggled ), NULL );
+
+        table = gtk_table_new( 1, 3, FALSE );
+        gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
+        gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
+        gtk_table_set_col_spacings( GTK_TABLE( table ), 6 );
+        gtk_widget_show( table );
 
             // Cubic clipping distance
             label = gtk_label_new( _( "Cubic Clip Distance:" ) );
-            gtk_table_attach_defaults( GTK_TABLE( table ), label, 0, 1, 2, 3 );
+            gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+                              (GtkAttachOptions) ( 0 ),
+                              (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
             gtk_widget_show( label );
 
@@ -1942,17 +1954,17 @@ void PrefsDlg::BuildDialog(){
             gtk_entry_set_alignment( GTK_ENTRY( cubicClippingSpin ), 1.0 ); //right
             gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( cubicClippingSpin ), GTK_UPDATE_ALWAYS );
             g_object_set( cubicClippingSpin, "xalign", 1.0, (char*)NULL );
-            gtk_table_attach( GTK_TABLE( table ), cubicClippingSpin, 1, 2, 2, 3,
+            gtk_table_attach( GTK_TABLE( table ), cubicClippingSpin, 1, 2, 0, 1,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( cubicClippingSpin );
             AddDialogData( cubicClippingSpin, &m_nCubicScale, DLG_SPIN_INT );
 
-            char temp2[50];
-            sprintf( temp2, " x   %i   =   %i grid units", g_PrefsDlg.m_nCubicIncrement, g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement );
-            cubicClippingCalculatedDistanceLabel = gtk_label_new( ( temp2 ) );
-            gtk_table_attach_defaults( GTK_TABLE( table ), cubicClippingCalculatedDistanceLabel, 2, 4, 2, 3 );
-            gtk_misc_set_alignment( GTK_MISC( cubicClippingCalculatedDistanceLabel ), 1.0, 0.5 );
+            cubicClippingCalculatedDistanceLabel = gtk_label_new( _( "" ) );
+            gtk_table_attach( GTK_TABLE( table ), cubicClippingCalculatedDistanceLabel, 2, 3, 0, 1,
+                    (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                    (GtkAttachOptions) ( 0 ), 0, 0 );
+            gtk_misc_set_alignment( GTK_MISC( cubicClippingCalculatedDistanceLabel ), 0.0, 0.5 );
             gtk_widget_show( cubicClippingCalculatedDistanceLabel );
             g_signal_connect( (gpointer) cubicClippingSpin, "value-changed", G_CALLBACK( updateCubicClippingDistance ), NULL );
 
@@ -1960,21 +1972,29 @@ void PrefsDlg::BuildDialog(){
             updateCubicClippingDistance();
 
 
+        table = gtk_table_new( 1, 2, FALSE );
+        gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, FALSE, 0 );
+        gtk_table_set_row_spacings( GTK_TABLE( table ), 6 );
+        gtk_table_set_col_spacings( GTK_TABLE( table ), 6 );
+        gtk_widget_show( table );
+
             // Horizontal FOV
             // label
             label = gtk_label_new( _( "Horizontal FOV:" ) );
-            gtk_table_attach_defaults( GTK_TABLE( table ), label, 0, 1, 3, 4 );
+            gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+                  (GtkAttachOptions) ( 0 ),
+                  (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
             gtk_widget_show( label );
 
             xfovSpin = gtk_spin_button_new( GTK_ADJUSTMENT( gtk_adjustment_new( FOV_DEFAULT, FOV_MIN, FOV_MAX, 1, 5, 110 ) ), 1, 0 );
-            gtk_widget_set_tooltip_text( xfovSpin, "This value will adjust the horizontal FOV of the camera" );
+            gtk_widget_set_tooltip_text( xfovSpin, "This value will adjust the horizontal viewing angle (FOV) of the camera.\nHigher values result in a wider view angle, lower values result in a narrower angle." );
             gtk_spin_button_set_numeric( GTK_SPIN_BUTTON( xfovSpin ), TRUE );
             gtk_widget_set_sensitive( GTK_WIDGET( xfovSpin ), TRUE );
             gtk_entry_set_alignment( GTK_ENTRY( xfovSpin ), 1.0 ); //right
             gtk_spin_button_set_update_policy( GTK_SPIN_BUTTON( xfovSpin ), GTK_UPDATE_ALWAYS );
             g_object_set( xfovSpin, "xalign", 1.0, (char*)NULL );
-            gtk_table_attach( GTK_TABLE( table ), xfovSpin, 1, 2, 3, 4,
+            gtk_table_attach( GTK_TABLE( table ), xfovSpin, 1, 2, 0, 1,
                               (GtkAttachOptions) ( 0 ),
                               (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_widget_show( xfovSpin );
@@ -2069,93 +2089,94 @@ void PrefsDlg::BuildDialog(){
     g_list_free( combo_list );
 */
 
-    cameraMovementViewport = gtk_viewport_new( NULL, NULL );
-    gtk_box_pack_start( GTK_BOX( vbox ), cameraMovementViewport, FALSE, TRUE, 0 );
-    gtk_viewport_set_shadow_type( GTK_VIEWPORT( cameraMovementViewport ), GTK_SHADOW_IN );
-    gtk_widget_show( cameraMovementViewport );    // Camera speeds
+    hseparator = gtk_hseparator_new();
+    gtk_box_pack_start( GTK_BOX( vbox ), hseparator, FALSE, TRUE, 0 );
+    gtk_widget_show( hseparator );
 
-        table = gtk_table_new( 4, 6, FALSE );
-        gtk_container_add( GTK_CONTAINER( cameraMovementViewport ), table );
-        gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
-        gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
-        gtk_widget_show( table );
+    // Attach camera to grid
+    attachCameraMovementToGridCheck = gtk_check_button_new_with_label( _( "Attach camera movement speed to current grid size" ) );
+    gtk_box_pack_start( GTK_BOX( vbox ), attachCameraMovementToGridCheck, FALSE, TRUE, 0 );
+    gtk_widget_show( attachCameraMovementToGridCheck );
+    AddDialogData( attachCameraMovementToGridCheck, &m_nAttachCameraToGrid, DLG_CHECK_BOOL );
+
+    table = gtk_table_new( 3, 5, FALSE );
+    gtk_box_pack_start( GTK_BOX( vbox ), table, FALSE, TRUE, 0 );
+    gtk_table_set_row_spacings( GTK_TABLE( table ), 5 );
+    gtk_table_set_col_spacings( GTK_TABLE( table ), 5 );
+    gtk_widget_show( table );
 
 /*
-            // label
-            label = gtk_label_new( _( "Camera Movement Velocity:" ) );
-            gtk_table_attach( GTK_TABLE( table ), label, 0, 4, 0, 1,
-                              (GtkAttachOptions) ( GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-            gtk_widget_show( label );
+        // label
+        label = gtk_label_new( _( "Camera Movement Velocity:" ) );
+        gtk_table_attach( GTK_TABLE( table ), label, 0, 4, 0, 1,
+                          (GtkAttachOptions) ( GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+        gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+        gtk_widget_show( label );
 */
-            // Attach camera to grid
-            attachCameraMovementToGridCheck = gtk_check_button_new_with_label( _( "Attach camera movement speed to current grid size" ) );
-            gtk_table_attach( GTK_TABLE( table ), attachCameraMovementToGridCheck, 1, 5, 1, 2,
+        // label
+        label = gtk_label_new( _( "Move speed:" ) );
+        gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 0, 1,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+        gtk_widget_show( label );
+
+        // adjustment
+        adj = GTK_ADJUSTMENT( gtk_adjustment_new( 100, 1, 300, 1, 10, 10 ) );
+        AddDialogData( G_OBJECT( adj ), &m_nMoveSpeed, DLG_ADJ_INT );
+
+        // scale
+        cameraMovementSlider = gtk_hscale_new( GTK_ADJUSTMENT( adj ) );
+        gtk_table_attach( GTK_TABLE( table ), cameraMovementSlider, 1, 4, 0, 1,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
+        gtk_widget_show( cameraMovementSlider );
+
+        gtk_scale_set_draw_value( GTK_SCALE( cameraMovementSlider ), TRUE );
+
+            // Text under the velocity sliders
+            // label
+            label = gtk_label_new( _( "Slow" ) );
+            gtk_widget_modify_font(label, pango_font_description_from_string("Sans 8.5"));
+            gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 1, 2,
                               (GtkAttachOptions) ( GTK_FILL ),
                               (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-            gtk_widget_show( attachCameraMovementToGridCheck );
-            AddDialogData( attachCameraMovementToGridCheck, &m_nAttachCameraToGrid, DLG_CHECK_BOOL );
-
-            // label
-            label = gtk_label_new( _( "Move speed:" ) );
-            gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 2, 3,
-                              (GtkAttachOptions) ( 0 ),
-                              (GtkAttachOptions) ( 0 ), 0, 0 );
             gtk_misc_set_alignment( GTK_MISC( label ), 0, 0.5 );
             gtk_widget_show( label );
 
-            // adjustment
-            adj = GTK_ADJUSTMENT( gtk_adjustment_new( 100, 1, 300, 1, 10, 10 ) );
-            AddDialogData( G_OBJECT( adj ), &m_nMoveSpeed, DLG_ADJ_INT );
-
-            // scale
-            cameraMovementSlider = gtk_hscale_new( GTK_ADJUSTMENT( adj ) );
-            gtk_table_attach( GTK_TABLE( table ), cameraMovementSlider, 2, 5, 2, 3,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
-            gtk_widget_show( cameraMovementSlider );
-
-            gtk_scale_set_draw_value( GTK_SCALE( cameraMovementSlider ), TRUE );
-
-                // Text under the velocity sliders
-                // label
-                label = gtk_label_new( _( "Slow" ) );
-                gtk_widget_modify_font(label, pango_font_description_from_string("Sans 8.5"));
-                gtk_table_attach( GTK_TABLE( table ), label, 2, 3, 3, 4,
-                                  (GtkAttachOptions) ( GTK_FILL ),
-                                  (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-                gtk_misc_set_alignment( GTK_MISC( label ), 0, 0.5 );
-                gtk_widget_show( label );
-
-                // label
-                label = gtk_label_new( _( "Fast" ) );
-                gtk_widget_modify_font(label, pango_font_description_from_string("Sans 8.5"));
-                gtk_table_attach( GTK_TABLE( table ), label, 4, 5, 3, 4,
-                                  (GtkAttachOptions) ( GTK_FILL ),
-                                  (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
-                gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
-                gtk_widget_show( label );
-
             // label
-            label = gtk_label_new( _( "Rotate speed:" ) );
-            gtk_table_attach( GTK_TABLE( table ), label, 1, 2, 4, 5,
-                              (GtkAttachOptions) ( 0 ),
-                              (GtkAttachOptions) ( 0 ), 0, 0 );
-            gtk_misc_set_alignment( GTK_MISC( label ), 0, 1.0 );
+            label = gtk_label_new( _( "Fast" ) );
+            gtk_widget_modify_font(label, pango_font_description_from_string("Sans 8.5"));
+            gtk_table_attach( GTK_TABLE( table ), label, 3, 4, 1, 2,
+                              (GtkAttachOptions) ( GTK_FILL ),
+                              (GtkAttachOptions) ( GTK_FILL ), 0, 0 );
+            gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
             gtk_widget_show( label );
 
-            // adjustment
-            adj = GTK_ADJUSTMENT( gtk_adjustment_new( 3, 1, 15, 1, 5, 10 ) ); // value, low, high, step, page_step, page_size
-            AddDialogData( G_OBJECT( adj ), &m_nAngleSpeed, DLG_ADJ_INT );
+        // label
+        label = gtk_label_new( _( "Rotate speed:" ) );
+        gtk_table_attach( GTK_TABLE( table ), label, 0, 1, 2, 3,
+                          (GtkAttachOptions) ( 0 ),
+                          (GtkAttachOptions) ( 0 ), 0, 0 );
+        gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+        gtk_widget_show( label );
 
-            // scale
-            scale = gtk_hscale_new( GTK_ADJUSTMENT( adj ) );
-            gtk_table_attach( GTK_TABLE( table ), scale, 2, 5, 4, 5,
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
-                              (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
-            gtk_scale_set_draw_value( GTK_SCALE( scale ), TRUE );
-            gtk_widget_show( scale );
+        // adjustment
+        adj = GTK_ADJUSTMENT( gtk_adjustment_new( 3, 1, 15, 1, 5, 10 ) ); // value, low, high, step, page_step, page_size
+        AddDialogData( G_OBJECT( adj ), &m_nAngleSpeed, DLG_ADJ_INT );
+
+        // scale
+        scale = gtk_hscale_new( GTK_ADJUSTMENT( adj ) );
+        gtk_table_attach( GTK_TABLE( table ), scale, 1, 4, 2, 3,
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ),
+                          (GtkAttachOptions) ( GTK_EXPAND | GTK_FILL ), 0, 0 );
+        gtk_scale_set_draw_value( GTK_SCALE( scale ), TRUE );
+        gtk_widget_show( scale );
+
+    hseparator = gtk_hseparator_new();
+    gtk_box_pack_start( GTK_BOX( vbox ), hseparator, FALSE, TRUE, 0 );
+    gtk_widget_show( hseparator );
 
 /*
 // NAB622: Disabling these options
@@ -3281,7 +3302,9 @@ static void renderDistanceSpinChanged() {
 static void cubicClippingToggled() {
     g_PrefsDlg.m_bCubicClipping ^= 1;
     // I would update the cubic clipping toolbar button here, but it would require linking stuff and...ehhh
-    renderCamera();
+
+    // Don't use the timer to update this! Update immediately
+    Sys_UpdateWindows( W_CAMERA_IFON );
 }
 
 static void setCubicClippingRange() {

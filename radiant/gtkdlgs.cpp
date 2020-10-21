@@ -1063,7 +1063,7 @@ void DoMapInfo(){
 		gtk_tree_view_set_headers_clickable( GTK_TREE_VIEW( view ), TRUE );
 
 		{
-			GtkCellRenderer* renderer = gtk_cell_renderer_text_new();
+            GtkCellRenderer* renderer = gtk_cell_renderer_text_new();
 			GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes( _( "Entity" ), renderer, "text", 0, (char *) NULL );
 			gtk_tree_view_append_column( GTK_TREE_VIEW( view ), column );
 			gtk_tree_view_column_set_sort_column_id( column, 0 );
@@ -1074,7 +1074,8 @@ void DoMapInfo(){
 			GtkTreeViewColumn* column = gtk_tree_view_column_new_with_attributes( _( "Count" ), renderer, "text", 1, (char *) NULL );
 			gtk_tree_view_append_column( GTK_TREE_VIEW( view ), column );
 			gtk_tree_view_column_set_sort_column_id( column, 1 );
-		}
+//            gtk_tree_sortable_set_default_sort_func( view );
+        }
 
 
 		gtk_container_add( GTK_CONTAINER( scr ), view );
@@ -1169,7 +1170,7 @@ void DoMapInfo(){
 		entitymap = g_slist_remove( entitymap, entry );
 	}
 
-	g_object_unref( G_OBJECT( store ) );
+    g_object_unref( G_OBJECT( store ) );
 
 	char tmp[16];
     sprintf( tmp, "%d", TotalBrushes );
@@ -1417,7 +1418,8 @@ void DoEntityList(){
 		GtkTreeStore* store = gtk_tree_store_new( 2, G_TYPE_STRING, G_TYPE_POINTER );
 
 		GtkWidget* view = gtk_tree_view_new_with_model( GTK_TREE_MODEL( store ) );
-		g_signal_connect( G_OBJECT( view ), "button-press-event", G_CALLBACK( entitylist_click ), dialog );
+        gtk_tree_view_set_headers_clickable( GTK_TREE_VIEW( view ), TRUE );
+        g_signal_connect( G_OBJECT( view ), "button-press-event", G_CALLBACK( entitylist_click ), dialog );
 		gtk_tree_view_set_headers_visible( GTK_TREE_VIEW( view ), FALSE );
 
 		{

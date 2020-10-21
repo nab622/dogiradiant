@@ -695,7 +695,6 @@ void CamWnd::Cam_MouseDown( int x, int y, int buttons ){
     if ( buttons == MK_RBUTTON && !Sys_AltDown() ) {
 		if ( g_PrefsDlg.m_bCamFreeLook ) {
             ToggleFreeMove();
-Sys_Printf("PITCH: %f  -  YAW: %f  -  ROLL: %f\n", g_pParentWnd->GetCamWnd()->Camera()->angles[PITCH], g_pParentWnd->GetCamWnd()->Camera()->angles[YAW], g_pParentWnd->GetCamWnd()->Camera()->angles[ROLL] );
         }
 		else{
             Cam_MouseControl( 0.1f );
@@ -812,14 +811,11 @@ void CamWnd::InitCull(){
     //m_vCull4 is bottom
 
     // NAB622: We need to add the FOV to the vectors, or none of this will work right
-    horizontal = cot( xfovRad );
-    vertical = yfovRad;
-    if ( horizontal == 0 ) {
-        // NAB622: Just in case...I'm sure this won't happen but you never know...
-        horizontal = 0.0001;
-    }
+    horizontal = 1 / cot( xfovRad );
+    vertical = 1 / cot ( yfovRad );
+
     for( i = 0; i < 3; i++ ) {
-        horizontalVec[i] = m_Camera.vpn[i] * 1 / horizontal;
+        horizontalVec[i] = m_Camera.vpn[i] * horizontal;
         verticalVec[i] = m_Camera.vpn[i] * vertical;
     }
 
@@ -896,7 +892,12 @@ qboolean CamWnd::CullBrush( brush_t *b, double distance ){
     // **********
 
 
-    // Cull the brush if it is not visible off the right side
+    //m_vCull1 is right
+    //m_vCull2 is left
+    //m_vCull3 is top
+    //m_vCull4 is bottom
+
+    // Cull if beyond the right edge
     for ( i = 0 ; i < 3 ; i++ ) {
         point[i] = b->mins[m_nCullv1[i]] - m_Camera.origin[i];
     }
@@ -907,7 +908,7 @@ qboolean CamWnd::CullBrush( brush_t *b, double distance ){
     }
 
 
-    // Cull the brush if it is not visible off the left tside
+    // Cull if beyond the left edge
     for ( i = 0 ; i < 3 ; i++ ) {
         point[i] = b->mins[m_nCullv2[i]] - m_Camera.origin[i];
     }
@@ -917,7 +918,7 @@ qboolean CamWnd::CullBrush( brush_t *b, double distance ){
     }
 
 
-    // Cull the brush if it is not visible off the top
+    // Cull if beyond the top
     for ( i = 0 ; i < 3 ; i++ ) {
         point[i] = b->mins[m_nCullv3[i]] - m_Camera.origin[i];
     }
@@ -927,7 +928,7 @@ qboolean CamWnd::CullBrush( brush_t *b, double distance ){
     }
 
 
-    // Cull the brush if it is not visible off the bottom
+    // Cull if beyond the bottom
     for ( i = 0 ; i < 3 ; i++ ) {
         point[i] = b->mins[m_nCullv4[i]] - m_Camera.origin[i];
     }

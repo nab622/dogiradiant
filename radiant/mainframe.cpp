@@ -5428,11 +5428,11 @@ float MainFrame::calculateGridIncrement( int change ) {
     float minZoomMultiplier = 1.375;
 
     if ( m_pXYWnd && m_pXYWnd->Active() ) {
-        minScale = MIN( m_pXYWnd->Width(),m_pXYWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+        minScale = MIN( m_pXYWnd->Width(), m_pXYWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
     } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
-        minScale = MIN( m_pXZWnd->Width(),m_pXZWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+        minScale = MIN( m_pXZWnd->Width(), m_pXZWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
     } else if ( m_pYZWnd && m_pYZWnd->Active() ) {
-        minScale = MIN( m_pYZWnd->Width(),m_pYZWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
+        minScale = MIN( m_pYZWnd->Width(), m_pYZWnd->Height() ) / ( minZoomMultiplier * ( g_MaxWorldCoord - g_MinWorldCoord ) );
     }
 
     //Don't change gridZoomPosition if we're already at the outer limits!
@@ -5452,24 +5452,32 @@ float MainFrame::calculateGridIncrement( int change ) {
 }
 
 void MainFrame::OnViewZoomin(){
+    float newGridSize = calculateGridIncrement( 1 );
+
     if ( m_pXYWnd && m_pXYWnd->Active() ) {
-        m_pXYWnd->SetScale( calculateGridIncrement( 1 ) );
-    } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
-        m_pXZWnd->SetScale( calculateGridIncrement( 1 ) );
-    } else if ( m_pYZWnd && m_pYZWnd->Active() ) {
-        m_pYZWnd->SetScale( calculateGridIncrement( 1 ) );
+        m_pXYWnd->SetScale( newGridSize );
+    }
+    if ( m_pXZWnd && m_pXZWnd->Active() ) {
+        m_pXZWnd->SetScale( newGridSize );
+    }
+    if ( m_pYZWnd && m_pYZWnd->Active() ) {
+        m_pYZWnd->SetScale( newGridSize );
     }
 
     Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
 }
 
 void MainFrame::OnViewZoomout(){
+    float newGridSize = calculateGridIncrement( -1 );
+
     if ( m_pXYWnd && m_pXYWnd->Active() ) {
-        m_pXYWnd->SetScale( calculateGridIncrement( -1 ) );
-    } else if ( m_pXZWnd && m_pXZWnd->Active() ) {
-        m_pXZWnd->SetScale( calculateGridIncrement( -1 ) );
-    } else if ( m_pYZWnd && m_pYZWnd->Active() ) {
-        m_pYZWnd->SetScale( calculateGridIncrement( -1 ) );
+        m_pXYWnd->SetScale( newGridSize );
+    }
+    if ( m_pXZWnd && m_pXZWnd->Active() ) {
+        m_pXZWnd->SetScale( newGridSize );
+    }
+    if ( m_pYZWnd && m_pYZWnd->Active() ) {
+        m_pYZWnd->SetScale( newGridSize );
     }
 
     Sys_UpdateWindows( W_XY | W_XY_OVERLAY );
