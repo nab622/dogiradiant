@@ -3319,7 +3319,7 @@ static void updateCubicClippingDistance() {
     g_PrefsDlg.m_nCubicScale = gtk_spin_button_get_value_as_int( GTK_SPIN_BUTTON( cubicClippingSpin ) );
 
     char temp[60];
-    sprintf( temp, " x   %i   =   %i grid units", g_PrefsDlg.m_nCubicIncrement, g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement );
+    sprintf( temp, " x  %i  =  %i grid units", g_PrefsDlg.m_nCubicIncrement, g_PrefsDlg.m_nCubicScale * g_PrefsDlg.m_nCubicIncrement );
     gtk_label_set_text( GTK_LABEL( cubicClippingCalculatedDistanceLabel ), temp );
 
     renderCamera();
