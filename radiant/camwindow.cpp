@@ -641,7 +641,7 @@ void CamWnd::CalculateClickDirection( int x, int y, vec3_t dir ) {
     // R is right
     r = (vec_t)( x - ( m_Camera.width * .5f ) ) / ( m_Camera.width * .5f );
     // F is forward (FOV)
-    f = cot( xfovRad );
+    f = cot( xfovRad / 2 );
 
     for ( int i = 0 ; i < 3 ; i++ ) {
         dir[i] = m_Camera.vpn[i] * f + m_Camera.vright[i] * r + m_Camera.vup[i] * u;
@@ -811,8 +811,8 @@ void CamWnd::InitCull(){
     //m_vCull4 is bottom
 
     // NAB622: We need to add the FOV to the vectors, or none of this will work right
-    horizontal = 1 / cot( xfovRad );
-    vertical = 1 / cot ( yfovRad );
+    horizontal = tan( xfovRad / 2 );
+    vertical = tan( yfovRad / 2 );
 
     for( i = 0; i < 3; i++ ) {
         horizontalVec[i] = m_Camera.vpn[i] * horizontal;

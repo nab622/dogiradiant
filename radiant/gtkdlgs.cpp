@@ -749,27 +749,27 @@ void DoProjectSettings(){
 	gtk_widget_show( base );
 
 
-	label = gtk_label_new( _( "basepath" ) );
-	gtk_table_attach( GTK_TABLE( table2 ), label, 0, 1, 0, 1,
+    label = gtk_label_new( _( "Base folder path\n          (Basepath)" ) );
+    gtk_table_attach( GTK_TABLE( table2 ), label, 0, 1, 0, 1,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
+    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
 	gtk_widget_show( label );
 
 
 	label = gtk_label_new( _( "Select mod" ) );
-	gtk_table_attach( GTK_TABLE( table2 ), label, 0, 1, 6, 7,
+    gtk_table_attach( GTK_TABLE( table2 ), label, 0, 1, 6, 7,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_show( label );
+    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+    gtk_widget_show( label );
 
 	label = gtk_label_new( _( "fs_game" ) );
-	gtk_table_attach( GTK_TABLE( table2 ), label, 0, 1, 7, 8,
+    gtk_table_attach( GTK_TABLE( table2 ), label, 0, 1, 7, 8,
 					  (GtkAttachOptions) ( GTK_FILL ),
 					  (GtkAttachOptions) ( 0 ), 0, 0 );
-	gtk_misc_set_alignment( GTK_MISC( label ), 0.0, 0.5 );
-	gtk_widget_show( label );
+    gtk_misc_set_alignment( GTK_MISC( label ), 1.0, 0.5 );
+    gtk_widget_show( label );
 
 	// Initialize fields
 	gtk_entry_set_text( GTK_ENTRY( base ), ValueForKey( g_qeglobals.d_project_entity, "basepath" ) );
